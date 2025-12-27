@@ -1,0 +1,25 @@
+services:
+  odoo:
+    image: docker.io/sumarokovvp/simplelogic:royal_estate_arm
+    restart: unless-stopped
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - odoo-addons:/mnt/extra-addons
+    environment:
+      - HOST=${DB_HOST}
+      - PORT=${DB_PORT:-5432}
+      - USER=${DB_USER}
+      - PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  odoo-data:
+  odoo-addons:

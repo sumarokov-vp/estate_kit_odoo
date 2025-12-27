@@ -1,0 +1,20 @@
+services:
+  odoo:
+    image: docker.io/sumarokovvp/simplelogic:royal_estate_arm
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ../addons:/mnt/extra-addons:ro
+    environment:
+      - HOST=${DB_HOST:-host.containers.internal}
+      - PORT=${DB_PORT:-5432}
+      - USER=${DB_USER:-odoo}
+      - PASSWORD=${DB_PASSWORD:-odoo}
+    extra_hosts:
+      - "host.containers.internal:host-gateway"
+    depends_on: []
+
+volumes:
+  odoo-data:

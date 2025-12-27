@@ -1,0 +1,6 @@
+services:
+  odoo:
+    build:
+      context: ..
+      dockerfile: build/Dockerfile
+    image: docker.io/sumarokovvp/simplelogic:royal_estate_arm
