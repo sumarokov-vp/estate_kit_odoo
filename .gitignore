@@ -1,0 +1,30 @@
+# Environment
+.env
+*.env.local
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+
+# Odoo
+*.pyc
+filestore/
+
+# Containers
+odoo-data/
