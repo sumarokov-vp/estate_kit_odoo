@@ -1,3 +1,4 @@
+name: royal-estate
 services:
   odoo:
     image: docker.io/sumarokovvp/simplelogic:royal_estate_arm
