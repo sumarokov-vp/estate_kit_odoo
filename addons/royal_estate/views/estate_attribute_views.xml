@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="estate_attribute_view_form" model="ir.ui.view">
+        <field name="name">estate.attribute.form</field>
+        <field name="model">estate.attribute</field>
+        <field name="arch" type="xml">
+            <form string="Attribute">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                            <field name="field_type"/>
+                            <field name="category"/>
+                        </group>
+                        <group>
+                            <field name="property_types"/>
+                            <field name="sequence"/>
+                            <field name="is_filterable"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Selection Options" invisible="field_type != 'selection'">
+                        <field name="selection_options" widget="ace" options="{'mode': 'json'}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="estate_attribute_view_list" model="ir.ui.view">
+        <field name="name">estate.attribute.list</field>
+        <field name="model">estate.attribute</field>
+        <field name="arch" type="xml">
+            <list string="Attributes">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="field_type"/>
+                <field name="category"/>
+                <field name="property_types"/>
+                <field name="is_filterable"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="estate_attribute_view_search" model="ir.ui.view">
+        <field name="name">estate.attribute.search</field>
+        <field name="model">estate.attribute</field>
+        <field name="arch" type="xml">
+            <search string="Attributes">
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="filterable" string="Filterable" domain="[('is_filterable', '=', True)]"/>
+                <separator/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+                    <filter name="group_type" string="Field Type" context="{'group_by': 'field_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="estate_attribute_action" model="ir.actions.act_window">
+        <field name="name">Attributes</field>
+        <field name="res_model">estate.attribute</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_category': 1}</field>
+    </record>
+</odoo>

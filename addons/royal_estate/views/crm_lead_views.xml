@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_view_form_inherit_estate" model="ir.ui.view">
+        <field name="name">crm.lead.form.inherit.estate</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='lead_contact']" position="after">
+                <group string="Real Estate" name="estate_info">
+                    <field name="property_id"/>
+                    <field name="isa_user_id"/>
+                    <field name="buyer_agent_id"/>
+                    <field name="transaction_coordinator_id"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
