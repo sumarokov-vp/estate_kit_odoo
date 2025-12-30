@@ -7,102 +7,106 @@ class EstateProperty(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "create_date desc"
 
-    name = fields.Char(string="Title", required=True, tracking=True)
-    description = fields.Text()
+    name = fields.Char(string="Название", required=True, tracking=True)
+    description = fields.Text(string="Описание")
     active = fields.Boolean(default=True)
 
     property_type = fields.Selection(
         [
-            ("apartment", "Apartment"),
-            ("house", "House"),
-            ("commercial", "Commercial"),
-            ("land", "Land"),
+            ("apartment", "Квартира"),
+            ("house", "Дом"),
+            ("commercial", "Коммерция"),
+            ("land", "Земля"),
         ],
+        string="Тип объекта",
         required=True,
         default="apartment",
         tracking=True,
     )
     deal_type = fields.Selection(
         [
-            ("sale", "Sale"),
-            ("rent_long", "Long-term Rent"),
-            ("rent_daily", "Daily Rent"),
+            ("sale", "Продажа"),
+            ("rent_long", "Долгосрочная аренда"),
+            ("rent_daily", "Посуточная аренда"),
         ],
+        string="Тип сделки",
         required=True,
         default="sale",
         tracking=True,
     )
     state = fields.Selection(
         [
-            ("new", "New"),
-            ("active", "Active"),
-            ("deposit", "Deposit"),
-            ("deal", "Deal"),
-            ("canceled", "Canceled"),
-            ("archived", "Archived"),
+            ("new", "Новый"),
+            ("active", "В работе"),
+            ("deposit", "Задаток"),
+            ("deal", "Сделка"),
+            ("canceled", "Снят"),
+            ("archived", "Архив"),
         ],
+        string="Стадия",
         required=True,
         copy=False,
         default="new",
         tracking=True,
     )
 
-    price = fields.Monetary(tracking=True)
+    price = fields.Monetary(string="Цена", tracking=True)
     currency_id = fields.Many2one(
         "res.currency",
         default=lambda self: self.env.company.currency_id,
     )
-    rooms = fields.Integer()
-    area_total = fields.Float(string="Total Area (m²)")
+    rooms = fields.Integer(string="Комнат")
+    area_total = fields.Float(string="Площадь (м²)")
 
-    district_id = fields.Many2one("estate.district", tracking=True)
-    street = fields.Char()
-    house_number = fields.Char()
+    district_id = fields.Many2one("estate.district", string="Район", tracking=True)
+    street = fields.Char(string="Улица")
+    house_number = fields.Char(string="Дом")
 
-    owner_id = fields.Many2one("res.partner", string="Owner", tracking=True)
+    owner_id = fields.Many2one("res.partner", string="Собственник", tracking=True)
     user_id = fields.Many2one(
         "res.users",
-        string="Responsible",
+        string="Ответственный",
         default=lambda self: self.env.user,
         tracking=True,
     )
     listing_coordinator_id = fields.Many2one(
         "res.users",
-        string="Listing Coordinator",
-        help="Who added the property to the database",
+        string="Координатор листинга",
+        help="Кто внёс объект в базу",
     )
     listing_agent_id = fields.Many2one(
         "res.users",
-        string="Listing Agent",
+        string="Листинг-агент",
     )
 
-    source_id = fields.Many2one("estate.source", string="Source")
+    source_id = fields.Many2one("estate.source", string="Источник")
     contract_type = fields.Selection(
         [
-            ("exclusive", "Exclusive"),
-            ("non_exclusive", "Non-exclusive"),
+            ("exclusive", "Эксклюзив"),
+            ("non_exclusive", "Не эксклюзив"),
         ],
+        string="Тип договора",
     )
-    contract_start = fields.Date()
-    contract_end = fields.Date()
+    contract_start = fields.Date(string="Начало договора")
+    contract_end = fields.Date(string="Окончание договора")
     is_shared = fields.Boolean(
-        string="Shared Listing",
-        help="Property is available for other agents",
+        string="Открытый объект",
+        help="Объект доступен другим агентам",
     )
 
-    internal_note = fields.Text(string="Internal Notes")
-    video_url = fields.Char(string="Video URL")
-    instagram_url = fields.Char(string="Instagram URL")
+    internal_note = fields.Text(string="Внутренние заметки")
+    video_url = fields.Char(string="Видео")
+    instagram_url = fields.Char(string="Instagram")
 
     attribute_value_ids = fields.One2many(
         "estate.property.attribute.value",
         "property_id",
-        string="Attributes",
+        string="Характеристики",
     )
     image_ids = fields.One2many(
         "estate.property.image",
         "property_id",
-        string="Images",
+        string="Фотографии",
     )
 
     def get_attribute_value(self, code):

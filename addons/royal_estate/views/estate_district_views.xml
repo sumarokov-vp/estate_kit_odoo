@@ -4,7 +4,7 @@
         <field name="name">estate.district.form</field>
         <field name="model">estate.district</field>
         <field name="arch" type="xml">
-            <form string="District">
+            <form string="Район">
                 <sheet>
                     <group>
                         <field name="name"/>
@@ -20,7 +20,7 @@
         <field name="name">estate.district.list</field>
         <field name="model">estate.district</field>
         <field name="arch" type="xml">
-            <list string="Districts">
+            <list string="Районы">
                 <field name="name"/>
                 <field name="code"/>
             </list>
@@ -28,7 +28,7 @@
     </record>
 
     <record id="estate_district_action" model="ir.actions.act_window">
-        <field name="name">Districts</field>
+        <field name="name">Районы</field>
         <field name="res_model">estate.district</field>
         <field name="view_mode">list,form</field>
     </record>

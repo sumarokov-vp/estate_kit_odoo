@@ -3,52 +3,56 @@ from odoo import fields, models
 
 class EstateAttribute(models.Model):
     _name = "estate.attribute"
-    _description = "Property Attribute"
+    _description = "Атрибут объекта"
     _order = "category, sequence, name"
 
-    name = fields.Char(required=True, translate=True)
-    code = fields.Char(required=True, index=True)
+    name = fields.Char(string="Название", required=True, translate=True)
+    code = fields.Char(string="Код", required=True, index=True)
 
     _constraints = [
         models.Constraint(
             "UNIQUE(code)",
-            "Attribute code must be unique",
+            "Код атрибута должен быть уникальным",
         ),
     ]
     field_type = fields.Selection(
         [
-            ("char", "Text"),
-            ("integer", "Integer"),
-            ("float", "Float"),
-            ("boolean", "Boolean"),
-            ("selection", "Selection"),
-            ("date", "Date"),
+            ("char", "Текст"),
+            ("integer", "Целое число"),
+            ("float", "Дробное число"),
+            ("boolean", "Да/Нет"),
+            ("selection", "Выбор из списка"),
+            ("date", "Дата"),
         ],
+        string="Тип данных",
         required=True,
         default="char",
     )
     category = fields.Selection(
         [
-            ("construction", "Construction"),
-            ("area", "Area"),
-            ("utilities", "Utilities"),
-            ("amenities", "Amenities"),
-            ("security", "Security"),
-            ("features", "Features"),
-            ("legal", "Legal"),
-            ("commercial", "Commercial"),
-            ("land", "Land"),
+            ("construction", "Строение"),
+            ("area", "Площади"),
+            ("utilities", "Коммуникации"),
+            ("amenities", "Удобства"),
+            ("security", "Безопасность"),
+            ("features", "Особенности"),
+            ("legal", "Юридическое"),
+            ("commercial", "Коммерция"),
+            ("land", "Земля"),
         ],
+        string="Категория",
         required=True,
         default="features",
     )
     property_types = fields.Char(
+        string="Типы объектов",
         default="all",
-        help="Comma-separated list: apartment,house,commercial,land or 'all'",
+        help="Через запятую: apartment,house,commercial,land или 'all'",
     )
     selection_options = fields.Text(
-        help="JSON array of options: [{\"value\": \"code\", \"label\": \"Label\"}]"
+        string="Варианты выбора",
+        help="JSON массив: [{\"value\": \"код\", \"label\": \"Название\"}]"
     )
-    sequence = fields.Integer(default=10)
-    is_filterable = fields.Boolean(default=False)
-    active = fields.Boolean(default=True)
+    sequence = fields.Integer(string="Порядок", default=10)
+    is_filterable = fields.Boolean(string="Доступен в фильтрах", default=False)
+    active = fields.Boolean(string="Активен", default=True)

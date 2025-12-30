@@ -4,7 +4,7 @@
         <field name="name">estate.property.form</field>
         <field name="model">estate.property</field>
         <field name="arch" type="xml">
-            <form string="Property">
+            <form string="Объект">
                 <header>
                     <field name="state" widget="statusbar" statusbar_visible="new,active,deposit,deal"/>
                 </header>
@@ -30,14 +30,14 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Main" name="main">
+                        <page string="Основное" name="main">
                             <group>
-                                <group string="Description">
+                                <group string="Описание">
                                     <field name="description" nolabel="1" colspan="2"/>
                                 </group>
                             </group>
                         </page>
-                        <page string="Attributes" name="attributes">
+                        <page string="Характеристики" name="attributes">
                             <field name="attribute_value_ids">
                                 <list editable="bottom">
                                     <field name="attribute_id"/>
@@ -51,7 +51,7 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Owner" name="owner">
+                        <page string="Собственник" name="owner">
                             <group>
                                 <group>
                                     <field name="owner_id"/>
@@ -64,7 +64,7 @@
                                 </group>
                             </group>
                         </page>
-                        <page string="Media" name="media">
+                        <page string="Медиа" name="media">
                             <group>
                                 <group>
                                     <field name="video_url" widget="url"/>
@@ -80,19 +80,19 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Service" name="service">
+                        <page string="Служебное" name="service">
                             <group>
-                                <group string="Responsible">
+                                <group string="Ответственные">
                                     <field name="user_id"/>
                                     <field name="listing_coordinator_id"/>
                                     <field name="listing_agent_id"/>
                                 </group>
-                                <group string="Settings">
+                                <group string="Настройки">
                                     <field name="is_shared"/>
                                     <field name="active"/>
                                 </group>
                             </group>
-                            <group string="Internal Notes">
+                            <group string="Внутренние заметки">
                                 <field name="internal_note" nolabel="1" colspan="2"/>
                             </group>
                         </page>
@@ -125,31 +125,31 @@
         <field name="name">estate.property.search</field>
         <field name="model">estate.property</field>
         <field name="arch" type="xml">
-            <search string="Search Properties">
+            <search string="Поиск объектов">
                 <field name="name"/>
                 <field name="street"/>
                 <field name="district_id"/>
                 <field name="owner_id"/>
                 <field name="user_id"/>
                 <separator/>
-                <filter name="my_properties" string="My Properties" domain="[('user_id', '=', uid)]"/>
+                <filter name="my_properties" string="Мои объекты" domain="[('user_id', '=', uid)]"/>
                 <separator/>
-                <filter name="apartments" string="Apartments" domain="[('property_type', '=', 'apartment')]"/>
-                <filter name="houses" string="Houses" domain="[('property_type', '=', 'house')]"/>
-                <filter name="commercial" string="Commercial" domain="[('property_type', '=', 'commercial')]"/>
-                <filter name="land" string="Land" domain="[('property_type', '=', 'land')]"/>
+                <filter name="apartments" string="Квартиры" domain="[('property_type', '=', 'apartment')]"/>
+                <filter name="houses" string="Дома" domain="[('property_type', '=', 'house')]"/>
+                <filter name="commercial" string="Коммерция" domain="[('property_type', '=', 'commercial')]"/>
+                <filter name="land" string="Земля" domain="[('property_type', '=', 'land')]"/>
                 <separator/>
-                <filter name="sale" string="For Sale" domain="[('deal_type', '=', 'sale')]"/>
-                <filter name="rent" string="For Rent" domain="[('deal_type', 'in', ['rent_long', 'rent_daily'])]"/>
+                <filter name="sale" string="Продажа" domain="[('deal_type', '=', 'sale')]"/>
+                <filter name="rent" string="Аренда" domain="[('deal_type', 'in', ['rent_long', 'rent_daily'])]"/>
                 <separator/>
-                <filter name="active_state" string="Active" domain="[('state', '=', 'active')]"/>
-                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <filter name="active_state" string="В работе" domain="[('state', '=', 'active')]"/>
+                <filter name="archived" string="Архив" domain="[('active', '=', False)]"/>
                 <separator/>
-                <filter name="group_type" string="Property Type" context="{'group_by': 'property_type'}"/>
-                <filter name="group_deal" string="Deal Type" context="{'group_by': 'deal_type'}"/>
-                <filter name="group_district" string="District" context="{'group_by': 'district_id'}"/>
-                <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
-                <filter name="group_user" string="Responsible" context="{'group_by': 'user_id'}"/>
+                <filter name="group_type" string="Тип объекта" context="{'group_by': 'property_type'}"/>
+                <filter name="group_deal" string="Тип сделки" context="{'group_by': 'deal_type'}"/>
+                <filter name="group_district" string="Район" context="{'group_by': 'district_id'}"/>
+                <filter name="group_state" string="Стадия" context="{'group_by': 'state'}"/>
+                <filter name="group_user" string="Ответственный" context="{'group_by': 'user_id'}"/>
             </search>
         </field>
     </record>
@@ -185,7 +185,7 @@
     </record>
 
     <record id="estate_property_action" model="ir.actions.act_window">
-        <field name="name">Properties</field>
+        <field name="name">Объекты</field>
         <field name="res_model">estate.property</field>
         <field name="view_mode">list,kanban,form</field>
         <field name="context">{'search_default_active_state': 1}</field>

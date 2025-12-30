@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="estate_menu_root" name="Royal Estate" sequence="10"/>
+    <menuitem id="estate_menu_root" name="Недвижимость" sequence="10"/>
 
-    <menuitem id="estate_menu_properties" name="Properties" parent="estate_menu_root" sequence="10"/>
+    <menuitem id="estate_menu_properties" name="Объекты" parent="estate_menu_root" sequence="10"/>
 
-    <menuitem id="estate_menu_property_list" name="Properties" parent="estate_menu_properties" action="estate_property_action" sequence="10"/>
+    <menuitem id="estate_menu_property_list" name="Все объекты" parent="estate_menu_properties" action="estate_property_action" sequence="10"/>
 
-    <menuitem id="estate_menu_config" name="Configuration" parent="estate_menu_root" sequence="100"/>
+    <menuitem id="estate_menu_config" name="Справочники" parent="estate_menu_root" sequence="100"/>
 
-    <menuitem id="estate_menu_districts" name="Districts" parent="estate_menu_config" action="estate_district_action" sequence="10"/>
+    <menuitem id="estate_menu_districts" name="Районы" parent="estate_menu_config" action="estate_district_action" sequence="10"/>
 
-    <menuitem id="estate_menu_sources" name="Sources" parent="estate_menu_config" action="estate_source_action" sequence="20"/>
+    <menuitem id="estate_menu_sources" name="Источники" parent="estate_menu_config" action="estate_source_action" sequence="20"/>
 
-    <menuitem id="estate_menu_attributes" name="Attributes" parent="estate_menu_config" action="estate_attribute_action" sequence="30"/>
+    <menuitem id="estate_menu_attributes" name="Атрибуты" parent="estate_menu_config" action="estate_attribute_action" sequence="30"/>
 </odoo>

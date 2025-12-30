@@ -4,7 +4,7 @@
         <field name="name">estate.attribute.form</field>
         <field name="model">estate.attribute</field>
         <field name="arch" type="xml">
-            <form string="Attribute">
+            <form string="Атрибут">
                 <sheet>
                     <group>
                         <group>
@@ -20,7 +20,7 @@
                             <field name="active"/>
                         </group>
                     </group>
-                    <group string="Selection Options" invisible="field_type != 'selection'">
+                    <group string="Варианты выбора" invisible="field_type != 'selection'">
                         <field name="selection_options" widget="ace" options="{'mode': 'json'}"/>
                     </group>
                 </sheet>
@@ -32,7 +32,7 @@
         <field name="name">estate.attribute.list</field>
         <field name="model">estate.attribute</field>
         <field name="arch" type="xml">
-            <list string="Attributes">
+            <list string="Атрибуты">
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="code"/>
@@ -48,21 +48,21 @@
         <field name="name">estate.attribute.search</field>
         <field name="model">estate.attribute</field>
         <field name="arch" type="xml">
-            <search string="Attributes">
+            <search string="Атрибуты">
                 <field name="name"/>
                 <field name="code"/>
-                <filter name="filterable" string="Filterable" domain="[('is_filterable', '=', True)]"/>
+                <filter name="filterable" string="В фильтрах" domain="[('is_filterable', '=', True)]"/>
                 <separator/>
-                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <filter name="archived" string="Архив" domain="[('active', '=', False)]"/>
                 <separator/>
-                <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
-                <filter name="group_type" string="Field Type" context="{'group_by': 'field_type'}"/>
+                <filter name="group_category" string="Категория" context="{'group_by': 'category'}"/>
+                <filter name="group_type" string="Тип данных" context="{'group_by': 'field_type'}"/>
             </search>
         </field>
     </record>
 
     <record id="estate_attribute_action" model="ir.actions.act_window">
-        <field name="name">Attributes</field>
+        <field name="name">Атрибуты</field>
         <field name="res_model">estate.attribute</field>
         <field name="view_mode">list,form</field>
         <field name="context">{'search_default_group_category': 1}</field>
