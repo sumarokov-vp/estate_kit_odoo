@@ -8,6 +8,7 @@ services:
     volumes:
       - odoo-data:/var/lib/odoo
       - ../addons:/mnt/extra-addons:ro
+      - ./odoo.conf:/etc/odoo/odoo.conf:ro
     environment:
       - HOST=${DB_HOST:-host.containers.internal}
       - PORT=${DB_PORT:-5432}
