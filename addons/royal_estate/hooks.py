@@ -12,6 +12,33 @@ def post_init_hook(env):
 def _init_cities(env):
     cities = [
         {"name": "Алматы", "code": "almaty", "sequence": 1},
+        {"name": "Астана", "code": "astana", "sequence": 2},
+        {"name": "Шымкент", "code": "shymkent", "sequence": 3},
+        {"name": "Актобе", "code": "aktobe", "sequence": 10},
+        {"name": "Караганда", "code": "karaganda", "sequence": 11},
+        {"name": "Тараз", "code": "taraz", "sequence": 12},
+        {"name": "Павлодар", "code": "pavlodar", "sequence": 13},
+        {"name": "Усть-Каменогорск", "code": "ust-kamenogorsk", "sequence": 14},
+        {"name": "Семей", "code": "semey", "sequence": 15},
+        {"name": "Атырау", "code": "atyrau", "sequence": 16},
+        {"name": "Костанай", "code": "kostanay", "sequence": 17},
+        {"name": "Кызылорда", "code": "kyzylorda", "sequence": 18},
+        {"name": "Уральск", "code": "uralsk", "sequence": 19},
+        {"name": "Петропавловск", "code": "petropavlovsk", "sequence": 20},
+        {"name": "Актау", "code": "aktau", "sequence": 21},
+        {"name": "Темиртау", "code": "temirtau", "sequence": 22},
+        {"name": "Туркестан", "code": "turkestan", "sequence": 23},
+        {"name": "Кокшетау", "code": "kokshetau", "sequence": 24},
+        {"name": "Талдыкорган", "code": "taldykorgan", "sequence": 25},
+        {"name": "Экибастуз", "code": "ekibastuz", "sequence": 26},
+        {"name": "Рудный", "code": "rudny", "sequence": 27},
+        {"name": "Жанаозен", "code": "zhanaozen", "sequence": 28},
+        {"name": "Жезказган", "code": "zhezkazgan", "sequence": 29},
+        {"name": "Балхаш", "code": "balkhash", "sequence": 30},
+        {"name": "Кентау", "code": "kentau", "sequence": 31},
+        {"name": "Сатпаев", "code": "satpayev", "sequence": 32},
+        {"name": "Каскелен", "code": "kaskelen", "sequence": 33},
+        {"name": "Конаев", "code": "konayev", "sequence": 34},
     ]
     City = env["estate.city"]
     for data in cities:
