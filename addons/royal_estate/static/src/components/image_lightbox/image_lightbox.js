@@ -17,6 +17,7 @@ export class ImageLightbox extends Component {
     setup() {
         this.state = useState({
             currentIndex: this.props.initialIndex || 0,
+            images: [...this.props.images],
         });
 
         this.onKeyDown = this.onKeyDown.bind(this);
@@ -31,15 +32,15 @@ export class ImageLightbox extends Component {
     }
 
     get currentImage() {
-        return this.props.images[this.state.currentIndex];
+        return this.state.images[this.state.currentIndex];
     }
 
     get hasMultipleImages() {
-        return this.props.images.length > 1;
+        return this.state.images.length > 1;
     }
 
     get counter() {
-        return `${this.state.currentIndex + 1} / ${this.props.images.length}`;
+        return `${this.state.currentIndex + 1} / ${this.state.images.length}`;
     }
 
     onKeyDown(ev) {
@@ -62,12 +63,12 @@ export class ImageLightbox extends Component {
         if (this.state.currentIndex > 0) {
             this.state.currentIndex--;
         } else {
-            this.state.currentIndex = this.props.images.length - 1;
+            this.state.currentIndex = this.state.images.length - 1;
         }
     }
 
     next() {
-        if (this.state.currentIndex < this.props.images.length - 1) {
+        if (this.state.currentIndex < this.state.images.length - 1) {
             this.state.currentIndex++;
         } else {
             this.state.currentIndex = 0;
@@ -76,21 +77,30 @@ export class ImageLightbox extends Component {
 
     async setAsMain() {
         if (this.props.onSetMain && this.currentImage) {
-            await this.props.onSetMain(this.currentImage.id);
+            const currentId = this.currentImage.id;
+            await this.props.onSetMain(currentId);
+
+            // Update local state to reflect new main image
+            this.state.images = this.state.images.map((img) => ({
+                ...img,
+                is_main: img.id === currentId,
+            }));
         }
     }
 
     async deleteImage() {
         if (this.props.onDelete && this.currentImage) {
             const currentId = this.currentImage.id;
-            const imagesCount = this.props.images.length;
 
             await this.props.onDelete(currentId);
 
-            if (imagesCount <= 1) {
+            // Remove deleted image from local state
+            this.state.images = this.state.images.filter((img) => img.id !== currentId);
+
+            if (this.state.images.length === 0) {
                 this.props.close();
-            } else if (this.state.currentIndex >= imagesCount - 1) {
-                this.state.currentIndex = Math.max(0, imagesCount - 2);
+            } else if (this.state.currentIndex >= this.state.images.length) {
+                this.state.currentIndex = this.state.images.length - 1;
             }
         }
     }
