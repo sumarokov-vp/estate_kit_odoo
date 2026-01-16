@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="royal_estate.LocationMap">
+        <div class="o_location_map">
+            <t t-if="state.error">
+                <div class="alert alert-warning mb-2">
+                    <t t-esc="state.error"/>
+                </div>
+            </t>
+            <t t-if="!props.readonly and props.geoAddress">
+                <div class="o_location_map_toolbar mb-2">
+                    <button
+                        class="btn btn-secondary btn-sm"
+                        t-on-click="onGeocodeClick"
+                        t-att-disabled="state.isGeocoding or state.isLoading"
+                    >
+                        <t t-if="state.isGeocoding">
+                            <i class="fa fa-spinner fa-spin me-1"/>
+                        </t>
+                        <t t-else="">
+                            <i class="fa fa-search me-1"/>
+                        </t>
+                        Найти на карте
+                    </button>
+                    <span class="ms-2 text-muted small">
+                        <t t-esc="props.geoAddress"/>
+                    </span>
+                </div>
+            </t>
+            <div class="o_location_map_wrapper">
+                <div t-ref="mapContainer" class="o_location_map_container"/>
+                <t t-if="state.isLoading">
+                    <div class="o_location_map_loading">
+                        <i class="fa fa-spinner fa-spin fa-2x"/>
+                        <p class="mt-2 text-muted">Загрузка карты...</p>
+                    </div>
+                </t>
+            </div>
+            <t t-if="!props.readonly">
+                <p class="text-muted small mt-2">
+                    Кликните на карту для установки координат
+                </p>
+            </t>
+        </div>
+    </t>
+</templates>

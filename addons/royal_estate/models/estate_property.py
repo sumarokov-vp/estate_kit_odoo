@@ -79,6 +79,29 @@ class EstateProperty(models.Model):
     )
     house_number = fields.Char(string="Дом")
 
+    # === Геолокация ===
+    latitude = fields.Float(string="Широта", digits=(10, 7))
+    longitude = fields.Float(string="Долгота", digits=(10, 7))
+    geo_address = fields.Char(
+        string="Адрес для геокодирования",
+        compute="_compute_geo_address",
+        store=True,
+    )
+
+    @api.depends("city_id", "district_id", "street_id", "house_number")
+    def _compute_geo_address(self):
+        for record in self:
+            parts = []
+            if record.city_id:
+                parts.append(record.city_id.name)
+            if record.district_id:
+                parts.append(record.district_id.name)
+            if record.street_id:
+                parts.append(record.street_id.name)
+            if record.house_number:
+                parts.append(record.house_number)
+            record.geo_address = ", ".join(parts) if parts else False
+
     @api.model
     def _default_city(self):
         return self.env["estate.city"].search([("code", "=", "almaty")], limit=1)

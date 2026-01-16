@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="royal_estate.LocationMapField">
+        <div class="o_location_map_field">
+            <t t-if="state.apiKey">
+                <LocationMap
+                    latitude="state.latitude"
+                    longitude="state.longitude"
+                    geoAddress="state.geoAddress"
+                    apiKey="state.apiKey"
+                    readonly="readonly"
+                    onLocationChange.bind="onLocationChange"
+                />
+            </t>
+            <t t-else="">
+                <div class="alert alert-info">
+                    <i class="fa fa-info-circle me-1"/>
+                    API ключ 2GIS не настроен. Установите параметр
+                    <code>royal_estate.twogis_api_key</code> в настройках системы.
+                </div>
+            </t>
+        </div>
+    </t>
+</templates>

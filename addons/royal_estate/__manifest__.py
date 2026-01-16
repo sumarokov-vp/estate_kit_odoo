@@ -19,6 +19,7 @@
     "data": [
         "security/estate_security.xml",
         "security/ir.model.access.csv",
+        "data/ir_config_parameter.xml",
         "views/estate_city_views.xml",
         "views/estate_district_views.xml",
         "views/estate_street_views.xml",
