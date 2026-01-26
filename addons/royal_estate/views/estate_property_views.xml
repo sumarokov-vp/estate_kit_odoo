@@ -151,6 +151,7 @@
                             <group>
                                 <group>
                                     <field name="owner_id"/>
+                                    <field name="owner_name"/>
                                     <field name="source_id"/>
                                     <field name="krisha_url" widget="url"/>
                                 </group>

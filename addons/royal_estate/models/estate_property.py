@@ -332,6 +332,7 @@ class EstateProperty(models.Model):
 
     # === Собственник и договор ===
     owner_id = fields.Many2one("res.partner", string="Собственник", tracking=True)
+    owner_name = fields.Char(string="Имя владельца", help="Имя владельца из бота")
     source_id = fields.Many2one("estate.source", string="Источник")
     contract_type = fields.Selection(
         [
