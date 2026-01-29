@@ -143,6 +143,8 @@ class EstateProperty(models.Model):
             raise UserError("Укажите адрес для определения района")
 
         address = ", ".join(address_parts)
+
+        # Шаг 1: Прямое геокодирование — получаем координаты
         response = requests.get(
             "https://geocode-maps.yandex.ru/1.x/",
             params={"apikey": api_key, "geocode": address, "format": "json"},
@@ -160,40 +162,74 @@ class EstateProperty(models.Model):
             raise UserError(f"Адрес не найден: {address}")
 
         geo_object = feature_members[0].get("GeoObject", {})
-        components = (
-            geo_object.get("metaDataProperty", {})
-            .get("GeocoderMetaData", {})
-            .get("Address", {})
-            .get("Components", [])
+        pos = geo_object.get("Point", {}).get("pos", "")
+        if not pos:
+            raise UserError(f"Координаты не найдены для адреса: {address}")
+
+        lon, lat = pos.split()
+        lon, lat = float(lon), float(lat)
+
+        if not self.latitude or not self.longitude:
+            self.latitude = lat
+            self.longitude = lon
+
+        # Шаг 2: Обратное геокодирование с kind=district — получаем район
+        response = requests.get(
+            "https://geocode-maps.yandex.ru/1.x/",
+            params={
+                "apikey": api_key,
+                "geocode": f"{lon},{lat}",
+                "format": "json",
+                "kind": "district",
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        feature_members = (
+            data.get("response", {})
+            .get("GeoObjectCollection", {})
+            .get("featureMember", [])
         )
 
         district_name = None
-        for component in components:
-            if component.get("kind") == "district":
-                district_name = component.get("name")
+        for feature in feature_members:
+            name = feature.get("GeoObject", {}).get("name", "")
+            if "район" in name.lower() and "жилой" not in name.lower():
+                district_name = name
                 break
 
-        if district_name:
+        if not district_name:
+            for feature in feature_members:
+                components = (
+                    feature.get("GeoObject", {})
+                    .get("metaDataProperty", {})
+                    .get("GeocoderMetaData", {})
+                    .get("Address", {})
+                    .get("Components", [])
+                )
+                for comp in components:
+                    if comp.get("kind") == "district":
+                        name = comp.get("name", "")
+                        if "район" in name.lower() and "жилой" not in name.lower():
+                            district_name = name
+                            break
+                if district_name:
+                    break
+
+        if district_name and self.city_id:
             district = self.env["estate.district"].search(
                 [("name", "ilike", district_name), ("city_id", "=", self.city_id.id)],
                 limit=1,
             )
-            if not district and self.city_id:
+            if not district:
                 district = self.env["estate.district"].create(
                     {"name": district_name, "city_id": self.city_id.id}
                 )
-            if district:
-                self.district_id = district.id
-
-        if not self.latitude or not self.longitude:
-            pos = geo_object.get("Point", {}).get("pos", "")
-            if pos:
-                lon, lat = pos.split()
-                self.latitude = float(lat)
-                self.longitude = float(lon)
-
-        if not district_name:
-            _logger.warning("Район не найден в ответе геокодера для адреса: %s", address)
+            self.district_id = district.id
+        else:
+            _logger.warning("Район не найден для адреса: %s", address)
 
     # === Характеристики строения ===
     floor = fields.Integer(string="Этаж")
