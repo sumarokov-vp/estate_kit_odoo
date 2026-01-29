@@ -58,15 +58,6 @@ PostgreSQL запускается отдельно (внешний). Настр�
 ## Деплой на продакшн сервер
 
 ### SSH доступ
-
-**Для Claude Code:**
-Ключ хранится в переменной окружения `SSH_PRIVATE_KEY_BASE64` (base64). Перед использованием декодировать и записать в файл:
-```bash
-mkdir -p /home/user/.ssh && echo "$SSH_PRIVATE_KEY_BASE64" | base64 -d > /home/user/.ssh/royal_estate_deploy && chmod 600 /home/user/.ssh/royal_estate_deploy
-ssh -i /home/user/.ssh/royal_estate_deploy root@46.101.177.22
-```
-
-**Для локальной разработки:**
 ```bash
 ssh royal_estate_odoo
 # или полный путь:
