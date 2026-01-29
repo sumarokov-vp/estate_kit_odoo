@@ -91,7 +91,7 @@
                             </group>
                             <field name="latitude" widget="location_map" nolabel="1"/>
                         </page>
-                        <page string="Удобства" name="amenities" invisible="property_type == 'land'">
+                        <page string="Характеристики" name="features" invisible="property_type == 'land'">
                             <group>
                                 <group string="Комфорт">
                                     <field name="bathroom" invisible="property_type == 'commercial'"/>
@@ -115,66 +115,52 @@
                                     <field name="built_in_kitchen" invisible="property_type == 'commercial'"/>
                                 </group>
                             </group>
-                        </page>
-                        <page string="Бытовая техника" name="appliances" invisible="property_type == 'land'">
-                            <field name="appliance_ids" widget="many2many_checkboxes" nolabel="1"/>
-                        </page>
-                        <page string="Коммуникации" name="utilities">
                             <group>
-                                <group>
+                                <group string="Коммуникации">
                                     <field name="heating"/>
                                     <field name="water" invisible="property_type == 'apartment'"/>
                                     <field name="sewage" invisible="property_type == 'apartment'"/>
-                                </group>
-                                <group>
                                     <field name="gas" invisible="property_type == 'apartment'"/>
                                     <field name="electricity" invisible="property_type == 'apartment'"/>
-                                    <field name="electricity_power" invisible="property_type == 'land'"/>
-                                    <field name="internet" invisible="property_type == 'land'"/>
+                                    <field name="electricity_power"/>
+                                    <field name="internet"/>
                                 </group>
-                            </group>
-                        </page>
-                        <page string="Безопасность" name="security" invisible="property_type == 'land'">
-                            <group>
-                                <group>
+                                <group string="Безопасность">
                                     <field name="security_intercom" invisible="property_type not in ('apartment', 'townhouse')"/>
                                     <field name="security_alarm"/>
                                     <field name="security_guard" invisible="property_type == 'house'"/>
                                     <field name="security_concierge" invisible="property_type not in ('apartment', 'townhouse')"/>
-                                </group>
-                                <group>
                                     <field name="security_video"/>
                                     <field name="security_coded_lock" invisible="property_type not in ('apartment', 'townhouse')"/>
                                     <field name="security_bars" invisible="property_type not in ('apartment', 'townhouse')"/>
                                     <field name="security_fire_alarm"/>
                                 </group>
                             </group>
+                            <group string="Бытовая техника">
+                                <field name="appliance_ids" widget="many2many_checkboxes" nolabel="1"/>
+                            </group>
                         </page>
                         <page string="Юридическое" name="legal">
                             <group>
-                                <group>
-                                    <field name="ownership_type"/>
-                                    <field name="is_pledged"/>
-                                    <field name="encumbrance"/>
-                                </group>
-                                <group>
-                                    <field name="is_privatized" invisible="property_type != 'apartment'"/>
-                                    <field name="documents_ready"/>
-                                </group>
-                            </group>
-                        </page>
-                        <page string="Собственник" name="owner">
-                            <group>
-                                <group>
+                                <group string="Собственник">
                                     <field name="owner_id"/>
                                     <field name="owner_name"/>
                                     <field name="source_id"/>
                                     <field name="krisha_url" widget="url"/>
                                 </group>
-                                <group>
+                                <group string="Договор">
                                     <field name="contract_type"/>
                                     <field name="contract_start"/>
                                     <field name="contract_end"/>
+                                </group>
+                            </group>
+                            <group>
+                                <group string="Право собственности">
+                                    <field name="ownership_type"/>
+                                    <field name="is_pledged"/>
+                                    <field name="encumbrance"/>
+                                    <field name="is_privatized" invisible="property_type != 'apartment'"/>
+                                    <field name="documents_ready"/>
                                 </group>
                             </group>
                         </page>
