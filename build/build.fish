@@ -1,5 +1,11 @@
 #!/usr/bin/env fish
 
+# Определяем корень проекта (скрипт в build/, проект на уровень выше)
+set PROJECT_ROOT (dirname (status filename))/..
+set SSH_KEY $PROJECT_ROOT/.ssh/deploy_key
+set SSH_OPTS -i $SSH_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=no
+set SERVER root@46.101.177.22
+
 # Build ARM (local)
 # podman build -t docker.io/sumarokovvp/simplelogic:royal_estate_arm -f build/Dockerfile .
 
@@ -14,4 +20,4 @@ podman push docker.io/sumarokovvp/simplelogic:royal_estate_amd64
 # podman-compose -f podman/compose.yaml up -d
 
 # Deploy to server
-ssh royal_estate_odoo 'cd /opt/odoo/ && docker compose pull && docker compose down && docker compose up -d'
+ssh $SSH_OPTS $SERVER 'cd /opt/odoo/ && docker compose pull && docker compose down && docker compose up -d'
