@@ -86,6 +86,7 @@ class EstateProperty(models.Model):
         domain="[('city_id', '=', city_id)]",
     )
     house_number = fields.Char(string="Дом")
+    apartment_number = fields.Char(string="Квартира")
 
     # === Геолокация ===
     latitude = fields.Float(string="Широта", digits=(10, 7))
