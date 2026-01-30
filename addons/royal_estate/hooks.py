@@ -84,6 +84,7 @@ def _init_sources(env):
         {"name": "Вывеска", "code": "sign", "sequence": 50},
         {"name": "Соцсети", "code": "social", "sequence": 60},
         {"name": "Сайт", "code": "website", "sequence": 70},
+        {"name": "Telegram-бот", "code": "telegram_bot", "sequence": 80},
     ]
     Source = env["estate.source"]
     for data in sources:
