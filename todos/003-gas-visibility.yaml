@@ -1,0 +1,29 @@
+title: "Обновить видимость gas"
+status: done
+created_at: 05.02.2026
+completed_at: 05.02.2026
+
+description: |
+  Поле gas (Газ) сейчас скрыто для квартир.
+
+  Текущее условие в views/estate_property_views.xml (строка 123):
+  invisible="property_type == 'apartment'"
+
+recommendation: |
+  Убрать атрибут invisible, чтобы поле показывалось для всех типов недвижимости
+  (apartment, house, townhouse, commercial).
+
+  Для земли вся страница "Характеристики" уже скрыта (строка 94).
+
+solution: |
+  Удалён атрибут invisible="property_type == 'apartment'" у поля gas
+  в файле views/estate_property_views.xml (строка 123).
+
+  Теперь поле "Газ" отображается для всех типов недвижимости:
+  - Квартиры (apartment)
+  - Дома (house)
+  - Таунхаусы (townhouse)
+  - Коммерческая недвижимость (commercial)
+
+  Для земельных участков (land) поле не показывается, т.к. вся страница
+  "Характеристики" скрыта условием invisible="property_type == 'land'" (строка 94).

@@ -1,0 +1,28 @@
+title: "Удалить поле security_bars"
+status: done
+created_at: 05.02.2026
+completed_at: 05.02.2026
+
+description: |
+  Поле security_bars (Решётки на окнах) больше не требуется.
+
+  Текущее расположение:
+  - Модель: models/estate_property.py, строка 393
+  - View: views/estate_property_views.xml, строка 135
+
+recommendation: |
+  1. Удалить поле из модели (models/estate_property.py):
+     security_bars = fields.Boolean(string="Решётки на окнах")
+
+  2. Удалить поле из view (views/estate_property_views.xml):
+     <field name="security_bars" invisible="property_type not in ('apartment', 'townhouse')"/>
+
+  Примечание: данные в БД останутся в колонке, но Odoo их игнорирует.
+  При необходимости можно создать миграцию для удаления колонки.
+
+solution: |
+  Удалено поле security_bars из:
+  1. Модели estate.property (addons/royal_estate/models/estate_property.py)
+  2. Формы объекта (addons/royal_estate/views/estate_property_views.xml)
+
+  Колонка security_bars останется в БД, но Odoo её игнорирует.

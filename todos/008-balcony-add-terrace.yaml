@@ -1,0 +1,29 @@
+title: "Добавить terrace в balcony"
+status: done
+created_at: 05.02.2026
+completed_at: 05.02.2026
+
+description: |
+  Поле balcony (Балкон) не содержит вариант "Терраса".
+
+  Текущие варианты в models/estate_property.py (строки 296-303):
+  - none: Нет
+  - balcony: Балкон
+  - loggia: Лоджия
+
+recommendation: |
+  Добавить новый вариант в selection:
+
+  balcony = fields.Selection([
+      ("none", "Нет"),
+      ("balcony", "Балкон"),
+      ("loggia", "Лоджия"),
+      ("terrace", "Терраса"),
+  ], string="Балкон")
+
+  Миграция данных не требуется — это добавление нового варианта.
+
+solution: |
+  Добавлен вариант ("terrace", "Терраса") в selection поля balcony
+  в файле addons/royal_estate/models/estate_property.py (строка 301).
+  Миграция данных не требуется.

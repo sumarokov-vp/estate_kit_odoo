@@ -1,0 +1,29 @@
+title: "Обновить видимость area_land"
+status: done
+created_at: 05.02.2026
+completed_at: 05.02.2026
+
+description: |
+  Поле area_land (Площадь участка) сейчас показывается для house и land.
+
+  Текущее условие в views/estate_property_views.xml (строка 34):
+  invisible="property_type not in ('house', 'land')"
+
+recommendation: |
+  Изменить условие видимости на:
+  invisible="property_type not in ('house', 'townhouse', 'commercial', 'land')"
+
+  Это добавит отображение площади участка для таунхаусов и коммерческой недвижимости.
+
+solution: |
+  Изменено условие видимости поля area_land в файле
+  addons/royal_estate/views/estate_property_views.xml (строка 34).
+
+  Было: invisible="property_type not in ('house', 'land')"
+  Стало: invisible="property_type not in ('house', 'townhouse', 'commercial', 'land')"
+
+  Теперь поле "Площадь участка" отображается для типов объектов:
+  - house (дом)
+  - townhouse (таунхаус)
+  - commercial (коммерческая недвижимость)
+  - land (земельный участок)

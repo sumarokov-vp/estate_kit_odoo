@@ -1,0 +1,39 @@
+title: "Обновить selection bathroom"
+status: done
+created_at: 05.02.2026
+completed_at: 05.02.2026
+
+description: |
+  Поле bathroom (Санузел) содержит лишний вариант 'two_plus'.
+
+  Текущие варианты в models/estate_property.py (строки 287-294):
+  - combined: Совмещённый
+  - separate: Раздельный
+  - two_plus: Два и более (нужно удалить)
+
+  Количество санузлов указывается в отдельном поле bathroom_count.
+
+recommendation: |
+  1. Изменить selection в модели:
+     bathroom = fields.Selection([
+         ("combined", "Совмещённый"),
+         ("separate", "Раздельный"),
+     ], string="Санузел")
+
+  2. Миграция данных: записи с bathroom='two_plus' установить в 'separate'
+     и убедиться что bathroom_count заполнен корректно.
+
+  SQL для проверки затронутых записей:
+  SELECT id, name, bathroom, bathroom_count
+  FROM estate_property
+  WHERE bathroom = 'two_plus';
+
+solution: |
+  Удалён вариант ('two_plus', 'Два и более') из selection поля bathroom
+  в модели estate.property (файл addons/royal_estate/models/estate_property.py).
+
+  Теперь поле bathroom содержит только два варианта:
+  - combined: Совмещённый
+  - separate: Раздельный
+
+  Миграция данных БД выполняется отдельно на сервере.

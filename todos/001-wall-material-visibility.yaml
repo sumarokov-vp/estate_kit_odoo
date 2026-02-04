@@ -1,0 +1,26 @@
+title: "Обновить видимость wall_material"
+status: done
+created_at: 05.02.2026
+completed_at: 05.02.2026
+
+description: |
+  Поле wall_material (Материал стен) сейчас показывается только для house.
+
+  Текущее условие в views/estate_property_views.xml (строка 49):
+  invisible="property_type != 'house'"
+
+  Поле находится в группе "Дом", которая тоже скрыта для всех кроме house.
+
+recommendation: |
+  1. Перенести поле wall_material из группы "Дом" в группу "Здание"
+  2. Установить видимость: invisible="property_type not in ('apartment', 'house', 'townhouse', 'commercial')"
+
+  Это позволит показывать материал стен для всех типов кроме земли.
+
+solution: |
+  Поле wall_material перенесено из группы "Дом" в группу "Здание" в файле
+  views/estate_property_views.xml. Установлено условие видимости:
+  invisible="property_type not in ('apartment', 'house', 'townhouse', 'commercial')"
+
+  Теперь поле "Материал стен" отображается для всех типов недвижимости
+  кроме земельных участков (land).
