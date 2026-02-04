@@ -31,7 +31,7 @@
                                     <field name="area_total"/>
                                     <field name="area_living" invisible="property_type not in ('apartment', 'house')"/>
                                     <field name="area_kitchen" invisible="property_type not in ('apartment', 'house')"/>
-                                    <field name="area_land" invisible="property_type not in ('house', 'land')"/>
+                                    <field name="area_land" invisible="property_type not in ('house', 'townhouse', 'commercial', 'land')"/>
                                     <field name="area_commercial" invisible="property_type != 'commercial'"/>
                                     <field name="area_warehouse" invisible="property_type != 'commercial'"/>
                                 </group>
@@ -42,11 +42,11 @@
                                     <field name="building_type" invisible="property_type not in ('apartment', 'house', 'townhouse')"/>
                                     <field name="ceiling_height" invisible="property_type == 'land'"/>
                                     <field name="entrance" invisible="property_type not in ('apartment', 'townhouse')"/>
+                                    <field name="wall_material" invisible="property_type not in ('apartment', 'house', 'townhouse', 'commercial')"/>
                                 </group>
                             </group>
                             <group>
                                 <group string="Дом" invisible="property_type != 'house'">
-                                    <field name="wall_material"/>
                                     <field name="roof_type"/>
                                     <field name="foundation"/>
                                 </group>
@@ -118,9 +118,9 @@
                             <group>
                                 <group string="Коммуникации">
                                     <field name="heating"/>
-                                    <field name="water" invisible="property_type == 'apartment'"/>
-                                    <field name="sewage" invisible="property_type == 'apartment'"/>
-                                    <field name="gas" invisible="property_type == 'apartment'"/>
+                                    <field name="water"/>
+                                    <field name="sewage"/>
+                                    <field name="gas"/>
                                     <field name="electricity" invisible="property_type == 'apartment'"/>
                                     <field name="electricity_power"/>
                                     <field name="internet"/>
@@ -132,7 +132,6 @@
                                     <field name="security_concierge" invisible="property_type not in ('apartment', 'townhouse')"/>
                                     <field name="security_video"/>
                                     <field name="security_coded_lock" invisible="property_type not in ('apartment', 'townhouse')"/>
-                                    <field name="security_bars" invisible="property_type not in ('apartment', 'townhouse')"/>
                                     <field name="security_fire_alarm"/>
                                 </group>
                             </group>

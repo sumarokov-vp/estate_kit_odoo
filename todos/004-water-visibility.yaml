@@ -1,0 +1,23 @@
+title: "Обновить видимость water"
+status: done
+created_at: 05.02.2026
+completed_at: 05.02.2026
+
+description: |
+  Поле water (Водоснабжение) сейчас скрыто для квартир.
+
+  Текущее условие в views/estate_property_views.xml (строка 121):
+  invisible="property_type == 'apartment'"
+
+recommendation: |
+  Убрать атрибут invisible, чтобы поле показывалось для всех типов недвижимости
+  (apartment, house, townhouse, commercial).
+
+  Для земли вся страница "Характеристики" уже скрыта.
+
+solution: |
+  Удалён атрибут invisible="property_type == 'apartment'" с поля water
+  в файле addons/royal_estate/views/estate_property_views.xml (строка 121).
+  Теперь поле "Водоснабжение" отображается для всех типов недвижимости
+  (квартиры, дома, таунхаусы, коммерция). Для земельных участков страница
+  "Характеристики" скрыта целиком, поэтому поле не будет отображаться.

@@ -288,7 +288,6 @@ class EstateProperty(models.Model):
         [
             ("combined", "Совмещённый"),
             ("separate", "Раздельный"),
-            ("two_plus", "Два и более"),
         ],
         string="Санузел",
     )
@@ -298,6 +297,7 @@ class EstateProperty(models.Model):
             ("none", "Нет"),
             ("balcony", "Балкон"),
             ("loggia", "Лоджия"),
+            ("terrace", "Терраса"),
         ],
         string="Балкон",
     )
@@ -390,7 +390,6 @@ class EstateProperty(models.Model):
     security_guard = fields.Boolean(string="Охрана")
     security_video = fields.Boolean(string="Видеонаблюдение")
     security_coded_lock = fields.Boolean(string="Кодовый замок")
-    security_bars = fields.Boolean(string="Решётки на окнах")
     security_concierge = fields.Boolean(string="Консьерж")
     security_fire_alarm = fields.Boolean(string="Пожарная сигнализация")
 

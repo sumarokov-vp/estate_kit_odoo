@@ -31,3 +31,6 @@ filestore/
 
 # Containers
 odoo-data/
+
+# Agent branch
+.agent-branch
