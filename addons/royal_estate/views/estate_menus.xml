@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <menuitem id="estate_menu_root" name="Недвижимость" sequence="10"/>
+    <menuitem id="estate_menu_root" name="Недвижимость" sequence="10"
+        groups="group_estate_team_lead,group_estate_listing_agent,group_estate_buyer_agent,group_estate_isa,group_estate_listing_coordinator,group_estate_transaction_coordinator"/>
 
-    <menuitem id="estate_menu_properties" name="Объекты" parent="estate_menu_root" sequence="10"/>
+    <menuitem id="estate_menu_properties" name="Объекты" parent="estate_menu_root" sequence="10"
+        groups="group_estate_team_lead,group_estate_listing_agent,group_estate_buyer_agent,group_estate_isa,group_estate_listing_coordinator,group_estate_transaction_coordinator"/>
 
     <menuitem id="estate_menu_property_list" name="Все объекты" parent="estate_menu_properties" action="estate_property_action" sequence="10"/>
 
-    <menuitem id="estate_menu_krisha_parser" name="Парсить Krisha.kz" parent="estate_menu_root" action="action_krisha_parser" sequence="50"/>
+    <menuitem id="estate_menu_krisha_parser" name="Парсить Krisha.kz" parent="estate_menu_root" action="action_krisha_parser" sequence="50"
+        groups="group_estate_team_lead,group_estate_listing_agent,group_estate_listing_coordinator"/>
 
-    <menuitem id="estate_menu_config" name="Справочники" parent="estate_menu_root" sequence="100"/>
+    <menuitem id="estate_menu_config" name="Справочники" parent="estate_menu_root" sequence="100"
+        groups="group_estate_team_lead"/>
 
     <menuitem id="estate_menu_cities" name="Города" parent="estate_menu_config" action="estate_city_action" sequence="5"/>
 
