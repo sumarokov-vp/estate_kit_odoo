@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <form string="Объект">
                 <header>
-                    <field name="state" widget="statusbar" statusbar_visible="new,active,deposit,deal"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,ready,published"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -199,7 +199,7 @@
         <field name="name">estate.property.list</field>
         <field name="model">estate.property</field>
         <field name="arch" type="xml">
-            <list string="Объекты" decoration-success="state == 'active'" decoration-warning="state == 'deposit'" decoration-info="state == 'deal'" decoration-muted="state in ('canceled', 'archived')">
+            <list string="Объекты" decoration-success="state == 'published'" decoration-muted="state == 'unpublished'">
                 <field name="name"/>
                 <field name="property_type"/>
                 <field name="deal_type"/>
@@ -238,7 +238,7 @@
                 <filter name="sale" string="Продажа" domain="[('deal_type', '=', 'sale')]"/>
                 <filter name="rent" string="Аренда" domain="[('deal_type', 'in', ['rent_long', 'rent_daily'])]"/>
                 <separator/>
-                <filter name="active_state" string="В работе" domain="[('state', '=', 'active')]"/>
+                <filter name="published" string="Опубликованные" domain="[('state', '=', 'published')]"/>
                 <filter name="archived" string="Архив" domain="[('active', '=', False)]"/>
                 <separator/>
                 <filter name="group_type" string="Тип объекта" context="{'group_by': 'property_type'}"/>
@@ -287,6 +287,6 @@
         <field name="name">Объекты</field>
         <field name="res_model">estate.property</field>
         <field name="view_mode">list,kanban,form</field>
-        <field name="context">{'search_default_active_state': 1}</field>
+        <field name="context">{}</field>
     </record>
 </odoo>

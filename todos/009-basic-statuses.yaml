@@ -1,0 +1,66 @@
+title: "Базовые статусы объекта недвижимости"
+status: done
+created_at: 06.02.2026
+completed_at: 06.02.2026
+
+description: |
+  Текущие статусы объекта (поле state в estate.property) избыточны для текущего этапа:
+  - new — Новый
+  - active — В работе
+  - deposit — Задаток
+  - deal — Сделка
+  - canceled — Снят
+  - archived — Архив
+
+  Нужно заменить на 4 базовых статуса, ориентированных на публикацию:
+  - new — Новый
+  - ready — Готов к публикации
+  - published — Опубликован
+  - unpublished — Снят с публикации
+
+  Также при открытии списка объектов автоматически применяется фильтр
+  search_default_active_state: 1 (показывает только "В работе") — его нужно убрать.
+
+  Затронутые файлы:
+
+  1. addons/royal_estate/models/estate_property.py (строки 45-59)
+     - Заменить selection поля state на новые 4 варианта
+
+  2. addons/royal_estate/views/estate_property_views.xml:
+     - Строка 9: statusbar_visible="new,active,deposit,deal" → "new,ready,published"
+     - Строка 202: decoration-success/warning/info/muted → обновить под новые статусы
+     - Строка 241: фильтр "В работе" (active_state) → убрать или заменить
+     - Строка 290: search_default_active_state: 1 → убрать из context
+
+recommendation: |
+  1. В модели заменить selection:
+     state = fields.Selection([
+         ("new", "Новый"),
+         ("ready", "Готов к публикации"),
+         ("published", "Опубликован"),
+         ("unpublished", "Снят с публикации"),
+     ], ...)
+
+  2. В form view обновить statusbar:
+     statusbar_visible="new,ready,published"
+
+  3. В list view обновить decoration:
+     decoration-success="state == 'published'"
+     decoration-muted="state == 'unpublished'"
+
+  4. В search view:
+     - Убрать фильтр active_state ("В работе")
+     - Добавить фильтр "Опубликованные": domain="[('state', '=', 'published')]"
+
+  5. В action убрать context с search_default_active_state
+
+  6. Миграция данных на сервере:
+     UPDATE estate_property SET state = 'ready' WHERE state IN ('active', 'deposit', 'deal');
+     UPDATE estate_property SET state = 'unpublished' WHERE state IN ('canceled', 'archived');
+
+solution: |
+  Заменены 6 статусов (new, active, deposit, deal, canceled, archived) на 4 базовых
+  (new, ready, published, unpublished) в модели и views. Обновлены: selection поля state,
+  statusbar в form view, decoration в list view, фильтр в search view (active_state -> published),
+  убран автоматический фильтр search_default_active_state из action context.
+  Kanban view не потребовал изменений (использует только группировку по полю state).

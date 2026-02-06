@@ -45,11 +45,9 @@ class EstateProperty(models.Model):
     state = fields.Selection(
         [
             ("new", "Новый"),
-            ("active", "В работе"),
-            ("deposit", "Задаток"),
-            ("deal", "Сделка"),
-            ("canceled", "Снят"),
-            ("archived", "Архив"),
+            ("ready", "Готов к публикации"),
+            ("published", "Опубликован"),
+            ("unpublished", "Снят с публикации"),
         ],
         string="Стадия",
         required=True,
