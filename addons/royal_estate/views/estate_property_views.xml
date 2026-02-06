@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <form string="Объект">
                 <header>
-                    <field name="state" widget="statusbar" statusbar_visible="new,ready,published"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,ready,published" clickable="1"/>
                 </header>
                 <sheet>
                     <div class="oe_title">

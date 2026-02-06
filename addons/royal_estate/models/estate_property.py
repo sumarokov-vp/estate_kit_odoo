@@ -95,6 +95,19 @@ class EstateProperty(models.Model):
         store=True,
     )
 
+    def write(self, vals):
+        if "state" in vals and vals["state"] == "ready":
+            for record in self:
+                if record.state == "new" and not self.env.user.has_group(
+                    "royal_estate.group_estate_team_lead"
+                ) and not self.env.user.has_group(
+                    "royal_estate.group_estate_listing_coordinator"
+                ):
+                    raise UserError(
+                        "Только Team Lead и Listing Coordinator могут перевести объект из «Новый» в «Готов к публикации»."
+                    )
+        return super().write(vals)
+
     @api.depends("city_id", "district_id", "street_id", "house_number")
     def _compute_geo_address(self):
         for record in self:
