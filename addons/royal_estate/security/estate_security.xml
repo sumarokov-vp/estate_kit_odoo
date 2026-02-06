@@ -6,42 +6,82 @@
     </record>
 
     <!-- ============================================================ -->
-    <!-- Группы (не-иерархические, каждая наследует base.group_user) -->
+    <!-- Privileges (каждая роль — отдельный privilege с одной группой = checkbox) -->
+    <!-- ============================================================ -->
+
+    <record id="privilege_estate_team_lead" model="res.groups.privilege">
+        <field name="name">Team Lead</field>
+        <field name="sequence">10</field>
+        <field name="category_id" ref="module_category_estate"/>
+    </record>
+
+    <record id="privilege_estate_listing_agent" model="res.groups.privilege">
+        <field name="name">Listing Agent</field>
+        <field name="sequence">20</field>
+        <field name="category_id" ref="module_category_estate"/>
+    </record>
+
+    <record id="privilege_estate_buyer_agent" model="res.groups.privilege">
+        <field name="name">Buyer's Agent</field>
+        <field name="sequence">30</field>
+        <field name="category_id" ref="module_category_estate"/>
+    </record>
+
+    <record id="privilege_estate_isa" model="res.groups.privilege">
+        <field name="name">ISA</field>
+        <field name="sequence">40</field>
+        <field name="category_id" ref="module_category_estate"/>
+    </record>
+
+    <record id="privilege_estate_listing_coordinator" model="res.groups.privilege">
+        <field name="name">Listing Coordinator</field>
+        <field name="sequence">50</field>
+        <field name="category_id" ref="module_category_estate"/>
+    </record>
+
+    <record id="privilege_estate_transaction_coordinator" model="res.groups.privilege">
+        <field name="name">Transaction Coordinator</field>
+        <field name="sequence">60</field>
+        <field name="category_id" ref="module_category_estate"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Группы (каждая привязана к своему privilege) -->
     <!-- ============================================================ -->
 
     <record id="group_estate_team_lead" model="res.groups">
         <field name="name">Team Lead</field>
-        <field name="category_id" ref="module_category_estate"/>
+        <field name="privilege_id" ref="privilege_estate_team_lead"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
     <record id="group_estate_listing_agent" model="res.groups">
         <field name="name">Listing Agent</field>
-        <field name="category_id" ref="module_category_estate"/>
+        <field name="privilege_id" ref="privilege_estate_listing_agent"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
     <record id="group_estate_buyer_agent" model="res.groups">
         <field name="name">Buyer's Agent</field>
-        <field name="category_id" ref="module_category_estate"/>
+        <field name="privilege_id" ref="privilege_estate_buyer_agent"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
     <record id="group_estate_isa" model="res.groups">
         <field name="name">ISA</field>
-        <field name="category_id" ref="module_category_estate"/>
+        <field name="privilege_id" ref="privilege_estate_isa"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
     <record id="group_estate_listing_coordinator" model="res.groups">
         <field name="name">Listing Coordinator</field>
-        <field name="category_id" ref="module_category_estate"/>
+        <field name="privilege_id" ref="privilege_estate_listing_coordinator"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
     <record id="group_estate_transaction_coordinator" model="res.groups">
         <field name="name">Transaction Coordinator</field>
-        <field name="category_id" ref="module_category_estate"/>
+        <field name="privilege_id" ref="privilege_estate_transaction_coordinator"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
@@ -49,7 +89,7 @@
     <!-- Удаление старых групп                                       -->
     <!-- ============================================================ -->
 
-    <delete model="res.groups" search="[('category_id', '=', ref('module_category_estate')), ('name', 'in', ['User', 'Agent', 'Coordinator', 'Manager'])]"/>
+    <delete model="res.groups" search="[('privilege_id.category_id', '=', ref('module_category_estate')), ('name', 'in', ['User', 'Agent', 'Coordinator', 'Manager'])]"/>
 
     <!-- ============================================================ -->
     <!-- Record Rules для estate.property                            -->
