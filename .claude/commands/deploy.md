@@ -29,7 +29,7 @@ ssh -i .ssh/deploy_key -o IdentitiesOnly=yes root@46.101.177.22 \
   "docker exec odoo-odoo-1 odoo \
     --db_host=10.114.0.2 --db_port=5432 \
     --db_user=odoo --db_password=AV0P2q4nFh0mUZ05XQ41f \
-    -d estate_kit -u estate_kit --stop-after-init"
+    -d royal_estate -u estate_kit --stop-after-init"
 ```
 
 ### 5. Перезапуск Odoo

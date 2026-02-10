@@ -86,7 +86,7 @@ fish build/build.fish
 
 ### База данных на сервере
 
-**КРИТИЧНО: База данных называется `estate_kit`, НЕ `vetrov`!**
+**КРИТИЧНО: База данных называется `royal_estate`, НЕ `vetrov`!**
 
 Параметры подключения (получить из .env на сервере):
 ```bash
@@ -107,7 +107,7 @@ ssh royal_estate_odoo "docker exec odoo-odoo-1 odoo \
   --db_port=5432 \
   --db_user=odoo \
   --db_password=<PASSWORD_FROM_ENV> \
-  -d estate_kit \
+  -d royal_estate \
   -u estate_kit \
   --stop-after-init"
 ```
@@ -137,7 +137,7 @@ ssh royal_estate_odoo "docker exec odoo-odoo-1 ls -la /mnt/extra-addons/estate_k
 ### SQL запросы к базе (через контейнер)
 
 ```bash
-ssh royal_estate_odoo "docker exec odoo-odoo-1 bash -c \"PGPASSWORD=<PASSWORD> psql -h 10.114.0.2 -U odoo -d estate_kit -c 'SELECT ...'\""
+ssh royal_estate_odoo "docker exec odoo-odoo-1 bash -c \"PGPASSWORD=<PASSWORD> psql -h 10.114.0.2 -U odoo -d royal_estate -c 'SELECT ...'\""
 ```
 
 ### Типичные проблемы
