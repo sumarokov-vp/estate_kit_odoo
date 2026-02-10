@@ -22,7 +22,7 @@ recommendation: |
 
 solution: |
   Удалено поле security_bars из:
-  1. Модели estate.property (addons/royal_estate/models/estate_property.py)
-  2. Формы объекта (addons/royal_estate/views/estate_property_views.xml)
+  1. Модели estate.property (addons/estate_kit/models/estate_property.py)
+  2. Формы объекта (addons/estate_kit/views/estate_property_views.xml)
 
   Колонка security_bars останется в БД, но Odoo её игнорирует.

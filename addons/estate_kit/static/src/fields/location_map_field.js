@@ -7,7 +7,7 @@ import { useService } from "@web/core/utils/hooks";
 import { LocationMap } from "../components/location_map/location_map";
 
 export class LocationMapField extends Component {
-    static template = "royal_estate.LocationMapField";
+    static template = "estate_kit.LocationMapField";
     static components = { LocationMap };
     static props = {
         ...standardFieldProps,

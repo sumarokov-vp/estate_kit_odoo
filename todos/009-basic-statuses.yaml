@@ -23,10 +23,10 @@ description: |
 
   Затронутые файлы:
 
-  1. addons/royal_estate/models/estate_property.py (строки 45-59)
+  1. addons/estate_kit/models/estate_property.py (строки 45-59)
      - Заменить selection поля state на новые 4 варианта
 
-  2. addons/royal_estate/views/estate_property_views.xml:
+  2. addons/estate_kit/views/estate_property_views.xml:
      - Строка 9: statusbar_visible="new,active,deposit,deal" → "new,ready,published"
      - Строка 202: decoration-success/warning/info/muted → обновить под новые статусы
      - Строка 241: фильтр "В работе" (active_state) → убрать или заменить

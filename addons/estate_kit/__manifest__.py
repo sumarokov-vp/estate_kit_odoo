@@ -1,10 +1,10 @@
 {
-    "name": "Royal Estate",
+    "name": "Estate Kit",
     "version": "19.0.1.2.0",
     "category": "Real Estate",
     "summary": "Manage real estate properties",
     "description": """
-        Royal Estate module for managing real estate properties.
+        Estate Kit module for managing real estate properties.
 
         Features:
         - Property management with 56+ attributes
@@ -12,7 +12,7 @@
         - CRM integration for deals
         - Role-based access control
     """,
-    "author": "Royal Estate Team",
+    "author": "Estate Kit Team",
     "website": "",
     "license": "LGPL-3",
     "depends": ["base", "mail", "crm"],
@@ -37,11 +37,11 @@
     "demo": [],
     "assets": {
         "web.assets_backend": [
-            "royal_estate/static/src/fields/*.js",
-            "royal_estate/static/src/fields/*.xml",
-            "royal_estate/static/src/components/**/*.js",
-            "royal_estate/static/src/components/**/*.xml",
-            "royal_estate/static/src/components/**/*.scss",
+            "estate_kit/static/src/fields/*.js",
+            "estate_kit/static/src/fields/*.xml",
+            "estate_kit/static/src/components/**/*.js",
+            "estate_kit/static/src/components/**/*.xml",
+            "estate_kit/static/src/components/**/*.scss",
         ],
     },
     "installable": True,

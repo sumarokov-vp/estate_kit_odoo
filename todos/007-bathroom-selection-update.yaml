@@ -30,7 +30,7 @@ recommendation: |
 
 solution: |
   Удалён вариант ('two_plus', 'Два и более') из selection поля bathroom
-  в модели estate.property (файл addons/royal_estate/models/estate_property.py).
+  в модели estate.property (файл addons/estate_kit/models/estate_property.py).
 
   Теперь поле bathroom содержит только два варианта:
   - combined: Совмещённый

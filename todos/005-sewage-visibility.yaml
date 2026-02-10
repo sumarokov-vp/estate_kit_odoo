@@ -17,7 +17,7 @@ recommendation: |
 
 solution: |
   Удалён атрибут invisible="property_type == 'apartment'" с поля sewage
-  в файле addons/royal_estate/views/estate_property_views.xml.
+  в файле addons/estate_kit/views/estate_property_views.xml.
   Теперь поле "Канализация" отображается для всех типов недвижимости
   (квартиры, дома, таунхаусы, коммерция). Для земельных участков поле
   по-прежнему скрыто, так как вся страница "Характеристики" скрыта для типа land.

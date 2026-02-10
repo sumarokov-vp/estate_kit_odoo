@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="royal_estate.LocationMapField">
+    <t t-name="estate_kit.LocationMapField">
         <div class="o_location_map_field">
             <t t-if="state.apiKey">
                 <LocationMap
@@ -16,7 +16,7 @@
                 <div class="alert alert-info">
                     <i class="fa fa-info-circle me-1"/>
                     API ключ 2GIS не настроен. Установите параметр
-                    <code>royal_estate.twogis_api_key</code> в настройках системы.
+                    <code>estate_kit.twogis_api_key</code> в настройках системы.
                 </div>
             </t>
         </div>

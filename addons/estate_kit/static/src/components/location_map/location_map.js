@@ -8,7 +8,7 @@ const DEFAULT_CENTER = [76.9453, 43.2385]; // Алматы
 const DEFAULT_ZOOM = 12;
 
 export class LocationMap extends Component {
-    static template = "royal_estate.LocationMap";
+    static template = "estate_kit.LocationMap";
     static props = {
         latitude: { type: Number, optional: true },
         longitude: { type: Number, optional: true },

@@ -17,7 +17,7 @@ recommendation: |
 
 solution: |
   Изменено условие видимости поля area_land в файле
-  addons/royal_estate/views/estate_property_views.xml (строка 34).
+  addons/estate_kit/views/estate_property_views.xml (строка 34).
 
   Было: invisible="property_type not in ('house', 'land')"
   Стало: invisible="property_type not in ('house', 'townhouse', 'commercial', 'land')"

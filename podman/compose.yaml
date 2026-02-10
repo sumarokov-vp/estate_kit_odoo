@@ -1,7 +1,7 @@
-name: royal-estate
+name: estate-kit
 services:
   odoo:
-    image: docker.io/sumarokovvp/simplelogic:royal_estate_arm
+    image: docker.io/sumarokovvp/simplelogic:estate_kit_arm
     ports:
       - "8069:8069"
       - "8072:8072"

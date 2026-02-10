@@ -3,7 +3,7 @@
 import { Component, useState } from "@odoo/owl";
 
 export class ImageGallery extends Component {
-    static template = "royal_estate.ImageGallery";
+    static template = "estate_kit.ImageGallery";
     static props = {
         images: Array,
         thumbnailSize: { type: Array, optional: true },

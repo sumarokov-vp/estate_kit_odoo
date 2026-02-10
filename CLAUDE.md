@@ -4,14 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Описание проекта
 
-Royal Estate — модуль для Odoo 19, управление недвижимостью.
+Estate Kit — модуль для Odoo 19, управление недвижимостью.
 
 **Продакшн сайт:** https://royalestate.smartist.dev/
 
 ## Структура проекта
 
 ```
-addons/royal_estate/    # Odoo модуль
+addons/estate_kit/    # Odoo модуль
 build/                  # Dockerfile и compose для сборки образа
 podman/                 # Compose для локальной разработки (podman)
 docker/                 # Compose для сервера (docker)
@@ -45,15 +45,15 @@ PostgreSQL запускается отдельно (внешний). Настр�
 ## Odoo модуль
 
 - Версия: 19.0
-- Путь: `addons/royal_estate/`
+- Путь: `addons/estate_kit/`
 - Зависимости: `base`, `mail`
 
 ### Модели
 - `estate.property` — объект недвижимости
 
 ### Обновление модуля
-В интерфейсе Odoo: Apps → Royal Estate → Upgrade
-Или через CLI: `odoo -u royal_estate -d <database>`
+В интерфейсе Odoo: Apps → Estate Kit → Upgrade
+Или через CLI: `odoo -u estate_kit -d <database>`
 
 ## Деплой на продакшн сервер
 
@@ -81,12 +81,12 @@ fish build/build.fish
 
 Скрипт build.fish выполняет:
 1. Сборка AMD64 образа с `--no-cache`
-2. Push в registry docker.io/sumarokovvp/simplelogic:royal_estate_amd64
+2. Push в registry docker.io/sumarokovvp/simplelogic:estate_kit_amd64
 3. SSH на сервер → pull → down → up
 
 ### База данных на сервере
 
-**КРИТИЧНО: База данных называется `royal_estate`, НЕ `vetrov`!**
+**КРИТИЧНО: База данных называется `estate_kit`, НЕ `vetrov`!**
 
 Параметры подключения (получить из .env на сервере):
 ```bash
@@ -107,8 +107,8 @@ ssh royal_estate_odoo "docker exec odoo-odoo-1 odoo \
   --db_port=5432 \
   --db_user=odoo \
   --db_password=<PASSWORD_FROM_ENV> \
-  -d royal_estate \
-  -u royal_estate \
+  -d estate_kit \
+  -u estate_kit \
   --stop-after-init"
 ```
 
@@ -128,16 +128,16 @@ ssh royal_estate_odoo "docker logs --tail 50 odoo-odoo-1"
 
 ```bash
 # Проверить что файлы обновились
-ssh royal_estate_odoo "docker exec odoo-odoo-1 cat /mnt/extra-addons/royal_estate/__manifest__.py"
+ssh royal_estate_odoo "docker exec odoo-odoo-1 cat /mnt/extra-addons/estate_kit/__manifest__.py"
 
 # Проверить static файлы
-ssh royal_estate_odoo "docker exec odoo-odoo-1 ls -la /mnt/extra-addons/royal_estate/static/src/"
+ssh royal_estate_odoo "docker exec odoo-odoo-1 ls -la /mnt/extra-addons/estate_kit/static/src/"
 ```
 
 ### SQL запросы к базе (через контейнер)
 
 ```bash
-ssh royal_estate_odoo "docker exec odoo-odoo-1 bash -c \"PGPASSWORD=<PASSWORD> psql -h 10.114.0.2 -U odoo -d royal_estate -c 'SELECT ...'\""
+ssh royal_estate_odoo "docker exec odoo-odoo-1 bash -c \"PGPASSWORD=<PASSWORD> psql -h 10.114.0.2 -U odoo -d estate_kit -c 'SELECT ...'\""
 ```
 
 ### Типичные проблемы
@@ -147,7 +147,7 @@ ssh royal_estate_odoo "docker exec odoo-odoo-1 bash -c \"PGPASSWORD=<PASSWORD> p
 3. **ParseError в security.xml** — пометить записи как noupdate:
    ```sql
    UPDATE ir_model_data SET noupdate=true
-   WHERE module='royal_estate' AND model IN ('ir.module.category', 'res.groups')
+   WHERE module='estate_kit' AND model IN ('ir.module.category', 'res.groups')
    ```
 
 ### Структура на сервере

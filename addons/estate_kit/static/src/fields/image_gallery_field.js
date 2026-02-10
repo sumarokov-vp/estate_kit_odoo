@@ -8,7 +8,7 @@ import { ImageGallery } from "../components/image_gallery/image_gallery";
 import { ImageLightbox } from "../components/image_lightbox/image_lightbox";
 
 export class ImageGalleryField extends Component {
-    static template = "royal_estate.ImageGalleryField";
+    static template = "estate_kit.ImageGalleryField";
     static components = { ImageGallery };
     static props = {
         ...standardFieldProps,

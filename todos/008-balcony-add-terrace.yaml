@@ -25,5 +25,5 @@ recommendation: |
 
 solution: |
   Добавлен вариант ("terrace", "Терраса") в selection поля balcony
-  в файле addons/royal_estate/models/estate_property.py (строка 301).
+  в файле addons/estate_kit/models/estate_property.py (строка 301).
   Миграция данных не требуется.

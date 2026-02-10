@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="royal_estate.ImageGallery">
+    <t t-name="estate_kit.ImageGallery">
         <div class="o_image_gallery">
             <t t-if="props.images.length === 0">
                 <div class="o_image_gallery_empty text-muted text-center p-4">

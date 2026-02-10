@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="module_category_estate" model="ir.module.category">
-        <field name="name">Royal Estate</field>
+        <field name="name">Estate Kit</field>
         <field name="sequence">10</field>
     </record>
 

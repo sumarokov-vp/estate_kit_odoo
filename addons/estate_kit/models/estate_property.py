@@ -96,17 +96,48 @@ class EstateProperty(models.Model):
     )
 
     def write(self, vals):
-        if "state" in vals and vals["state"] == "ready":
-            for record in self:
-                if record.state == "new" and not self.env.user.has_group(
-                    "royal_estate.group_estate_team_lead"
-                ) and not self.env.user.has_group(
-                    "royal_estate.group_estate_listing_coordinator"
-                ):
-                    raise UserError(
-                        "Только Team Lead и Listing Coordinator могут перевести объект из «Новый» в «Готов к публикации»."
-                    )
+        if "state" in vals:
+            new_state = vals["state"]
+            is_forced = self.env.context.get("force_state_change")
+            if not is_forced:
+                for record in self:
+                    if record.state == "new" and new_state == "ready":
+                        raise UserError(
+                            "Используйте кнопку «Готов к публикации» для смены статуса."
+                        )
+                    if new_state == "published":
+                        raise UserError(
+                            "Публикация объекта возможна только через специальное действие (API, выгрузка)."
+                        )
+                    if new_state == "unpublished":
+                        raise UserError(
+                            "Снятие с публикации возможно только через специальное действие."
+                        )
         return super().write(vals)
+
+    def action_set_ready(self):
+        for record in self:
+            if record.state != "new":
+                raise UserError(
+                    "Перевести в «Готов к публикации» можно только новый объект."
+                )
+        self.with_context(force_state_change=True).write({"state": "ready"})
+
+    def action_publish(self):
+        for record in self:
+            if record.state != "ready":
+                raise UserError(
+                    "Опубликовать можно только объект в статусе «Готов к публикации»."
+                )
+        self.with_context(force_state_change=True).write({"state": "published"})
+
+    def action_unpublish(self):
+        for record in self:
+            if record.state != "published":
+                raise UserError(
+                    "Снять с публикации можно только опубликованный объект."
+                )
+        self.with_context(force_state_change=True).write({"state": "unpublished"})
 
     @api.depends("city_id", "district_id", "street_id", "house_number")
     def _compute_geo_address(self):
@@ -138,7 +169,7 @@ class EstateProperty(models.Model):
         api_key = (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("royal_estate.yandex_geocoder_api_key")
+            .get_param("estate_kit.yandex_geocoder_api_key")
         )
         if not api_key:
             raise UserError("API ключ Yandex Geocoder не настроен")
@@ -538,5 +569,5 @@ class EstateProperty(models.Model):
         return (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("royal_estate.twogis_api_key", "")
+            .get_param("estate_kit.twogis_api_key", "")
         )

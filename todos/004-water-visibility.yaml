@@ -17,7 +17,7 @@ recommendation: |
 
 solution: |
   Удалён атрибут invisible="property_type == 'apartment'" с поля water
-  в файле addons/royal_estate/views/estate_property_views.xml (строка 121).
+  в файле addons/estate_kit/views/estate_property_views.xml (строка 121).
   Теперь поле "Водоснабжение" отображается для всех типов недвижимости
   (квартиры, дома, таунхаусы, коммерция). Для земельных участков страница
   "Характеристики" скрыта целиком, поэтому поле не будет отображаться.

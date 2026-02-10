@@ -3,7 +3,7 @@ services:
     build:
       context: ..
       dockerfile: build/Dockerfile
-    image: docker.io/sumarokovvp/simplelogic:royal_estate_arm
+    image: docker.io/sumarokovvp/simplelogic:estate_kit_arm
 
   odoo-amd64:
     build:
@@ -11,4 +11,4 @@ services:
       dockerfile: build/Dockerfile
       platforms:
         - linux/amd64
-    image: docker.io/sumarokovvp/simplelogic:royal_estate_amd64
+    image: docker.io/sumarokovvp/simplelogic:estate_kit_amd64

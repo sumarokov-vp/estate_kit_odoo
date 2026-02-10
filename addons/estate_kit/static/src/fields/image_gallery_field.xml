@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="royal_estate.ImageGalleryField">
+    <t t-name="estate_kit.ImageGalleryField">
         <div class="o_image_gallery_field">
             <t t-if="state.isLoading">
                 <div class="o_image_gallery_loading text-center p-4">

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
-    <t t-name="royal_estate.ImageLightbox">
+    <t t-name="estate_kit.ImageLightbox">
         <Dialog size="'xl'" contentClass="'o_image_lightbox_dialog p-0'">
             <div class="o_image_lightbox">
                 <div class="o_lightbox_main">

@@ -1,1 +1,1 @@
-# royalestate_odoo
+# estate_kit_odoo

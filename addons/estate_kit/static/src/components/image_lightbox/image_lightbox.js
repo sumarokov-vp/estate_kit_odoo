@@ -4,7 +4,7 @@ import { Component, useState, onMounted, onWillUnmount } from "@odoo/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 
 export class ImageLightbox extends Component {
-    static template = "royal_estate.ImageLightbox";
+    static template = "estate_kit.ImageLightbox";
     static components = { Dialog };
     static props = {
         images: Array,
