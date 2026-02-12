@@ -1,0 +1,24 @@
+title: "Создать дев деплой на caddy для тестов"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g245m27mMVPF4qq"
+
+description: |
+  Настроить dev-окружение с Caddy для тестирования webhook-интеграции.
+  Caddy обеспечит HTTPS (через автоматический Let's Encrypt или self-signed)
+  для приёма webhook-событий от центрального API.
+
+  Нужно:
+  - Caddy reverse proxy для Odoo
+  - HTTPS endpoint для webhook контроллера
+  - Доступность из интернета (для API callbacks)
+
+recommendation: |
+  1. Создать dev/Caddyfile с reverse proxy на Odoo
+  2. Создать dev/compose.yaml с Caddy + Odoo
+  3. Настроить домен для dev (или использовать tunnel)
+
+solution: null
