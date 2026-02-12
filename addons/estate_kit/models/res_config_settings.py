@@ -17,3 +17,11 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="estate_kit.auto_mls",
         default=True,
     )
+    estate_kit_webhook_secret = fields.Char(
+        string="Webhook Secret",
+        config_parameter="estate_kit.webhook_secret",
+    )
+    estate_kit_webhook_url = fields.Char(
+        string="Webhook URL",
+        config_parameter="estate_kit.webhook_url",
+    )

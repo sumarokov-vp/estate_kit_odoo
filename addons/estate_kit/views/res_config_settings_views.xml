@@ -28,6 +28,24 @@
                             <field name="estate_kit_auto_mls"/>
                         </setting>
                     </block>
+                    <block title="Webhooks" name="estate_kit_webhooks">
+                        <setting string="Webhook URL" help="URL, по которому Odoo принимает webhook-события от центрального API">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_webhook_url" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_webhook_url" class="col-lg-6" placeholder="https://your-odoo.com/estatekit/webhook"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Webhook Secret" help="Секретный ключ для HMAC-SHA256 верификации входящих webhook-событий">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_webhook_secret" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_webhook_secret" class="col-lg-6" password="True"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>
