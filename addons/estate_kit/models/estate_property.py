@@ -557,6 +557,11 @@ class EstateProperty(models.Model):
     instagram_url = fields.Char(string="Instagram")
     krisha_url = fields.Char(string="URL на Krisha.kz")
 
+    # === Синхронизация ===
+    external_id = fields.Integer(string="API ID", index=True, copy=False, readonly=True)
+    pending_sync = fields.Boolean(string="Pending Sync", default=False, copy=False, readonly=True)
+    last_synced_at = fields.Datetime(string="Last Synced", copy=False, readonly=True)
+
     # === Медиа ===
     image_ids = fields.One2many(
         "estate.property.image",
