@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.estate_kit</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="inside">
+                <app data-string="Estate Kit" string="Estate Kit" name="estate_kit">
+                    <block title="API" name="estate_kit_api">
+                        <setting string="URL API" help="Адрес центрального EstateKit API (например https://api.estatekit.kz/api/v1)">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_api_url" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_api_url" class="col-lg-6" placeholder="https://api.estatekit.kz/api/v1"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="API-ключ" help="Ключ аутентификации тенанта (передаётся в заголовке X-API-Key)">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_api_key" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_api_key" class="col-lg-6" password="True"/>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Авто-отправка в MLS" help="Автоматически отправлять новые объекты недвижимости в MLS">
+                            <field name="estate_kit_auto_mls"/>
+                        </setting>
+                    </block>
+                </app>
+            </xpath>
+        </field>
+    </record>
+</odoo>

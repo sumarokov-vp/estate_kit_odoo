@@ -9,5 +9,17 @@
             <field name="key">estate_kit.yandex_geocoder_api_key</field>
             <field name="value"></field>
         </record>
+        <record id="config_api_url" model="ir.config_parameter">
+            <field name="key">estate_kit.api_url</field>
+            <field name="value"></field>
+        </record>
+        <record id="config_api_key" model="ir.config_parameter">
+            <field name="key">estate_kit.api_key</field>
+            <field name="value"></field>
+        </record>
+        <record id="config_auto_mls" model="ir.config_parameter">
+            <field name="key">estate_kit.auto_mls</field>
+            <field name="value">True</field>
+        </record>
     </data>
 </odoo>

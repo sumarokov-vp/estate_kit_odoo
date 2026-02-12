@@ -7,3 +7,4 @@ from . import estate_property
 from . import estate_source
 from . import estate_property_image
 from . import crm_lead
+from . import res_config_settings

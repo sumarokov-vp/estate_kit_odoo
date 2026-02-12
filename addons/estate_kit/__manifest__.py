@@ -15,7 +15,7 @@
     "author": "Estate Kit Team",
     "website": "",
     "license": "LGPL-3",
-    "depends": ["base", "mail", "crm"],
+    "depends": ["base", "base_setup", "mail", "crm"],
     "data": [
         "security/estate_security.xml",
         "security/ir.model.access.csv",
@@ -31,6 +31,7 @@
         "views/estate_appliance_views.xml",
         "views/estate_property_views.xml",
         "views/crm_lead_views.xml",
+        "views/res_config_settings_views.xml",
         "views/estate_menus.xml",
         "wizards/krisha_parser_views.xml",
     ],
