@@ -56,3 +56,4 @@ access_krisha_preview_listing_coordinator,krisha.parser.preview.listing_coordina
 access_krisha_result_team_lead,krisha.parser.result.team_lead,model_krisha_parser_result,group_estate_team_lead,1,1,1,1
 access_krisha_result_listing_agent,krisha.parser.result.listing_agent,model_krisha_parser_result,group_estate_listing_agent,1,1,1,1
 access_krisha_result_listing_coordinator,krisha.parser.result.listing_coordinator,model_krisha_parser_result,group_estate_listing_coordinator,1,1,1,1
+access_webhook_event_team_lead,estatekit.webhook.event.team_lead,model_estatekit_webhook_event,group_estate_team_lead,1,1,1,1

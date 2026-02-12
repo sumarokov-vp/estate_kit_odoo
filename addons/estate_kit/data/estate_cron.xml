@@ -83,8 +83,19 @@
         <field name="model_id" ref="model_estate_property"/>
         <field name="state">code</field>
         <field name="code">model._cron_pull_from_api()</field>
-        <field name="interval_number">10</field>
-        <field name="interval_type">minutes</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_cleanup_webhook_events" model="ir.cron">
+        <field name="name">Cleanup old webhook events</field>
+        <field name="model_id" ref="model_estatekit_webhook_event"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_cleanup_old_events()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
         <field name="numbercall">-1</field>
         <field name="active">True</field>
     </record>

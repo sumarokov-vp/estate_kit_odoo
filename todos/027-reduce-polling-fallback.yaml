@@ -1,7 +1,7 @@
 title: "Снизить polling до hourly fallback"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g24JPjQJMxfrXxq"
@@ -24,4 +24,6 @@ recommendation: |
 
   2. Без изменений для cron_retry_sync (остаётся 5 минут).
 
-solution: null
+solution: |
+  Изменён интервал cron_pull_properties с 10 минут на 1 час в estate_cron.xml.
+  cron_retry_sync оставлен без изменений (5 минут).

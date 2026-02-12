@@ -1,7 +1,7 @@
 title: "Модель идемпотентности estatekit.webhook.event"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g24JPPMGpMrgMJq"
@@ -40,4 +40,7 @@ recommendation: |
   3. Добавить security/ir.model.access.csv запись для модели
   4. Cron для очистки (раз в сутки, удалять старше 30 дней)
 
-solution: null
+solution: |
+  Создана модель estatekit.webhook.event с полями event_id (unique), event_type
+  и processed_at. Добавлен SQL constraint на уникальность event_id, ACL для
+  team_lead и cron-задача для ежедневной очистки записей старше 30 дней.
