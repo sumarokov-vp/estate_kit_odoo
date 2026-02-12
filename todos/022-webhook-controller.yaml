@@ -1,7 +1,7 @@
 title: "Webhook controller + HMAC верификация"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g24JPJQXWMWhqPH"
@@ -50,4 +50,11 @@ recommendation: |
   4. Обновить __init__.py корня модуля: from . import controllers
   5. Обновить __manifest__.py если нужно
 
-solution: null
+solution: |
+  Создан webhook controller с HMAC-SHA256 верификацией.
+  Endpoint: POST /estatekit/webhook (type=http, auth=none, csrf=False).
+  Использует type=http для доступа к raw body bytes (не json-rpc).
+  Проверяет подпись через X-EstateKit-Signature (sha256=hex_digest).
+  Проверяет идемпотентность через estatekit.webhook.event.
+  Маршрутизация по event_type подготовлена для будущих обработчиков (024-026).
+  Файлы: controllers/__init__.py, controllers/webhook.py, обновлён __init__.py модуля.
