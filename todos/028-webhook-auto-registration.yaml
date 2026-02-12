@@ -1,7 +1,7 @@
 title: "Авто-регистрация webhook URL в API при настройке"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g24JPr2QfVHrXMq"
@@ -42,4 +42,9 @@ recommendation: |
   4. Кнопка "Тест webhook" — POST /webhooks/{id}/test
      для проверки что Odoo принимает события.
 
-solution: null
+solution: |
+  Override set_values() в res.config.settings: при изменении webhook_url или
+  webhook_secret удаляет старую подписку (DELETE /webhooks/{id}) и создаёт новую
+  (POST /webhooks с url, secret, events). Subscription ID сохраняется в
+  ir.config_parameter (estate_kit.webhook_subscription_id). Добавлен параметр
+  config_webhook_subscription_id в ir_config_parameter.xml.

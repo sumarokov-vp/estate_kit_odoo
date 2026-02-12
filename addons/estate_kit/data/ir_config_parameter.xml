@@ -33,5 +33,9 @@
             <field name="key">estate_kit.webhook_url</field>
             <field name="value"></field>
         </record>
+        <record id="config_webhook_subscription_id" model="ir.config_parameter">
+            <field name="key">estate_kit.webhook_subscription_id</field>
+            <field name="value"></field>
+        </record>
     </data>
 </odoo>
