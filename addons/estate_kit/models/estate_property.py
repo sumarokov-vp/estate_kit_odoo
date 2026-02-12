@@ -10,6 +10,29 @@ _logger = logging.getLogger(__name__)
 
 SYNC_FIELDS = {"external_id", "pending_sync", "last_synced_at"}
 
+PULL_PAGE_LIMIT = 100
+
+API_PROPERTY_TYPE_MAP = {
+    1: "apartment",
+    2: "house",
+    3: "townhouse",
+    4: "commercial",
+    5: "land",
+}
+
+API_DEAL_TYPE_MAP = {
+    1: "sale",
+    2: "rent_long",
+    3: "rent_daily",
+}
+
+API_STATE_MAP = {
+    1: "new",
+    2: "ready",
+    3: "published",
+    4: "unpublished",
+}
+
 
 class EstateProperty(models.Model):
     _name = "estate.property"
@@ -103,6 +126,13 @@ class EstateProperty(models.Model):
     def create(self, vals_list):
         result = super().create(vals_list)
         if not self.env.context.get("skip_api_sync"):
+            auto_mls = (
+                self.env["ir.config_parameter"]
+                .sudo()
+                .get_param("estate_kit.auto_mls", "True")
+            )
+            if auto_mls == "True":
+                result.with_context(skip_api_sync=True).write({"mls_listed": True})
             for record in result:
                 record._push_to_api()
         return result
@@ -627,12 +657,44 @@ class EstateProperty(models.Model):
             record.api_configured = configured
 
     def action_publish_to_mls(self):
+        self.with_context(skip_api_sync=True).write({"mls_listed": True})
         for record in self:
-            record.mls_listed = True
+            record._push_to_api()
 
     def action_unpublish_from_mls(self):
+        self.with_context(skip_api_sync=True).write({"mls_listed": False})
         for record in self:
-            record.mls_listed = False
+            record._push_to_api()
+
+    @api.model
+    def _cron_retry_pending_sync(self):
+        pending = self.search([("pending_sync", "=", True)])
+        _logger.info("Retry pending sync: found %d records", len(pending))
+        for record in pending:
+            record._push_to_api()
+
+    def _push_owner_to_api(self):
+        self.ensure_one()
+        if not self.owner_id:
+            return None
+        partner = self.owner_id
+        client = EstateKitApiClient(self.env)
+        if not client._is_configured:
+            return None
+        payload = {"name": partner.name, "phone": partner.phone or ""}
+        try:
+            if partner.external_owner_id:
+                client.put(f"/owners/{partner.external_owner_id}", payload)
+                return partner.external_owner_id
+            response = client.post("/owners", payload)
+            if response and "id" in response:
+                partner.write({"external_owner_id": response["id"]})
+                return response["id"]
+        except Exception:
+            _logger.exception(
+                "Failed to push owner %s (id=%s) to API", partner.name, partner.id
+            )
+        return None
 
     def _push_to_api(self):
         self.ensure_one()
@@ -640,6 +702,7 @@ class EstateProperty(models.Model):
         if not client._is_configured:
             return
 
+        self._push_owner_to_api()
         payload = self._prepare_api_payload()
 
         try:
@@ -734,7 +797,7 @@ class EstateProperty(models.Model):
             "land_status": self.land_status or "",
             "communications_nearby": self.communications_nearby,
             "road_access": self.road_access or "",
-            "is_shared": self.is_shared,
+            "is_shared": self.mls_listed,
             "video_url": self.video_url or "",
             "contract_type": self.contract_type or "",
             "contract_start": (
@@ -745,6 +808,9 @@ class EstateProperty(models.Model):
             ),
             "owner_name": self.owner_name or "",
         }
+
+        if self.owner_id and self.owner_id.external_owner_id:
+            payload["owner_id"] = self.owner_id.external_owner_id
 
         if self.city_id:
             payload["city_id"] = self.city_id.id
@@ -763,9 +829,218 @@ class EstateProperty(models.Model):
         return payload
 
     @api.model
+    def _find_or_create_owner_from_api(self, owner_data):
+        if not owner_data or not owner_data.get("id"):
+            return False
+        external_id = owner_data["id"]
+        partner = self.env["res.partner"].search(
+            [("external_owner_id", "=", external_id)], limit=1
+        )
+        vals = {
+            "name": owner_data.get("name", ""),
+            "phone": owner_data.get("phone", ""),
+            "external_owner_id": external_id,
+        }
+        if partner:
+            partner.write({"name": vals["name"], "phone": vals["phone"]})
+            return partner.id
+        return self.env["res.partner"].create(vals).id
+
+    @api.model
     def get_twogis_api_key(self):
         return (
             self.env["ir.config_parameter"]
             .sudo()
             .get_param("estate_kit.twogis_api_key", "")
         )
+
+    @api.model
+    def _cron_pull_from_api(self):
+        client = EstateKitApiClient(self.env)
+        if not client._is_configured:
+            return
+
+        config = self.env["ir.config_parameter"].sudo()
+        last_sync = config.get_param("estate_kit.last_sync", "")
+
+        offset = 0
+        total_created = 0
+        total_updated = 0
+
+        while True:
+            params = {"limit": PULL_PAGE_LIMIT, "offset": offset}
+            if last_sync:
+                params["updated_after"] = last_sync
+
+            response = client.get("/properties", params=params)
+            if not response:
+                _logger.error("Failed to fetch properties from API (offset=%d)", offset)
+                break
+
+            items = response.get("items", [])
+            if not items:
+                break
+
+            for item in items:
+                created, updated = self._process_api_item(item)
+                total_created += created
+                total_updated += updated
+
+            if len(items) < PULL_PAGE_LIMIT:
+                break
+
+            offset += PULL_PAGE_LIMIT
+
+        config.set_param("estate_kit.last_sync", fields.Datetime.now())
+        _logger.info(
+            "Pull from API completed: %d created, %d updated",
+            total_created,
+            total_updated,
+        )
+
+    def _process_api_item(self, item):
+        api_id = item.get("id")
+        if not api_id:
+            return 0, 0
+
+        existing = self.search([("external_id", "=", api_id)], limit=1)
+
+        api_updated_at = item.get("updated_at")
+        if existing and api_updated_at and existing.last_synced_at:
+            api_dt = fields.Datetime.to_datetime(
+                api_updated_at.replace("Z", "+00:00")
+            )
+            if api_dt and api_dt <= existing.last_synced_at:
+                return 0, 0
+
+        vals = self._import_from_api_data(item)
+        sync_ctx = self.with_context(skip_api_sync=True, force_state_change=True)
+
+        if existing:
+            sync_ctx.browse(existing.id).write(vals)
+            existing.with_context(skip_api_sync=True).write(
+                {"last_synced_at": fields.Datetime.now()}
+            )
+            return 0, 1
+
+        vals["external_id"] = api_id
+        vals["last_synced_at"] = fields.Datetime.now()
+        sync_ctx.create(vals)
+        return 1, 0
+
+    @api.model
+    def _import_from_api_data(self, data):
+        vals = {}
+
+        property_type = API_PROPERTY_TYPE_MAP.get(data.get("property_type_id"))
+        if property_type:
+            vals["property_type"] = property_type
+
+        deal_type = API_DEAL_TYPE_MAP.get(data.get("deal_type_id"))
+        if deal_type:
+            vals["deal_type"] = deal_type
+
+        state = API_STATE_MAP.get(data.get("status_id"))
+        if state:
+            vals["state"] = state
+
+        if data.get("description"):
+            vals["description"] = data["description"]
+
+        if data.get("price") is not None:
+            vals["price"] = float(data["price"])
+
+        if data.get("area") is not None:
+            vals["area_total"] = float(data["area"])
+
+        if data.get("owner_name"):
+            vals["owner_name"] = data["owner_name"]
+
+        owner_api_id = data.get("owner_id")
+        if owner_api_id:
+            owner = self.env["res.partner"].search(
+                [("external_owner_id", "=", owner_api_id)], limit=1
+            )
+            if owner:
+                vals["owner_id"] = owner.id
+            else:
+                _logger.warning(
+                    "Owner with API ID %d not found, skipping", owner_api_id
+                )
+
+        location = data.get("location") or {}
+        self._import_location(vals, location)
+
+        if not vals.get("name"):
+            vals["name"] = self._generate_name_from_vals(vals)
+
+        return vals
+
+    @api.model
+    def _import_location(self, vals, location):
+        if not location:
+            return
+
+        city_ext_id = location.get("city_id")
+        if city_ext_id:
+            city = self.env["estate.city"].search(
+                [("external_id", "=", city_ext_id)], limit=1
+            )
+            if city:
+                vals["city_id"] = city.id
+            else:
+                _logger.warning("City with API ID %d not found, skipping", city_ext_id)
+
+        district_ext_id = location.get("district_id")
+        if district_ext_id:
+            district = self.env["estate.district"].search(
+                [("external_id", "=", district_ext_id)], limit=1
+            )
+            if district:
+                vals["district_id"] = district.id
+            else:
+                _logger.warning(
+                    "District with API ID %d not found, skipping", district_ext_id
+                )
+
+        street_name = location.get("street")
+        if street_name and vals.get("city_id"):
+            street = self.env["estate.street"].search(
+                [("name", "=", street_name), ("city_id", "=", vals["city_id"])],
+                limit=1,
+            )
+            if street:
+                vals["street_id"] = street.id
+
+        if location.get("house_number"):
+            vals["house_number"] = location["house_number"]
+
+        if location.get("apartment_number"):
+            vals["apartment_number"] = location["apartment_number"]
+
+        if location.get("latitude") is not None:
+            vals["latitude"] = float(location["latitude"])
+
+        if location.get("longitude") is not None:
+            vals["longitude"] = float(location["longitude"])
+
+    @api.model
+    def _generate_name_from_vals(self, vals):
+        parts = []
+        property_type_labels = {
+            "apartment": "Квартира",
+            "house": "Дом",
+            "townhouse": "Таунхаус",
+            "commercial": "Коммерция",
+            "land": "Земля",
+        }
+        label = property_type_labels.get(vals.get("property_type"), "Объект")
+        parts.append(label)
+
+        if vals.get("area_total"):
+            parts.append(f"{vals['area_total']} м²")
+
+        if vals.get("price"):
+            parts.append(f"{vals['price']:,.0f}")
+
+        return " — ".join(parts) if len(parts) > 1 else parts[0]

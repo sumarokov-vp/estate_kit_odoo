@@ -1,7 +1,7 @@
 title: "Pull: API → Odoo (cron updated_after)"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g238X3F4crCjPHH"
@@ -47,4 +47,30 @@ recommendation: |
        <field name="interval_type">minutes</field>
      </record>
 
-solution: null
+solution: |
+  Реализовано в models/estate_property.py:
+
+  1. _cron_pull_from_api() — cron-метод (@api.model), каждые 10 минут:
+     - Читает estate_kit.last_sync из ir.config_parameter
+     - Пагинирует GET /properties?updated_after={last_sync}&limit=100
+     - Для каждого объекта вызывает _process_api_item()
+     - Обновляет last_sync = now() после завершения
+
+  2. _process_api_item(item) — обработка одного объекта из API:
+     - Поиск по external_id, сравнение updated_at с last_synced_at
+     - Создание или обновление с контекстом skip_api_sync=True, force_state_change=True
+     - Установка last_synced_at при успехе
+
+  3. _import_from_api_data(data) — обратный маппинг API → Odoo vals:
+     - property_type_id, deal_type_id, status_id → selection через словари
+     - description, price, area → прямые поля
+     - owner_id → res.partner по external_owner_id
+     - location → city_id, district_id, street_id по external_id
+
+  4. _import_location(vals, location) — маппинг вложенного объекта location
+  5. _generate_name_from_vals(vals) — авто-генерация названия при отсутствии
+
+  Также:
+  - Добавлен config param estate_kit.last_sync в data/ir_config_parameter.xml
+  - Добавлен cron cron_pull_properties в data/estate_cron.xml (10 мин)
+  - Маппинг-словари API_PROPERTY_TYPE_MAP, API_DEAL_TYPE_MAP, API_STATE_MAP

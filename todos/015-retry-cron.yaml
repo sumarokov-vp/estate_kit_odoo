@@ -1,7 +1,7 @@
 title: "Retry cron для pending_sync объектов"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g238X6W5HWQW8xq"
@@ -36,4 +36,6 @@ recommendation: |
        <field name="interval_type">minutes</field>
      </record>
 
-solution: null
+solution: |
+  1. Добавлен метод _cron_retry_pending_sync() в estate.property — ищет записи с pending_sync=True и вызывает _push_to_api() для каждой. Логирует количество найденных записей.
+  2. Добавлен cron-запись cron_retry_sync в data/estate_cron.xml — запуск каждые 5 минут, бесконечное повторение.

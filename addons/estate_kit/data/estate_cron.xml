@@ -67,4 +67,26 @@
         <field name="active">True</field>
     </record>
 
+    <record id="cron_retry_sync" model="ir.cron">
+        <field name="name">Retry pending sync to API</field>
+        <field name="model_id" ref="model_estate_property"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_retry_pending_sync()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_pull_properties" model="ir.cron">
+        <field name="name">Pull properties from API</field>
+        <field name="model_id" ref="model_estate_property"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_pull_from_api()</field>
+        <field name="interval_number">10</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
 </odoo>
