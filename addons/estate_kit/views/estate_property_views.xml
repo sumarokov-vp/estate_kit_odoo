@@ -192,6 +192,26 @@
                                 <field name="internal_note" nolabel="1" colspan="2"/>
                             </group>
                         </page>
+                        <page string="MLS" name="mls" invisible="not api_configured">
+                            <field name="api_configured" invisible="1"/>
+                            <field name="mls_listed" invisible="1"/>
+                            <group>
+                                <group string="Статус">
+                                    <field name="mls_status" widget="badge"/>
+                                    <field name="external_id"/>
+                                    <field name="last_synced_at"/>
+                                    <field name="pending_sync"/>
+                                </group>
+                            </group>
+                            <group>
+                                <button name="action_publish_to_mls" string="Отправить в MLS"
+                                        type="object" class="btn-primary"
+                                        invisible="mls_listed"/>
+                                <button name="action_unpublish_from_mls" string="Убрать из MLS"
+                                        type="object" class="btn-secondary"
+                                        invisible="not mls_listed"/>
+                            </group>
+                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>

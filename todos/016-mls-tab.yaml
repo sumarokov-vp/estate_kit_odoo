@@ -1,7 +1,7 @@
 title: "MLS-вкладка: статус объекта в MLS + кнопки управления"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g238XC3JJJFwwxH"
@@ -51,4 +51,18 @@ recommendation: |
                attrs="{'invisible': [('mls_listed', '=', False)]}"/>
      </page>
 
-solution: null
+solution: |
+  Добавлена вкладка MLS в форму estate.property.
+
+  models/estate_property.py:
+  - mls_listed = fields.Boolean — размещён ли объект в MLS
+  - mls_status = computed Selection (not_listed/listed/received) — логика: external_id без mls_listed → received; mls_listed → listed; иначе not_listed
+  - api_configured = computed Boolean — проверяет наличие estate_kit.api_url в config params
+  - action_publish_to_mls() — устанавливает mls_listed=True
+  - action_unpublish_from_mls() — устанавливает mls_listed=False
+
+  views/estate_property_views.xml:
+  - Вкладка MLS с invisible="not api_configured" (Odoo 19 синтаксис)
+  - Поля: mls_status (badge), external_id, last_synced_at, pending_sync
+  - Кнопка "Отправить в MLS" (invisible="mls_listed")
+  - Кнопка "Убрать из MLS" (invisible="not mls_listed")
