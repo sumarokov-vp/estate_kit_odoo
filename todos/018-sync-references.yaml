@@ -1,7 +1,7 @@
 title: "Синхронизация справочников (города, районы, улицы) из API"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g238XP9rgp5H3rq"
@@ -47,4 +47,15 @@ recommendation: |
 
   3. Добавить cron-записи в data/estate_cron.xml для каждого справочника.
 
-solution: null
+solution: |
+  Добавлено поле external_id (Integer, index, copy=False) во все 6 моделей справочников:
+  estate.city, estate.district, estate.street, estate.source, estate.appliance, estate.climate.equipment.
+
+  В каждую модель добавлен метод _cron_sync_from_api(), который:
+  - Создаёт EstateKitApiClient и вызывает соответствующий endpoint
+  - Для каждого элемента: ищет по external_id, обновляет или создаёт запись
+  - Для districts и streets: резолвит city_id через external_id города
+  - Логирует предупреждение если город не найден (пропускает запись)
+
+  Создан data/estate_cron.xml с 6 cron-записями (ir.cron), каждая запускается раз в час.
+  Файл добавлен в __manifest__.py.

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="cron_sync_cities" model="ir.cron">
+        <field name="name">Sync cities from API</field>
+        <field name="model_id" ref="model_estate_city"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync_from_api()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_sync_districts" model="ir.cron">
+        <field name="name">Sync districts from API</field>
+        <field name="model_id" ref="model_estate_district"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync_from_api()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_sync_streets" model="ir.cron">
+        <field name="name">Sync streets from API</field>
+        <field name="model_id" ref="model_estate_street"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync_from_api()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_sync_sources" model="ir.cron">
+        <field name="name">Sync sources from API</field>
+        <field name="model_id" ref="model_estate_source"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync_from_api()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_sync_appliances" model="ir.cron">
+        <field name="name">Sync appliances from API</field>
+        <field name="model_id" ref="model_estate_appliance"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync_from_api()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_sync_climate_equipment" model="ir.cron">
+        <field name="name">Sync climate equipment from API</field>
+        <field name="model_id" ref="model_estate_climate_equipment"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_sync_from_api()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

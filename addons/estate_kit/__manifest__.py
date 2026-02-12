@@ -23,6 +23,7 @@
         "data/estate_city_data.xml",
         "data/estate_climate_equipment_data.xml",
         "data/estate_appliance_data.xml",
+        "data/estate_cron.xml",
         "views/estate_city_views.xml",
         "views/estate_district_views.xml",
         "views/estate_street_views.xml",
