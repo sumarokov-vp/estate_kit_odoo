@@ -1,7 +1,7 @@
 title: "Настройка auto-MLS: глобальная галочка + индивидуальная кнопка"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g238XGvr4MhgVrq"
@@ -36,4 +36,20 @@ recommendation: |
   3. В форме: добавить computed поле auto_mls_enabled (Boolean, compute from config)
      для управления видимостью кнопок.
 
-solution: null
+solution: |
+  1. create(): после super().create() проверяет estate_kit.auto_mls config param.
+     Если "True" — устанавливает mls_listed=True на все новые записи (с skip_api_sync),
+     затем вызывает _push_to_api() для каждой записи.
+
+  2. _prepare_api_payload(): поле is_shared теперь берётся из self.mls_listed
+     вместо self.is_shared, чтобы API получал актуальный MLS-статус.
+
+  3. action_publish_to_mls(): записывает mls_listed=True (с skip_api_sync),
+     затем явно вызывает _push_to_api() для синхронизации.
+
+  4. action_unpublish_from_mls(): записывает mls_listed=False (с skip_api_sync),
+     затем явно вызывает _push_to_api() для синхронизации.
+
+  5. Видимость кнопок в XML уже корректна (из задачи 016):
+     "Отправить в MLS" — invisible="mls_listed" (видна когда не в MLS),
+     "Убрать из MLS" — invisible="not mls_listed" (видна когда в MLS).

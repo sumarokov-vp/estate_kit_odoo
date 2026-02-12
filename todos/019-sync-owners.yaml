@@ -1,7 +1,7 @@
 title: "Синхронизация собственников (owners) push/pull"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g238XRgjcVMxgxH"
@@ -42,4 +42,12 @@ recommendation: |
      API Owner.phone → res.partner.phone
      API Owner.notes → (не используется в Odoo, можно в comment)
 
-solution: null
+solution: |
+  Реализована двусторонняя синхронизация собственников (owners) между Odoo и API:
+
+  1. Создан models/res_partner.py — наследование res.partner с полем external_owner_id (Integer, index=True)
+  2. Добавлен _push_owner_to_api() в estate.property — push owner (POST/PUT /owners) перед push property
+  3. Модифицирован _push_to_api() — вызывает _push_owner_to_api() перед подготовкой payload
+  4. В _prepare_api_payload() добавлен owner_id (API external ID) в payload
+  5. Добавлен _find_or_create_owner_from_api(owner_data) — поиск/создание res.partner по external_owner_id для pull
+  6. Push толерантен к ошибкам — если owner push упал, property всё равно отправится
