@@ -1,7 +1,7 @@
 title: "Push: Odoo → API (override write/create)"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g238WvfQFhr8W2q"
@@ -49,4 +49,11 @@ recommendation: |
 
   4. Маппинг полей — отдельный метод _prepare_api_payload() для удобства.
 
-solution: null
+solution: |
+  Реализовано в models/estate_property.py:
+  1. Добавлен import EstateKitApiClient и константа SYNC_FIELDS
+  2. Override create() с @api.model_create_multi — после super().create() вызывает _push_to_api() для каждой записи
+  3. Модифицирован write() — после super().write() вызывает _push_to_api(), если изменяются не только служебные поля синхронизации
+  4. Защита от рекурсии: context-флаг skip_api_sync предотвращает повторный sync при обновлении external_id/pending_sync/last_synced_at
+  5. _push_to_api() — обёрнут в try-except, при ошибке ставит pending_sync=True, при успехе сбрасывает pending_sync и обновляет last_synced_at
+  6. _prepare_api_payload() — маппинг всех полей Odoo в API JSON: Selection-поля как строки, Many2one (city/district/street) как id, Many2many (appliances/climate_equipment) как списки кодов, Date-поля как ISO-строки
