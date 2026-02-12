@@ -1,7 +1,7 @@
 title: "Синхронизация фото: upload в S3 через API + pull"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g238XWVW4f9J62H"
@@ -47,4 +47,25 @@ recommendation: |
   4. Стратегия отображения: продолжать хранить Binary (совместимость с галереей),
      но дополнительно хранить image_url для синхронизации.
 
-solution: null
+solution: |
+  Реализована двусторонняя синхронизация фотографий между Odoo и центральным API.
+
+  Новые поля в estate.property.image:
+  - external_id (Integer, index, copy=False) — ID фото в API
+  - image_url (Char, copy=False) — URL файла в S3
+
+  Push (Odoo → API):
+  - Override create() с @api.model_create_multi: после создания записи, если property
+    имеет external_id и API настроен, файл декодируется из base64 и загружается через
+    client.upload() на POST /property-images/upload. Из ответа сохраняются external_id
+    и image_url. Контекст skip_api_sync предотвращает рекурсию.
+  - Override unlink(): перед удалением записей собираются external_id всех фото,
+    затем после super().unlink() выполняется DELETE /property-images/{id} для каждого.
+
+  Pull (API → Odoo):
+  - Метод _pull_images_for_property() делает GET /property-images?property_id={ext_id},
+    ищет существующие фото по external_id, обновляет image_url у существующих,
+    скачивает и создаёт новые. Изображения сохраняются как Binary для совместимости
+    с виджетом галереи.
+  - _pull_images_for_property() вызывается из _process_api_item() в estate.property
+    при pull (cron и webhook) — как для обновлённых, так и для новых объектов.

@@ -921,11 +921,13 @@ class EstateProperty(models.Model):
             existing.with_context(skip_api_sync=True).write(
                 {"last_synced_at": fields.Datetime.now()}
             )
+            self.env["estate.property.image"]._pull_images_for_property(existing)
             return 0, 1
 
         vals["external_id"] = api_id
         vals["last_synced_at"] = fields.Datetime.now()
-        sync_ctx.create(vals)
+        new_record = sync_ctx.create(vals)
+        self.env["estate.property.image"]._pull_images_for_property(new_record)
         return 1, 0
 
     @api.model
@@ -1036,6 +1038,77 @@ class EstateProperty(models.Model):
             prop.id,
             responsible_user.login,
         )
+
+    @api.model
+    def _handle_webhook_mls_new_listing(self, payload):
+        property_id = payload.get("data", {}).get("property_id")
+        if not property_id:
+            _logger.warning("mls.new_listing: missing property_id in payload")
+            return
+
+        existing = self.search([("external_id", "=", property_id)], limit=1)
+        if existing:
+            _logger.info("mls.new_listing: property with external_id=%d already exists", property_id)
+            return
+
+        client = EstateKitApiClient(self.env)
+        item = client.get(f"/mls/properties/{property_id}")
+        if not item:
+            _logger.warning("mls.new_listing: failed to fetch property %d from API", property_id)
+            return
+
+        vals = self._import_from_api_data(item)
+        vals["external_id"] = property_id
+        vals["mls_listed"] = False
+        vals["last_synced_at"] = fields.Datetime.now()
+        self.with_context(skip_api_sync=True, force_state_change=True).create(vals)
+        _logger.info("mls.new_listing: created property with external_id=%d", property_id)
+
+    @api.model
+    def _handle_webhook_mls_listing_updated(self, payload):
+        property_id = payload.get("data", {}).get("property_id")
+        if not property_id:
+            _logger.warning("mls.listing_updated: missing property_id in payload")
+            return
+
+        existing = self.search([("external_id", "=", property_id)], limit=1)
+        if not existing:
+            _logger.warning(
+                "mls.listing_updated: property with external_id=%d not found", property_id
+            )
+            return
+
+        client = EstateKitApiClient(self.env)
+        item = client.get(f"/mls/properties/{property_id}")
+        if not item:
+            _logger.warning(
+                "mls.listing_updated: failed to fetch property %d from API", property_id
+            )
+            return
+
+        vals = self._import_from_api_data(item)
+        existing.with_context(skip_api_sync=True, force_state_change=True).write(vals)
+        existing.with_context(skip_api_sync=True).write(
+            {"last_synced_at": fields.Datetime.now()}
+        )
+        _logger.info("mls.listing_updated: updated property with external_id=%d", property_id)
+
+    @api.model
+    def _handle_webhook_mls_listing_removed(self, payload):
+        property_id = payload.get("data", {}).get("property_id")
+        if not property_id:
+            _logger.warning("mls.listing_removed: missing property_id in payload")
+            return
+
+        existing = self.search([("external_id", "=", property_id)], limit=1)
+        if not existing:
+            _logger.warning(
+                "mls.listing_removed: property with external_id=%d not found", property_id
+            )
+            return
+
+        existing.with_context(skip_api_sync=True).write({"active": False})
+        _logger.info("mls.listing_removed: deactivated property with external_id=%d", property_id)
 
     @api.model
     def _import_from_api_data(self, data):
