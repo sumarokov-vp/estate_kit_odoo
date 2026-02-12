@@ -1,7 +1,7 @@
 title: "Обработчики: property.created, property.transition"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g24JPVhfMrHcQXH"
@@ -45,4 +45,9 @@ recommendation: |
   4. Для property.transition — маппинг action → state через API_STATE_MAP
      или запрос status_id из payload.
 
-solution: null
+solution: |
+  Добавлены два обработчика в модель estate.property:
+  - _handle_webhook_property_created() — извлекает property_id из payload, запрашивает полные данные через API клиент GET /properties/{id}, передаёт в _process_api_item() для создания/обновления.
+  - _handle_webhook_property_transition() — извлекает property_id и status_id, маппит через API_STATE_MAP, обновляет state с контекстом skip_api_sync+force_state_change. Если объект не найден локально — запрашивает из API и создаёт.
+
+  Обновлён _dispatch_event() в контроллере webhook.py — маршрутизирует property.created и property.transition.* на соответствующие методы модели.

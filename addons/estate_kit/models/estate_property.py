@@ -929,6 +929,115 @@ class EstateProperty(models.Model):
         return 1, 0
 
     @api.model
+    def _handle_webhook_property_created(self, payload):
+        property_id = payload.get("data", {}).get("property_id")
+        if not property_id:
+            _logger.warning("Webhook property.created: missing property_id in payload")
+            return
+
+        client = EstateKitApiClient(self.env)
+        item = client.get(f"/properties/{property_id}")
+        if not item:
+            _logger.warning(
+                "Webhook property.created: failed to fetch property %d from API",
+                property_id,
+            )
+            return
+
+        created, updated = self._process_api_item(item)
+        _logger.info(
+            "Webhook property.created: property_id=%d, created=%d, updated=%d",
+            property_id,
+            created,
+            updated,
+        )
+
+    @api.model
+    def _handle_webhook_property_transition(self, payload):
+        data = payload.get("data", {})
+        property_id = data.get("property_id")
+        status_id = data.get("status_id")
+
+        if not property_id:
+            _logger.warning("Webhook property.transition: missing property_id in payload")
+            return
+
+        new_state = API_STATE_MAP.get(status_id)
+        if not new_state:
+            _logger.warning(
+                "Webhook property.transition: unknown status_id=%s for property %d",
+                status_id,
+                property_id,
+            )
+            return
+
+        existing = self.search([("external_id", "=", property_id)], limit=1)
+        if existing:
+            existing.with_context(
+                skip_api_sync=True, force_state_change=True
+            ).write({"state": new_state})
+            _logger.info(
+                "Webhook property.transition: property %d state → %s",
+                property_id,
+                new_state,
+            )
+            return
+
+        _logger.info(
+            "Webhook property.transition: property %d not found locally, fetching from API",
+            property_id,
+        )
+        client = EstateKitApiClient(self.env)
+        item = client.get(f"/properties/{property_id}")
+        if item:
+            self._process_api_item(item)
+
+    @api.model
+    def _handle_webhook_contact_request(self, payload):
+        data = payload.get("data", {})
+        property_id = data.get("property_id")
+        if not property_id:
+            _logger.warning("contact_request.received: missing property_id in payload")
+            return
+
+        prop = self.search([("external_id", "=", property_id)], limit=1)
+        if not prop:
+            _logger.warning(
+                "contact_request.received: property with external_id=%s not found",
+                property_id,
+            )
+            return
+
+        responsible_user = prop.user_id or prop.listing_agent_id
+        if not responsible_user:
+            _logger.warning(
+                "contact_request.received: no responsible user for property id=%s",
+                prop.id,
+            )
+            return
+
+        requester_tenant_id = data.get("requester_tenant_id")
+        note = "Запрос контакта собственника"
+        if requester_tenant_id:
+            note += f" (tenant_id: {requester_tenant_id})"
+
+        activity_type = self.env.ref("mail.mail_activity_data_todo")
+        self.env["mail.activity"].create({
+            "activity_type_id": activity_type.id,
+            "summary": "Запрос контакта собственника",
+            "note": note,
+            "res_model_id": self.env["ir.model"]._get_id("estate.property"),
+            "res_id": prop.id,
+            "user_id": responsible_user.id,
+        })
+
+        _logger.info(
+            "contact_request.received: created activity for property id=%s, user=%s",
+            prop.id,
+            responsible_user.login,
+        )
+
+    @api.model
     def _import_from_api_data(self, data):
         vals = {}
 

@@ -62,4 +62,12 @@ class EstateKitWebhookController(http.Controller):
     @staticmethod
     def _dispatch_event(event_type: str, payload: dict) -> None:
         _logger.info("Webhook event received: %s", event_type)
-        # Handlers will be implemented in tasks 024-026
+
+        property_model = request.env["estate.property"].sudo()
+
+        if event_type == "property.created":
+            property_model._handle_webhook_property_created(payload)
+        elif event_type.startswith("property.transition."):
+            property_model._handle_webhook_property_transition(payload)
+        elif event_type == "contact_request.received":
+            property_model._handle_webhook_contact_request(payload)
