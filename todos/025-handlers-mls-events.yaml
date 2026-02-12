@@ -1,7 +1,7 @@
 title: "Обработчики: MLS-события (new_listing, updated, removed)"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g24JPX5F8229H7H"
@@ -44,4 +44,17 @@ recommendation: |
 
   4. Добавить маршруты в контроллер.
 
-solution: null
+solution: |
+  Реализованы три обработчика MLS webhook-событий в models/estate_property.py:
+
+  1. _handle_webhook_mls_new_listing — GET /mls/properties/{id}, создание записи
+     с external_id и mls_listed=False (mls_status вычислится как 'received').
+     Проверка дубликатов по external_id перед созданием.
+
+  2. _handle_webhook_mls_listing_updated — поиск по external_id, GET /mls/properties/{id},
+     обновление через _import_from_api_data() с контекстом skip_api_sync + force_state_change.
+
+  3. _handle_webhook_mls_listing_removed — поиск по external_id, деактивация через active=False.
+
+  Маршруты mls.new_listing, mls.listing_updated, mls.listing_removed добавлены
+  в _dispatch_event() контроллера controllers/webhook.py.
