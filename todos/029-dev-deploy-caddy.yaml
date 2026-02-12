@@ -1,7 +1,7 @@
 title: "Создать дев деплой на caddy для тестов"
-status: open
+status: done
 created_at: 12.02.2026
-completed_at: null
+completed_at: 12.02.2026
 
 todoist:
   task_id: "6g245m27mMVPF4qq"
@@ -21,4 +21,8 @@ recommendation: |
   2. Создать dev/compose.yaml с Caddy + Odoo
   3. Настроить домен для dev (или использовать tunnel)
 
-solution: null
+solution: |
+  Создана директория dev/ с Caddy reverse proxy для HTTPS-доступа к Odoo.
+  Caddyfile проксирует HTTP/WebSocket на Odoo (8069/8072), compose.yaml
+  поднимает Caddy + Odoo с маунтом аддонов, .env.example содержит шаблон
+  настроек. Позволяет тестировать webhook POST /estatekit/webhook через HTTPS.

@@ -1,0 +1,41 @@
+name: estate-kit-dev
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    environment:
+      - DEV_DOMAIN=${DEV_DOMAIN:-localhost}
+    depends_on:
+      odoo:
+        condition: service_healthy
+
+  odoo:
+    image: docker.io/sumarokovvp/simplelogic:estate_kit_amd64
+    restart: unless-stopped
+    volumes:
+      - odoo-data:/var/lib/odoo
+      - ../addons:/mnt/extra-addons:ro
+    environment:
+      - HOST=${DB_HOST:-host.docker.internal}
+      - PORT=${DB_PORT:-5432}
+      - USER=${DB_USER:-odoo}
+      - PASSWORD=${DB_PASSWORD}
+      - ADMIN_PASSWD=${ADMIN_PASSWD:-admin}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  odoo-data:
+  caddy-data:
+  caddy-config:
