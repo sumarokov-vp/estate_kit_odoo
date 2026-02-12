@@ -34,3 +34,6 @@ odoo-data/
 
 # Agent branch
 .agent-branch
+
+# Todoist
+.todoist.yaml

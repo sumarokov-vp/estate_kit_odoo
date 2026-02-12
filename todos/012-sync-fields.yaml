@@ -1,0 +1,32 @@
+title: "Поля синхронизации (external_id, pending_sync, last_synced_at)"
+status: done
+created_at: 12.02.2026
+completed_at: 12.02.2026
+
+todoist:
+  task_id: "6g238Wq6rwQJCVvq"
+
+description: |
+  Добавить служебные поля в estate.property для отслеживания синхронизации с API:
+
+  - external_id (Integer, index=True) — ID объекта в центральном API. Null если ещё не отправлен.
+  - pending_sync (Boolean, default=False) — флаг "не удалось отправить в API, повторить позже"
+  - last_synced_at (Datetime) — время последней успешной синхронизации
+
+  Эти поля НЕ отображаются в основной форме объекта — только на вкладке MLS (задача 016).
+  Поля readonly для пользователя, заполняются автоматически при синхронизации.
+
+recommendation: |
+  1. В models/estate_property.py добавить поля:
+     external_id = fields.Integer(string="API ID", index=True, copy=False, readonly=True)
+     pending_sync = fields.Boolean(string="Pending Sync", default=False, copy=False, readonly=True)
+     last_synced_at = fields.Datetime(string="Last Synced", copy=False, readonly=True)
+
+  2. copy=False важно — при дублировании объекта sync-поля не копируются.
+
+solution: |
+  Добавлены три поля синхронизации в модель estate.property в секцию "Синхронизация":
+  - external_id (Integer, index=True, copy=False, readonly=True) — ID объекта в центральном API
+  - pending_sync (Boolean, default=False, copy=False, readonly=True) — флаг повторной синхронизации
+  - last_synced_at (Datetime, copy=False, readonly=True) — время последней успешной синхронизации
+  Все поля помечены copy=False (не копируются при дублировании) и readonly=True (заполняются только программно).

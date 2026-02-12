@@ -1,0 +1,39 @@
+title: "Retry cron для pending_sync объектов"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g238X6W5HWQW8xq"
+
+description: |
+  Отдельная cron-задача для повторной отправки объектов, у которых pending_sync = True.
+  Это объекты, которые не удалось отправить в API при сохранении (ошибка сети, API лежит и т.д.).
+
+  Логика:
+  1. Найти все записи с pending_sync = True
+  2. Для каждой вызвать _push_to_api()
+  3. При успехе — pending_sync сбрасывается автоматически внутри _push_to_api()
+
+  Cron: каждые 5 минут.
+
+  Зависимости: задачи 011, 012, 013.
+
+recommendation: |
+  1. В models/estate_property.py добавить:
+     @api.model
+     def _cron_retry_pending_sync(self):
+         pending = self.search([('pending_sync', '=', True)])
+         for record in pending:
+             record._push_to_api()
+
+  2. В data/estate_cron.xml добавить:
+     <record id="cron_retry_sync" model="ir.cron">
+       <field name="name">Retry pending sync to API</field>
+       <field name="model_id" ref="model_estate_property"/>
+       <field name="code">model._cron_retry_pending_sync()</field>
+       <field name="interval_number">5</field>
+       <field name="interval_type">minutes</field>
+     </record>
+
+solution: null

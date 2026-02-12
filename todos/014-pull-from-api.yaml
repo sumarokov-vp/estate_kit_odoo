@@ -1,0 +1,50 @@
+title: "Pull: API → Odoo (cron updated_after)"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g238X3F4crCjPHH"
+
+description: |
+  Cron-задача для получения объектов из центрального API, созданных/изменённых
+  другими клиентами (бот, парсер, другие Odoo-инстансы).
+
+  Логика:
+  1. Прочитать estate_kit.last_sync из ir.config_parameter (datetime)
+  2. GET /properties?updated_after={last_sync}&limit=100 (пагинация)
+  3. Для каждого объекта из ответа:
+     - Найти локальный по external_id
+     - Если найден и api.updated_at > local.last_synced_at — обновить (с skip_api_sync)
+     - Если не найден — создать (с skip_api_sync)
+  4. Обновить estate_kit.last_sync = now()
+
+  Cron: каждые 5-15 минут. Настройка через data/estate_cron.xml.
+
+  Зависимости: задачи 010, 011, 012, 013 (для маппинга полей).
+
+recommendation: |
+  1. Создать models/estate_property_sync.py (или добавить в estate_property.py):
+     @api.model
+     def _cron_pull_from_api(self):
+         client = EstateKitApiClient(self.env)
+         last_sync = self.env['ir.config_parameter'].sudo().get_param('estate_kit.last_sync', '')
+         params = {'updated_after': last_sync, 'limit': 100, 'offset': 0}
+         # Пагинация: повторять пока items > 0
+         # Для каждого item: find by external_id, create or write with skip_api_sync
+         # Обновить last_sync
+
+  2. Маппинг API → Odoo: метод _import_from_api_data(data)
+     - Обратный маппинг к _prepare_api_payload()
+     - Учесть Many2one поля: city_id, district_id и др. — маппить по external_id или code
+
+  3. Создать data/estate_cron.xml:
+     <record id="cron_pull_properties" model="ir.cron">
+       <field name="name">Pull properties from API</field>
+       <field name="model_id" ref="model_estate_property"/>
+       <field name="code">model._cron_pull_from_api()</field>
+       <field name="interval_number">10</field>
+       <field name="interval_type">minutes</field>
+     </record>
+
+solution: null

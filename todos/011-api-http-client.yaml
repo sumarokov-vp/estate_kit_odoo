@@ -1,0 +1,52 @@
+title: "HTTP-клиент EstateKit API с retry"
+status: done
+created_at: 12.02.2026
+completed_at: 12.02.2026
+
+todoist:
+  task_id: "6g238WjQrGcRfgmq"
+
+description: |
+  Создать сервис для HTTP-запросов к EstateKit API. Клиент должен:
+  - Формировать запросы с заголовком X-API-Key
+  - Поддерживать GET, POST, PUT, DELETE
+  - Обрабатывать ошибки (timeout, 4xx, 5xx)
+  - Использовать retry с экспоненциальной задержкой (для push-операций)
+  - Читать api_url и api_key из ir.config_parameter
+  - Работать синхронно (Odoo не поддерживает async)
+
+  Используется другими задачами: push, pull, справочники, фото.
+
+  API аутентификация: заголовок X-API-Key с ключом тенанта.
+  API формат: JSON (application/json).
+  Base URL: значение estate_kit.api_url из настроек.
+
+recommendation: |
+  1. Создать services/api_client.py:
+     class EstateKitApiClient:
+         def __init__(self, env):
+             self.api_url = env['ir.config_parameter'].sudo().get_param('estate_kit.api_url')
+             self.api_key = env['ir.config_parameter'].sudo().get_param('estate_kit.api_key')
+
+         def get(self, endpoint, params=None) -> dict
+         def post(self, endpoint, data) -> dict
+         def put(self, endpoint, data) -> dict
+         def delete(self, endpoint) -> dict
+
+  2. Retry: 3 попытки, задержка 1s, 2s, 4s. Только для 5xx и timeout.
+  3. Логирование через _logger = logging.getLogger(__name__)
+  4. Использовать библиотеку requests (входит в зависимости Odoo)
+  5. При отсутствии api_url/api_key — не делать запрос, вернуть None
+
+solution: |
+  Создан services/api_client.py с классом EstateKitApiClient:
+  - Читает api_url и api_key из ir.config_parameter при инициализации
+  - Методы get(), post(), put(), delete() для JSON-запросов
+  - Метод upload() для multipart-загрузки файлов (фото)
+  - Retry с экспоненциальной задержкой (1s, 2s, 4s) для 5xx и ConnectionError/Timeout
+  - 4xx ошибки не ретраятся, сразу возвращают None
+  - Заголовок X-API-Key для аутентификации
+  - Timeout 30 секунд на запрос
+  - Возвращает None если api_url/api_key не настроены
+  - Логирование всех запросов и ошибок
+  Также добавлены estate_kit.api_url и estate_kit.api_key в ir_config_parameter.xml.

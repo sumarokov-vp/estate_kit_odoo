@@ -1,0 +1,49 @@
+title: "Настройки API в Odoo (api_url, api_key, auto_mls)"
+status: done
+created_at: 12.02.2026
+completed_at: 12.02.2026
+
+todoist:
+  task_id: "6g238Wf5QH7c7R8H"
+
+description: |
+  Добавить конфигурационные параметры для подключения к центральному EstateKit API.
+  Сейчас Odoo-модуль работает автономно, нужно научить его общаться с внешним API.
+
+  Параметры (ir.config_parameter):
+  - estate_kit.api_url — URL центрального API (например https://api.estatekit.kz/api/v1)
+  - estate_kit.api_key — API-ключ тенанта для аутентификации (передаётся в X-API-Key)
+  - estate_kit.auto_mls — автоматическая отправка новых объектов в MLS (boolean, по умолчанию True)
+
+  Нужен UI для настройки: Settings → Estate Kit → API Configuration.
+  Использовать res.config.settings для удобного интерфейса.
+
+  Затронутые файлы:
+  - Новая модель: models/res_config_settings.py (наследование res.config.settings)
+  - Новый view: views/res_config_settings_views.xml
+  - data/ir_config_parameter.xml — дефолтные значения
+  - __manifest__.py — подключить новые файлы
+
+recommendation: |
+  1. Создать models/res_config_settings.py:
+     - Наследовать res.config.settings
+     - Добавить поля: estate_kit_api_url, estate_kit_api_key, estate_kit_auto_mls
+     - Привязать к ir.config_parameter через config_parameter=""
+
+  2. Создать views/res_config_settings_views.xml:
+     - Inherit form view res.config.settings
+     - Добавить секцию "EstateKit API" с полями
+
+  3. Обновить data/ir_config_parameter.xml:
+     - estate_kit.api_url = "" (пустой по умолчанию)
+     - estate_kit.api_key = "" (пустой по умолчанию)
+     - estate_kit.auto_mls = "True"
+
+  4. Обновить __manifest__.py: добавить depends=['base_setup']
+
+solution: |
+  Добавлены настройки API через res.config.settings (Settings -> Estate Kit -> API):
+  - models/res_config_settings.py: три поля (api_url, api_key, auto_mls) с привязкой к ir.config_parameter
+  - views/res_config_settings_views.xml: UI секция Estate Kit в настройках с блоком API
+  - data/ir_config_parameter.xml: дефолтные значения (api_url/api_key пустые, auto_mls=True)
+  - __manifest__.py: добавлен base_setup в depends, подключены новые файлы

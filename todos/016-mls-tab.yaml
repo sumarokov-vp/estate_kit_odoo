@@ -1,0 +1,54 @@
+title: "MLS-вкладка: статус объекта в MLS + кнопки управления"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g238XC3JJJFwwxH"
+
+description: |
+  Добавить вкладку "MLS" в форму объекта estate.property.
+  Вкладка показывает статус объекта в централизованной MLS и позволяет управлять размещением.
+
+  Содержимое вкладки:
+  - Статус MLS: "Не размещён", "Размещён в MLS", "Получен из MLS"
+  - external_id (readonly) — ID в центральной базе
+  - last_synced_at (readonly) — время последней синхронизации
+  - pending_sync (readonly) — ожидает повторной отправки
+  - Кнопка "Отправить в MLS" (если auto_mls выключен и объект не в MLS)
+  - Кнопка "Убрать из MLS" (если объект размещён в MLS)
+
+  Новое поле:
+  - mls_status (Selection: not_listed / listed / received) — вычисляемое или хранимое
+
+  Вкладка видна только если настроен API (estate_kit.api_url не пустой).
+
+  Зависимости: задачи 010, 012.
+
+recommendation: |
+  1. В models/estate_property.py:
+     - Добавить поле mls_listed = fields.Boolean("Listed in MLS", default=False, copy=False)
+     - Добавить computed mls_status = fields.Selection(
+         [('not_listed', 'Не размещён'), ('listed', 'В MLS'), ('received', 'Получен из MLS')],
+         compute='_compute_mls_status', store=False)
+     - Логика: если external_id и не создан локально → received; если mls_listed → listed; иначе not_listed
+
+  2. Методы:
+     - action_publish_to_mls() — отправить в API с is_shared=True, установить mls_listed=True
+     - action_unpublish_from_mls() — обновить в API is_shared=False, установить mls_listed=False
+
+  3. В views/estate_property_views.xml — добавить page "MLS":
+     <page string="MLS" attrs="{'invisible': [('api_configured', '=', False)]}">
+       <group>
+         <field name="mls_status" widget="badge"/>
+         <field name="external_id"/>
+         <field name="last_synced_at"/>
+         <field name="pending_sync"/>
+       </group>
+       <button name="action_publish_to_mls" string="Отправить в MLS" type="object"
+               attrs="{'invisible': [('mls_listed', '=', True)]}"/>
+       <button name="action_unpublish_from_mls" string="Убрать из MLS" type="object"
+               attrs="{'invisible': [('mls_listed', '=', False)]}"/>
+     </page>
+
+solution: null

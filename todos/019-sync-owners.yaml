@@ -1,0 +1,45 @@
+title: "Синхронизация собственников (owners) push/pull"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g238XRgjcVMxgxH"
+
+description: |
+  Двусторонняя синхронизация собственников между Odoo и API.
+
+  В Odoo собственник — это res.partner с определённым контекстом (owner_id в estate.property).
+  В API собственник — отдельная сущность Owner (id, name, phone, notes).
+
+  Push (Odoo → API):
+  - При создании/изменении owner в Odoo — отправить в API
+  - POST /owners (новый) или PUT /owners/{external_id} (существующий)
+
+  Pull (API → Odoo):
+  - Cron получает собственников из API: GET /owners
+  - Создаёт/обновляет res.partner в Odoo
+
+  Нужно добавить external_id в контекст res.partner (для собственников).
+  Или использовать отдельное поле на estate.property: owner_external_id.
+
+  Зависимости: задачи 010, 011.
+
+recommendation: |
+  1. Добавить поле в res.partner (через наследование):
+     external_owner_id = fields.Integer("API Owner ID", index=True, copy=False)
+
+  2. Push: при сохранении estate.property, если owner_id изменился —
+     отправить owner данные в API.
+     Или: override write/create в res.partner — но это слишком широко.
+     Лучше: push owner вместе с property в _push_to_api().
+
+  3. Pull: в _cron_pull_from_api() при создании property —
+     найти/создать owner по данным из API.
+
+  4. Маппинг:
+     API Owner.name → res.partner.name
+     API Owner.phone → res.partner.phone
+     API Owner.notes → (не используется в Odoo, можно в comment)
+
+solution: null

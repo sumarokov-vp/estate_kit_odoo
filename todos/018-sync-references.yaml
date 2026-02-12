@@ -1,0 +1,50 @@
+title: "Синхронизация справочников (города, районы, улицы) из API"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g238XP9rgp5H3rq"
+
+description: |
+  Cron-задача для синхронизации общих справочников из центрального API.
+  Справочники одинаковы для всех тенантов, поэтому направление только API → Odoo.
+
+  Справочники:
+  - Города: GET /references/cities
+  - Районы: GET /references/districts
+  - Улицы: GET /references/streets (+ search endpoint)
+  - Источники: GET /references/sources
+  - Бытовая техника: GET /references/appliances
+  - Климатическое оборудование: GET /references/climate-equipment
+
+  Для каждого справочника:
+  - Если запись с таким external_id (= id из API) уже есть — обновить name
+  - Если нет — создать
+
+  Cron: раз в час (справочники меняются редко).
+
+  Нужно добавить поле external_id (Integer, index) в модели:
+  estate.city, estate.district, estate.street, estate.source,
+  estate.appliance, estate.climate.equipment.
+
+  Зависимости: задачи 010, 011.
+
+recommendation: |
+  1. Добавить external_id в каждую модель справочника:
+     external_id = fields.Integer(string="API ID", index=True, copy=False)
+
+  2. Создать метод синхронизации (в каждой модели или общий):
+     @api.model
+     def _cron_sync_from_api(self):
+         client = EstateKitApiClient(self.env)
+         items = client.get('/references/cities')  # endpoint зависит от модели
+         for item in items:
+             existing = self.search([('external_id', '=', item['id'])], limit=1)
+             vals = {'name': item['name'], 'external_id': item['id'], ...}
+             if existing: existing.write(vals)
+             else: self.create(vals)
+
+  3. Добавить cron-записи в data/estate_cron.xml для каждого справочника.
+
+solution: null

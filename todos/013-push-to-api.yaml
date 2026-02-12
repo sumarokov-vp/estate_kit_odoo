@@ -1,0 +1,52 @@
+title: "Push: Odoo → API (override write/create)"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g238WvfQFhr8W2q"
+
+description: |
+  При сохранении объекта в Odoo (create/write) автоматически отправлять данные
+  в центральный API. Это inbound-синхронизация: Odoo → API.
+
+  Логика:
+  1. Сначала сохранить запись локально (стандартный Odoo ORM)
+  2. Сформировать payload из полей объекта (маппинг Odoo → API)
+  3. Если external_id есть — PUT /properties/{external_id}
+  4. Если external_id нет — POST /properties
+  5. При успехе: записать external_id (если новый), сбросить pending_sync, обновить last_synced_at
+  6. При ошибке API: установить pending_sync = True
+
+  Защита от рекурсии: при обновлении служебных полей (external_id, pending_sync,
+  last_synced_at) sync не вызывается. Использовать context-флаг: context.get('skip_api_sync').
+
+  Также при pull из API (задача 014) sync обратно не вызывается.
+
+  Зависимости: задачи 010 (настройки), 011 (HTTP-клиент), 012 (поля синхронизации).
+
+recommendation: |
+  1. В models/estate_property.py override create():
+     - result = super().create(vals_list)
+     - if not self.env.context.get('skip_api_sync'):
+     -     for record in result: record._push_to_api()
+     - return result
+
+  2. Override write():
+     - result = super().write(vals)
+     - sync_fields = {'external_id', 'pending_sync', 'last_synced_at'}
+     - if not self.env.context.get('skip_api_sync') and not sync_fields.issuperset(vals.keys()):
+     -     for record in self: record._push_to_api()
+     - return result
+
+  3. Метод _push_to_api():
+     - Собрать payload (маппинг полей Odoo → API JSON)
+     - client = EstateKitApiClient(self.env)
+     - if self.external_id: client.put(f'/properties/{self.external_id}', payload)
+     - else: response = client.post('/properties', payload); self.external_id = response['id']
+     - self.with_context(skip_api_sync=True).write({'pending_sync': False, 'last_synced_at': fields.Datetime.now()})
+     - При ошибке: self.with_context(skip_api_sync=True).write({'pending_sync': True})
+
+  4. Маппинг полей — отдельный метод _prepare_api_payload() для удобства.
+
+solution: null

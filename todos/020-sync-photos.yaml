@@ -1,0 +1,50 @@
+title: "Синхронизация фото: upload в S3 через API + pull"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g238XWVW4f9J62H"
+
+description: |
+  Синхронизация фотографий объектов между Odoo и центральным API.
+
+  Сейчас в Odoo фото хранятся как Binary (base64) в estate.property.image.
+  В центральном API фото хранятся в S3, доступ по URL.
+
+  Push (Odoo → API):
+  - При загрузке фото в Odoo: отправить файл в API через POST /property-images/upload
+  - Получить URL обратно, сохранить в поле image_url (новое поле)
+  - При удалении фото: DELETE /property-images/{external_id}
+
+  Pull (API → Odoo):
+  - Cron получает список фото: GET /property-images?property_id={external_id}
+  - Для каждого фото: скачать по URL, сохранить как Binary в estate.property.image
+  - Или: хранить только URL и отображать через widget
+
+  Новые поля в estate.property.image:
+  - external_id (Integer) — ID фото в API
+  - image_url (Char) — URL в S3
+
+  Зависимости: задачи 010, 011, 012, 013.
+
+recommendation: |
+  1. Добавить поля в estate.property.image:
+     external_id = fields.Integer("API Image ID", index=True, copy=False)
+     image_url = fields.Char("S3 URL", copy=False)
+
+  2. Push: override create() в estate.property.image:
+     - Сохранить локально
+     - Если property.external_id существует:
+       - POST /property-images/upload (multipart: file + property_id)
+       - Сохранить external_id и image_url из ответа
+
+  3. Pull: при pull объекта (задача 014) также получать его фото:
+     - GET /property-images?property_id={api_property_id}
+     - Для каждого: найти по external_id или создать
+     - Скачать изображение по URL, сохранить как Binary
+
+  4. Стратегия отображения: продолжать хранить Binary (совместимость с галереей),
+     но дополнительно хранить image_url для синхронизации.
+
+solution: null

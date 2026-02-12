@@ -1,0 +1,39 @@
+title: "Настройка auto-MLS: глобальная галочка + индивидуальная кнопка"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g238XGvr4MhgVrq"
+
+description: |
+  Реализовать логику автоматической/ручной отправки объектов в MLS.
+
+  Два режима:
+  1. auto_mls = True (по умолчанию):
+     - Все новые объекты автоматически отправляются в MLS при создании
+     - Поле is_shared = True устанавливается автоматически
+     - Кнопка "Убрать из MLS" доступна для каждого объекта
+
+  2. auto_mls = False:
+     - Новые объекты НЕ отправляются в MLS автоматически
+     - На каждом объекте доступна кнопка "Отправить в MLS"
+     - Пользователь решает индивидуально, какие объекты размещать
+
+  Настройка auto_mls из задачи 010 (ir.config_parameter).
+
+  Зависимости: задачи 010, 013, 016.
+
+recommendation: |
+  1. В _push_to_api() (задача 013) учитывать auto_mls:
+     - auto_mls = self.env['ir.config_parameter'].sudo().get_param('estate_kit.auto_mls', 'True')
+     - Если auto_mls и объект новый (нет external_id): payload['is_shared'] = True, mls_listed = True
+     - Если не auto_mls: is_shared берётся из текущего значения mls_listed
+
+  2. Кнопка "Отправить в MLS" (задача 016) видна только при auto_mls = False или когда объект
+     ещё не в MLS. Условие видимости зависит от auto_mls.
+
+  3. В форме: добавить computed поле auto_mls_enabled (Boolean, compute from config)
+     для управления видимостью кнопок.
+
+solution: null
