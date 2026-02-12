@@ -1,0 +1,45 @@
+title: "Авто-регистрация webhook URL в API при настройке"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g24JPr2QfVHrXMq"
+
+description: |
+  При сохранении настроек API (webhook_url + webhook_secret) автоматически
+  зарегистрировать webhook-подписку в центральном API.
+
+  API endpoint: POST /api/v1/webhooks
+  Payload: {
+    "url": "https://client.example.com/estatekit/webhook",
+    "secret": "hmac_secret_key",
+    "events": ["property.created", "property.transition.*",
+               "mls.new_listing", "mls.listing_updated", "mls.listing_removed",
+               "contact_request.received"]
+  }
+
+  Логика:
+  1. При нажатии "Сохранить" в настройках (override set_values в res.config.settings)
+  2. Если webhook_url и webhook_secret заполнены — отправить регистрацию
+  3. Сохранить webhook_subscription_id из ответа (для последующего обновления/удаления)
+  4. При изменении URL — удалить старую подписку, создать новую
+
+  Зависимости: задачи 021, 011 (HTTP-клиент).
+
+recommendation: |
+  1. В models/res_config_settings.py override set_values():
+     - Проверить что webhook_url и webhook_secret заполнены
+     - Если да — POST /webhooks с данными подписки
+     - Сохранить subscription_id в ir.config_parameter
+
+  2. Добавить config param: estate_kit.webhook_subscription_id
+
+  3. При изменении URL:
+     - Если subscription_id существует — DELETE /webhooks/{id}
+     - Создать новую подписку — POST /webhooks
+
+  4. Кнопка "Тест webhook" — POST /webhooks/{id}/test
+     для проверки что Odoo принимает события.
+
+solution: null

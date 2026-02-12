@@ -1,0 +1,53 @@
+title: "Webhook controller + HMAC верификация"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g24JPJQXWMWhqPH"
+
+description: |
+  Создать HTTP-контроллер для приёма webhook-событий от центрального API.
+
+  Endpoint: POST /estatekit/webhook
+  Auth: none (проверка через HMAC-подпись)
+  CSRF: отключен (внешний вызов)
+
+  Логика:
+  1. Прочитать body как raw bytes
+  2. Получить подпись из заголовка X-EstateKit-Signature
+  3. Вычислить HMAC-SHA256(webhook_secret, body) и сравнить
+  4. Если подпись не совпадает — 401
+  5. Распарсить JSON
+  6. Проверить event_id на идемпотентность (задача 023)
+  7. Маршрутизировать по event_type к обработчику (задачи 024-026)
+  8. Вернуть 200 OK быстро
+
+  Заголовки от API:
+  - X-EstateKit-Event: тип события
+  - X-EstateKit-Signature: sha256=hex_digest
+  - X-EstateKit-Delivery-Id: UUID события
+  - X-EstateKit-Timestamp: unix timestamp
+
+  Зависимости: задача 021 (webhook_secret в настройках).
+
+recommendation: |
+  1. Создать controllers/__init__.py
+  2. Создать controllers/webhook.py:
+     class EstateKitWebhookController(http.Controller):
+         @http.route('/estatekit/webhook', type='json', auth='none',
+                     methods=['POST'], csrf=False)
+         def receive_webhook(self, **kwargs):
+             ...
+
+  3. HMAC верификация:
+     import hmac, hashlib
+     expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+     signature = request.httprequest.headers.get('X-EstateKit-Signature', '')
+     if not hmac.compare_digest(f'sha256={expected}', signature):
+         raise Forbidden()
+
+  4. Обновить __init__.py корня модуля: from . import controllers
+  5. Обновить __manifest__.py если нужно
+
+solution: null

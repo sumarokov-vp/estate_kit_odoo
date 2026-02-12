@@ -1,0 +1,37 @@
+title: "Обработчик: contact_request.received"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g24JPg784p8f88H"
+
+description: |
+  Обработка webhook-события: запрос контакта собственника от другого агентства.
+
+  contact_request.received:
+  - Другое агентство запросило контакт собственника нашего объекта через MLS
+  - Нужно уведомить ответственного агента
+  - Payload: property_id, requester_tenant_id
+
+  Действия:
+  1. Найти объект по external_id (property_id из API)
+  2. Определить ответственного (user_id или listing_agent_id)
+  3. Создать activity/notification в Odoo для ответственного
+  4. Опционально: уведомить бота (HTTP POST) для Telegram-уведомления
+
+  Зависимости: задачи 022, 023.
+
+recommendation: |
+  1. handle_contact_request(env, data):
+     - Найти estate.property по external_id = data['property_id']
+     - Если не найден — логировать и пропустить
+     - Создать mail.activity для ответственного пользователя
+     - Текст: "Запрос контакта собственника от агентства {requester}"
+
+  2. Опционально: отправить HTTP POST на бота (если настроен bot_notify_url)
+     для мгновенного Telegram-уведомления.
+
+  3. Добавить маршрут в контроллер.
+
+solution: null

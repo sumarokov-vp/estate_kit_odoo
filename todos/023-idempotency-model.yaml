@@ -1,0 +1,43 @@
+title: "Модель идемпотентности estatekit.webhook.event"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g24JPPMGpMrgMJq"
+
+description: |
+  Создать модель Odoo для хранения обработанных webhook event_id.
+  Webhook может быть доставлен более одного раза (at-least-once delivery),
+  поэтому нужна проверка на дубликаты.
+
+  Модель: estatekit.webhook.event
+  Поля:
+  - event_id (Char, unique, required) — UUID события
+  - event_type (Char) — тип события
+  - processed_at (Datetime, default=now)
+
+  Использование: перед обработкой webhook проверить —
+  если event_id уже есть, вернуть 200 OK без обработки.
+
+  Также нужна cron-задача для очистки старых записей (>30 дней).
+
+recommendation: |
+  1. Создать models/estatekit_webhook_event.py:
+     class EstateKitWebhookEvent(models.Model):
+         _name = "estatekit.webhook.event"
+         _description = "Processed Webhook Events"
+
+         event_id = fields.Char(required=True, index=True)
+         event_type = fields.Char()
+         processed_at = fields.Datetime(default=fields.Datetime.now)
+
+         _sql_constraints = [
+             ('event_id_unique', 'UNIQUE(event_id)', 'Event already processed')
+         ]
+
+  2. Обновить models/__init__.py
+  3. Добавить security/ir.model.access.csv запись для модели
+  4. Cron для очистки (раз в сутки, удалять старше 30 дней)
+
+solution: null

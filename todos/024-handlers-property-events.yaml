@@ -1,0 +1,48 @@
+title: "Обработчики: property.created, property.transition"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g24JPVhfMrHcQXH"
+
+description: |
+  Реализовать обработку webhook-событий, связанных с собственными объектами тенанта.
+
+  property.created:
+  - Объект создан в API (ботом, парсером, другим Odoo)
+  - Найти по external_id — если нет, создать в Odoo (через _import_from_api_data)
+  - Если есть — обновить
+  - payload.data содержит property_id → нужно GET /properties/{id} для полных данных
+
+  property.transition.{action}:
+  - Статус объекта изменён в API
+  - Найти локальный по external_id
+  - Обновить state (с skip_api_sync)
+  - Если объекта нет локально — запросить из API и создать
+
+  Существующие методы _import_from_api_data() и _process_api_item() уже реализуют
+  нужную логику — обработчики должны переиспользовать их.
+
+  Зависимости: задачи 022 (контроллер), 023 (идемпотентность).
+
+recommendation: |
+  1. Создать services/webhook_handlers.py (или в модели estate.property):
+     - handle_property_created(env, data) — GET /properties/{id}, вызвать _process_api_item
+     - handle_property_transition(env, data) — найти по external_id, обновить state
+
+  2. В контроллере (задача 022) маршрутизация:
+     handlers = {
+         'property.created': handle_property_created,
+         'property.transition': handle_property_transition,
+     }
+     handler = handlers.get(event_type)
+     if handler: handler(request.env, data)
+
+  3. Для property.created — использовать API клиент для получения полных данных
+     объекта, затем _process_api_item().
+
+  4. Для property.transition — маппинг action → state через API_STATE_MAP
+     или запрос status_id из payload.
+
+solution: null

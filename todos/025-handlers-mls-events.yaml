@@ -1,0 +1,47 @@
+title: "Обработчики: MLS-события (new_listing, updated, removed)"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g24JPX5F8229H7H"
+
+description: |
+  Обработка webhook-событий, связанных с MLS (объекты других агентств).
+
+  mls.new_listing:
+  - Новый объект от другого агентства появился в MLS
+  - Создать запись в Odoo (mls_status = 'received')
+  - Payload содержит краткую инфо, нужно GET /mls/properties/{id} для полных данных
+
+  mls.listing_updated:
+  - MLS-объект обновлён (цена, статус и т.д.)
+  - Найти локальный по external_id, обновить
+
+  mls.listing_removed:
+  - Объект снят с MLS
+  - Найти локальный по external_id, деактивировать или пометить как снятый
+
+  Эти события приходят от ЧУЖИХ объектов — объектов других тенантов,
+  которые размещены в общем MLS. Их нужно хранить отдельно или пометить.
+
+  Зависимости: задачи 022, 023, 024.
+
+recommendation: |
+  1. handle_mls_new_listing(env, data):
+     - GET /mls/properties/{property_id}
+     - Создать estate.property с mls_status='received', readonly-like
+     - external_id = API property_id
+
+  2. handle_mls_listing_updated(env, data):
+     - Найти по external_id
+     - GET /mls/properties/{id} для обновлённых данных
+     - Обновить (с skip_api_sync)
+
+  3. handle_mls_listing_removed(env, data):
+     - Найти по external_id
+     - Установить active=False или mls_listed=False
+
+  4. Добавить маршруты в контроллер.
+
+solution: null

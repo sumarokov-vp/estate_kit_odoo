@@ -1,0 +1,27 @@
+title: "Снизить polling до hourly fallback"
+status: open
+created_at: 12.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g24JPjQJMxfrXxq"
+
+description: |
+  С переходом на webhooks как основной push-механизм, cron pull-синхронизация
+  становится fallback для случаев, когда webhook не дошёл.
+
+  Изменения:
+  - cron_pull_properties: интервал 10 минут → 1 час
+  - cron_retry_sync: оставить 5 минут (retry для наших push-ов)
+
+  Polling раз в час обеспечит, что даже при пропущенных webhooks
+  данные синхронизируются в течение часа.
+
+recommendation: |
+  1. В data/estate_cron.xml изменить cron_pull_properties:
+     <field name="interval_number">1</field>
+     <field name="interval_type">hours</field>
+
+  2. Без изменений для cron_retry_sync (остаётся 5 минут).
+
+solution: null
