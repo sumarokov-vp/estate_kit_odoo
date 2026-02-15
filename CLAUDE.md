@@ -59,14 +59,10 @@ PostgreSQL запускается отдельно (внешний). Настр�
 
 ### SSH доступ
 
-**Для Claude Code:**
-```bash
-ssh -i .ssh/deploy_key -o IdentitiesOnly=yes root@46.101.177.22
-```
+Параметры подключения в `.claude/devops.yaml` секция `servers.royal_estate_odoo`.
 
-**Для локальной разработки:**
 ```bash
-ssh royal_estate_odoo
+ssh -i ~/.ssh/id_ed25519 -o IdentitiesOnly=yes sumarokov@46.101.177.22
 ```
 
 ### Сборка и деплой образа
