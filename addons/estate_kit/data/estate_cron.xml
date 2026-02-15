@@ -8,7 +8,7 @@
         <field name="code">model._cron_sync_from_api()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
-        <field name="numbercall">-1</field>
+
         <field name="active">True</field>
     </record>
 
@@ -19,7 +19,7 @@
         <field name="code">model._cron_sync_from_api()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
-        <field name="numbercall">-1</field>
+
         <field name="active">True</field>
     </record>
 
@@ -30,7 +30,7 @@
         <field name="code">model._cron_sync_from_api()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
-        <field name="numbercall">-1</field>
+
         <field name="active">True</field>
     </record>
 
@@ -41,7 +41,7 @@
         <field name="code">model._cron_sync_from_api()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
-        <field name="numbercall">-1</field>
+
         <field name="active">True</field>
     </record>
 
@@ -52,7 +52,7 @@
         <field name="code">model._cron_sync_from_api()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
-        <field name="numbercall">-1</field>
+
         <field name="active">True</field>
     </record>
 
@@ -63,7 +63,7 @@
         <field name="code">model._cron_sync_from_api()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
-        <field name="numbercall">-1</field>
+
         <field name="active">True</field>
     </record>
 
@@ -74,7 +74,7 @@
         <field name="code">model._cron_cleanup_old_events()</field>
         <field name="interval_number">1</field>
         <field name="interval_type">days</field>
-        <field name="numbercall">-1</field>
+
         <field name="active">True</field>
     </record>
 
