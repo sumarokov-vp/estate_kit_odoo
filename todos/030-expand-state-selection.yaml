@@ -1,0 +1,38 @@
+title: "Расширить selection поля state до 13 статусов"
+status: open
+created_at: 15.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g2m8W5c4W6c53rH"
+
+description: |
+  Заменить 4 статуса (new/ready/published/unpublished) на 13 из Flow:
+  draft, internal_review, active, moderation, legal_review, published,
+  rejected, unpublished, sold, archived, mls_listed, mls_removed, mls_sold.
+
+  Файл: addons/estate_kit/models/estate_property.py (поле state, строки 72-84).
+  Переименовать "new" → "draft", "ready" убрать, добавить остальные.
+
+recommendation: |
+  Заменить selection на:
+  state = fields.Selection([
+      ("draft", "Черновик"),
+      ("internal_review", "Внутренняя проверка"),
+      ("active", "В продаже"),
+      ("moderation", "На модерации MLS"),
+      ("legal_review", "Юридическая проверка"),
+      ("published", "Опубликован в MLS"),
+      ("rejected", "Отклонён MLS"),
+      ("unpublished", "Снят с публикации"),
+      ("sold", "Продан"),
+      ("archived", "Архив"),
+      ("mls_listed", "В MLS (чужой)"),
+      ("mls_removed", "Удалён из MLS"),
+      ("mls_sold", "Продан (чужой)"),
+  ], default="draft")
+
+  Также убрать поле mls_status (computed) — теперь состояние MLS
+  отражено прямо в state.
+
+solution: null

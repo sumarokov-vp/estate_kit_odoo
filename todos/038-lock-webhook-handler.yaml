@@ -1,0 +1,31 @@
+title: "Добавить webhook-событие блокировки объекта другим агентством"
+status: open
+created_at: 15.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g2m9H9G8J88PRWq"
+
+description: |
+  MLS должен присылать webhook когда другое агентство берёт объект в работу
+  (и когда отпускает). Odoo должен подписаться на эти события и обрабатывать их.
+
+  1. В WEBHOOK_EVENTS (res_config_settings.py) добавить:
+     - "property.locked" — объект заблокирован другим агентством
+     - "property.unlocked" — блокировка снята
+
+  2. В webhook controller (controllers/webhook.py) добавить обработчики:
+     - _handle_webhook_property_locked(data) → is_locked_by_other_agency = True
+     - _handle_webhook_property_unlocked(data) → is_locked_by_other_agency = False
+
+  3. При следующем сохранении настроек webhook перерегистрируется
+     автоматически с новыми событиями (логика уже есть в set_values).
+
+  Зависимости: задача 033 (поле is_locked_by_other_agency), задача 039 (API ручка).
+
+recommendation: |
+  В WEBHOOK_EVENTS добавить "property.locked" и "property.unlocked".
+  В EVENT_HANDLERS dict добавить маппинг на новые методы.
+  Обработчики: найти объект по external_id, обновить is_locked_by_other_agency.
+
+solution: null

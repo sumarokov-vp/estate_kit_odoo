@@ -1,0 +1,31 @@
+title: "Обновить views под новые статусы"
+status: open
+created_at: 15.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g2m8WMcr8HwMgvH"
+
+description: |
+  Form view:
+  - statusbar: показать ключевые статусы (draft, internal_review, active, published, sold)
+  - Кнопки действий с attrs по текущему state
+  - Разделить view на "наши" и "чужие" объекты (invisible по mls_ статусам)
+
+  List view:
+  - decoration-success для active/published
+  - decoration-warning для moderation/legal_review
+  - decoration-danger для rejected
+  - decoration-muted для unpublished/archived/sold
+
+  Search view:
+  - Фильтры: Черновики, В продаже, Опубликованные, Чужие (MLS), Проданные
+  - Убрать старый фильтр "Опубликованные" или обновить
+
+  Kanban: группировка по state работает автоматически.
+
+recommendation: |
+  В form view добавить header buttons с invisible conditions.
+  Для чужих объектов (mls_*) сделать большинство полей readonly.
+
+solution: null

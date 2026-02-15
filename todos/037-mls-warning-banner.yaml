@@ -1,0 +1,28 @@
+title: "Красная плашка: объект не опубликован в MLS"
+status: open
+created_at: 15.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g2m8xvGMjMpgCmq"
+
+description: |
+  В form view карточки объекта добавить яркий красный баннер-предупреждение,
+  когда наш объект в статусе active (в продаже), но не отправлен в MLS.
+
+  Текст: "⚠ Объект не опубликован в MLS. Другие агентства не видят этот объект."
+
+  Условия отображения:
+  - state == 'active' (в продаже, но не в MLS pipeline)
+  - Не показывать для чужих объектов (mls_listed, mls_removed, mls_sold)
+  - Не показывать для объектов уже в MLS (moderation, legal_review, published)
+
+recommendation: |
+  В form view перед sheet добавить:
+  <div class="alert alert-danger" role="alert"
+       invisible="state != 'active'">
+      <strong>⚠ Объект не опубликован в MLS.</strong>
+      Другие агентства не видят этот объект.
+  </div>
+
+solution: null

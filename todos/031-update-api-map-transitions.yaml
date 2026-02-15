@@ -1,0 +1,29 @@
+title: "Обновить API_STATE_MAP и методы переходов"
+status: open
+created_at: 15.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g2m8WF36C9x9rmH"
+
+description: |
+  1. Обновить API_STATE_MAP на 13 значений (см. README.md).
+  2. Заменить action_set_ready/action_publish/action_unpublish на:
+     - action_submit_review: draft → internal_review
+     - action_return_draft: internal_review → draft
+     - action_approve: internal_review → active
+     - action_send_to_mls: active → moderation
+     - action_sell: active/published → sold
+     - action_unpublish: active/published → unpublished
+     - action_republish: unpublished → active
+     - action_archive: published → archived
+     - action_fix_rejected: rejected → internal_review
+  3. Обновить write() protection — разрешить только переходы из Flow.
+
+recommendation: |
+  Определить ALLOWED_TRANSITIONS как dict {from_state: [to_states]}.
+  В write() проверять что переход есть в ALLOWED_TRANSITIONS.
+  Webhook-переходы (moderation→legal_review, etc.) разрешать через
+  force_state_change context.
+
+solution: null

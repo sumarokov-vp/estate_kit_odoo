@@ -1,0 +1,22 @@
+title: "Обновить webhook-обработчики под новые статусы"
+status: open
+created_at: 15.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g2m8WpJQPV9xmCq"
+
+description: |
+  1. property.transition — обновить маппинг на новые статусы через API_STATE_MAP
+  2. mls.new_listing — создавать объект со статусом mls_listed (не mls_listed=False)
+  3. mls.listing_removed — ставить статус mls_removed (не active=False)
+  4. Добавить обработку mls_sold (новый event type или через transition)
+  5. Обновить WEBHOOK_EVENTS если нужны новые типы событий
+
+recommendation: |
+  В _handle_webhook_mls_new_listing: state="mls_listed".
+  В _handle_webhook_mls_listing_removed: state="mls_removed".
+  Убрать поле mls_listed (Boolean) — теперь всё через state.
+  Для mls_sold добавить обработчик или использовать property.transition.
+
+solution: null

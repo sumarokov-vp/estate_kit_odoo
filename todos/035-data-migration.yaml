@@ -1,0 +1,25 @@
+title: "Миграция данных на сервере"
+status: open
+created_at: 15.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g2m8WxVCvPH3Qgq"
+
+description: |
+  SQL миграция существующих данных на сервере после деплоя:
+  - new → draft
+  - ready → active (или internal_review — уточнить)
+  - published → published (без изменений)
+  - unpublished → unpublished (без изменений)
+  - Объекты с mls_status='received' → state='mls_listed'
+
+recommendation: |
+  UPDATE estate_property SET state = 'draft' WHERE state = 'new';
+  UPDATE estate_property SET state = 'active' WHERE state = 'ready';
+  -- Для объектов из MLS (если есть external_id и не наши):
+  -- Определить по признакам какие объекты чужие и поставить mls_listed
+
+  Выполнить после деплоя и -u estate_kit.
+
+solution: null

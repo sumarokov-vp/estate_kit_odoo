@@ -1,0 +1,40 @@
+title: "Удалить cron-задачи MLS синхронизации"
+status: open
+created_at: 15.02.2026
+completed_at: null
+
+todoist:
+  task_id: "6g2m8xXGgF3f2mhH"
+
+description: |
+  Убрать автоматическую синхронизацию объектов с MLS. Отправка и снятие — только вручную через кнопки.
+
+  Удалить из estate_cron.xml:
+  - cron_retry_sync (retry pending sync)
+  - cron_pull_properties (pull from API)
+
+  Удалить из estate_property.py:
+  - _cron_retry_pending_sync()
+  - _cron_pull_from_api(), _process_api_item(), _import_from_api_data(), _import_location(), _generate_name_from_vals()
+  - pending_sync поле и связанную логику
+  - auto_mls логику в create() (авто-публикация при создании)
+
+  Удалить из settings:
+  - auto_mls config parameter и UI
+  - last_sync config parameter
+
+  Оставить:
+  - Справочники (cities, districts, streets, sources, appliances, climate_equipment)
+  - cron_cleanup_webhook_events
+  - Webhook-обработчики (входящие события от MLS)
+  - _push_to_api() (для ручной отправки кнопками)
+
+recommendation: |
+  1. Удалить 2 записи cron из estate_cron.xml
+  2. Удалить методы pull/retry из estate_property.py
+  3. Удалить поле pending_sync, last_synced_at
+  4. Убрать auto_mls из create() и res_config_settings
+  5. Удалить last_sync, auto_mls из ir_config_parameter.xml
+  6. На сервере: удалить cron записи из БД если уже были установлены
+
+solution: null
