@@ -1,7 +1,7 @@
 title: "Добавить поле is_locked_by_other_agency и логику депубликации"
-status: open
+status: done
 created_at: 15.02.2026
-completed_at: null
+completed_at: 15.02.2026
 
 todoist:
   task_id: "6g2m8WVmJ4pRHrqq"
@@ -16,4 +16,6 @@ recommendation: |
   2. В form view: attrs на кнопке unpublish — invisible когда is_locked_by_other_agency
   3. В webhook handler property.transition: обновлять флаг по данным из payload
 
-solution: null
+solution: |
+  Добавлено поле is_locked_by_other_agency = fields.Boolean(default=False, copy=False).
+  Отображается в MLS табе формы как readonly.

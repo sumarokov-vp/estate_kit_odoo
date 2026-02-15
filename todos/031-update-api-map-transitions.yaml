@@ -1,7 +1,7 @@
 title: "Обновить API_STATE_MAP и методы переходов"
-status: open
+status: done
 created_at: 15.02.2026
-completed_at: null
+completed_at: 15.02.2026
 
 todoist:
   task_id: "6g2m8WF36C9x9rmH"
@@ -26,4 +26,9 @@ recommendation: |
   Webhook-переходы (moderation→legal_review, etc.) разрешать через
   force_state_change context.
 
-solution: null
+solution: |
+  API_STATE_MAP расширен до 13 значений. Добавлен ALLOWED_TRANSITIONS dict.
+  write() проверяет переходы через ALLOWED_TRANSITIONS. Старые action методы
+  заменены на 9 новых: action_submit_review, action_return_draft, action_approve,
+  action_send_to_mls, action_sell, action_unpublish, action_republish,
+  action_archive_property, action_fix_rejected.

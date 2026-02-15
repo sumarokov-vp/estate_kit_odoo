@@ -1,7 +1,7 @@
 title: "Добавить webhook-событие блокировки объекта другим агентством"
-status: open
+status: done
 created_at: 15.02.2026
-completed_at: null
+completed_at: 15.02.2026
 
 todoist:
   task_id: "6g2m9H9G8J88PRWq"
@@ -28,4 +28,7 @@ recommendation: |
   В EVENT_HANDLERS dict добавить маппинг на новые методы.
   Обработчики: найти объект по external_id, обновить is_locked_by_other_agency.
 
-solution: null
+solution: |
+  Добавлены "property.locked" и "property.unlocked" в WEBHOOK_EVENTS.
+  Добавлены обработчики _handle_webhook_property_locked и _handle_webhook_property_unlocked
+  в модели и dispatch в контроллере. Обновляют is_locked_by_other_agency.

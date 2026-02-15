@@ -1,7 +1,7 @@
 title: "Обновить webhook-обработчики под новые статусы"
-status: open
+status: done
 created_at: 15.02.2026
-completed_at: null
+completed_at: 15.02.2026
 
 todoist:
   task_id: "6g2m8WpJQPV9xmCq"
@@ -19,4 +19,7 @@ recommendation: |
   Убрать поле mls_listed (Boolean) — теперь всё через state.
   Для mls_sold добавить обработчик или использовать property.transition.
 
-solution: null
+solution: |
+  mls.new_listing: создаёт объект со state="mls_listed" вместо mls_listed=False.
+  mls.listing_removed: ставит state="mls_removed" вместо active=False.
+  API_STATE_MAP обновлён на 13 значений для property.transition.

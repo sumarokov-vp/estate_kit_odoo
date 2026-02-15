@@ -1,7 +1,7 @@
 title: "Красная плашка: объект не опубликован в MLS"
-status: open
+status: done
 created_at: 15.02.2026
-completed_at: null
+completed_at: 15.02.2026
 
 todoist:
   task_id: "6g2m8xvGMjMpgCmq"
@@ -25,4 +25,6 @@ recommendation: |
       Другие агентства не видят этот объект.
   </div>
 
-solution: null
+solution: |
+  Добавлен красный alert-danger баннер между header и sheet в form view.
+  Показывается только при state == 'active'. Текст: "Объект не опубликован в MLS."

@@ -1,7 +1,7 @@
 title: "Удалить cron-задачи MLS синхронизации"
-status: open
+status: done
 created_at: 15.02.2026
-completed_at: null
+completed_at: 15.02.2026
 
 todoist:
   task_id: "6g2m8xXGgF3f2mhH"
@@ -37,4 +37,11 @@ recommendation: |
   5. Удалить last_sync, auto_mls из ir_config_parameter.xml
   6. На сервере: удалить cron записи из БД если уже были установлены
 
-solution: null
+solution: |
+  Удалены cron_retry_sync и cron_pull_properties из estate_cron.xml.
+  Удалены методы _cron_retry_pending_sync, _cron_pull_from_api, _process_api_item.
+  Удалены поля pending_sync, last_synced_at, mls_listed, mls_status, api_configured.
+  Удалены SYNC_FIELDS, PULL_PAGE_LIMIT константы. Удалены action_publish_to_mls,
+  action_unpublish_from_mls. Удалена auto_mls логика из create() и настроек.
+  Удалены config_auto_mls и config_last_sync из ir_config_parameter.xml.
+  Сохранены _push_to_api, _import_from_api_data и webhook-обработчики.

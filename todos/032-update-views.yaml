@@ -1,7 +1,7 @@
 title: "Обновить views под новые статусы"
-status: open
+status: done
 created_at: 15.02.2026
-completed_at: null
+completed_at: 15.02.2026
 
 todoist:
   task_id: "6g2m8WMcr8HwMgvH"
@@ -28,4 +28,8 @@ recommendation: |
   В form view добавить header buttons с invisible conditions.
   Для чужих объектов (mls_*) сделать большинство полей readonly.
 
-solution: null
+solution: |
+  Form view: 9 кнопок действий с invisible conditions, statusbar с ключевыми
+  статусами. List view: decoration-success/warning/danger/muted. Search view:
+  фильтры Черновики, В продаже, Опубликованные, Чужие (MLS), Проданные.
+  MLS tab упрощён: external_id + is_locked_by_other_agency. Удалён is_shared из Служебного.

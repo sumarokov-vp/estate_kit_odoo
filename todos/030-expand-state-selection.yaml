@@ -1,7 +1,7 @@
 title: "Расширить selection поля state до 13 статусов"
-status: open
+status: done
 created_at: 15.02.2026
-completed_at: null
+completed_at: 15.02.2026
 
 todoist:
   task_id: "6g2m8W5c4W6c53rH"
@@ -35,4 +35,7 @@ recommendation: |
   Также убрать поле mls_status (computed) — теперь состояние MLS
   отражено прямо в state.
 
-solution: null
+solution: |
+  Заменено поле state с 4 статусов на 13: draft, internal_review, active,
+  moderation, legal_review, published, rejected, unpublished, sold, archived,
+  mls_listed, mls_removed, mls_sold. Default изменён с "new" на "draft".
