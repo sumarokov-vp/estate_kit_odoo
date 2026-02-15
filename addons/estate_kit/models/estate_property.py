@@ -8,10 +8,6 @@ from ..services.api_client import EstateKitApiClient
 
 _logger = logging.getLogger(__name__)
 
-SYNC_FIELDS = {"external_id", "pending_sync", "last_synced_at"}
-
-PULL_PAGE_LIMIT = 100
-
 API_PROPERTY_TYPE_MAP = {
     1: "apartment",
     2: "house",
@@ -27,10 +23,35 @@ API_DEAL_TYPE_MAP = {
 }
 
 API_STATE_MAP = {
-    1: "new",
-    2: "ready",
-    3: "published",
-    4: "unpublished",
+    1: "draft",
+    2: "internal_review",
+    3: "active",
+    4: "moderation",
+    5: "legal_review",
+    6: "published",
+    7: "rejected",
+    8: "unpublished",
+    9: "sold",
+    10: "archived",
+    11: "mls_listed",
+    12: "mls_removed",
+    13: "mls_sold",
+}
+
+ALLOWED_TRANSITIONS = {
+    "draft": ["internal_review"],
+    "internal_review": ["draft", "active"],
+    "active": ["moderation", "sold", "unpublished"],
+    "moderation": ["legal_review", "rejected", "active"],
+    "legal_review": ["published", "rejected", "moderation"],
+    "published": ["unpublished", "sold", "archived"],
+    "rejected": ["internal_review"],
+    "unpublished": ["active"],
+    "archived": [],
+    "sold": [],
+    "mls_listed": ["mls_removed", "mls_sold"],
+    "mls_removed": [],
+    "mls_sold": [],
 }
 
 
@@ -71,15 +92,24 @@ class EstateProperty(models.Model):
     )
     state = fields.Selection(
         [
-            ("new", "Новый"),
-            ("ready", "Готов к публикации"),
-            ("published", "Опубликован"),
+            ("draft", "Черновик"),
+            ("internal_review", "Внутренняя проверка"),
+            ("active", "В продаже"),
+            ("moderation", "На модерации MLS"),
+            ("legal_review", "Юридическая проверка"),
+            ("published", "Опубликован в MLS"),
+            ("rejected", "Отклонён MLS"),
             ("unpublished", "Снят с публикации"),
+            ("sold", "Продан"),
+            ("archived", "Архив"),
+            ("mls_listed", "В MLS (чужой)"),
+            ("mls_removed", "Удалён из MLS"),
+            ("mls_sold", "Продан (чужой)"),
         ],
         string="Стадия",
         required=True,
         copy=False,
-        default="new",
+        default="draft",
         tracking=True,
     )
 
@@ -124,70 +154,75 @@ class EstateProperty(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        result = super().create(vals_list)
-        if not self.env.context.get("skip_api_sync"):
-            auto_mls = (
-                self.env["ir.config_parameter"]
-                .sudo()
-                .get_param("estate_kit.auto_mls", "True")
-            )
-            if auto_mls == "True":
-                result.with_context(skip_api_sync=True).write({"mls_listed": True})
-            for record in result:
-                record._push_to_api()
-        return result
+        return super().create(vals_list)
 
     def write(self, vals):
         if "state" in vals:
             new_state = vals["state"]
-            is_forced = self.env.context.get("force_state_change")
-            if not is_forced:
+            if not self.env.context.get("force_state_change"):
                 for record in self:
-                    if record.state == "new" and new_state == "ready":
+                    allowed = ALLOWED_TRANSITIONS.get(record.state, [])
+                    if new_state not in allowed:
                         raise UserError(
-                            "Используйте кнопку «Готов к публикации» для смены статуса."
-                        )
-                    if new_state == "published":
-                        raise UserError(
-                            "Публикация объекта возможна только через специальное действие (API, выгрузка)."
-                        )
-                    if new_state == "unpublished":
-                        raise UserError(
-                            "Снятие с публикации возможно только через специальное действие."
+                            f"Переход из «{record.state}» в «{new_state}» не разрешён. "
+                            "Используйте соответствующую кнопку действия."
                         )
         result = super().write(vals)
-        should_sync = (
-            not self.env.context.get("skip_api_sync")
-            and not SYNC_FIELDS.issuperset(vals.keys())
-        )
-        if should_sync:
-            for record in self:
-                record._push_to_api()
         return result
 
-    def action_set_ready(self):
+    def action_submit_review(self):
         for record in self:
-            if record.state != "new":
-                raise UserError(
-                    "Перевести в «Готов к публикации» можно только новый объект."
-                )
-        self.with_context(force_state_change=True).write({"state": "ready"})
+            if record.state != "draft":
+                raise UserError("Отправить на проверку можно только черновик.")
+        self.with_context(force_state_change=True).write({"state": "internal_review"})
 
-    def action_publish(self):
+    def action_return_draft(self):
         for record in self:
-            if record.state != "ready":
-                raise UserError(
-                    "Опубликовать можно только объект в статусе «Готов к публикации»."
-                )
-        self.with_context(force_state_change=True).write({"state": "published"})
+            if record.state != "internal_review":
+                raise UserError("Вернуть в черновик можно только из внутренней проверки.")
+        self.with_context(force_state_change=True).write({"state": "draft"})
+
+    def action_approve(self):
+        for record in self:
+            if record.state != "internal_review":
+                raise UserError("Одобрить можно только объект на внутренней проверке.")
+        self.with_context(force_state_change=True).write({"state": "active"})
+
+    def action_send_to_mls(self):
+        for record in self:
+            if record.state != "active":
+                raise UserError("Отправить в MLS можно только объект в продаже.")
+        self.with_context(force_state_change=True).write({"state": "moderation"})
+
+    def action_sell(self):
+        for record in self:
+            if record.state not in ("active", "published"):
+                raise UserError("Отметить как проданный можно только объект в продаже или опубликованный.")
+        self.with_context(force_state_change=True).write({"state": "sold"})
 
     def action_unpublish(self):
         for record in self:
-            if record.state != "published":
-                raise UserError(
-                    "Снять с публикации можно только опубликованный объект."
-                )
+            if record.state not in ("active", "published"):
+                raise UserError("Снять можно только объект в продаже или опубликованный.")
         self.with_context(force_state_change=True).write({"state": "unpublished"})
+
+    def action_republish(self):
+        for record in self:
+            if record.state != "unpublished":
+                raise UserError("Вернуть в продажу можно только снятый с публикации объект.")
+        self.with_context(force_state_change=True).write({"state": "active"})
+
+    def action_archive_property(self):
+        for record in self:
+            if record.state != "published":
+                raise UserError("Архивировать можно только опубликованный объект.")
+        self.with_context(force_state_change=True).write({"state": "archived"})
+
+    def action_fix_rejected(self):
+        for record in self:
+            if record.state != "rejected":
+                raise UserError("Исправить можно только отклонённый объект.")
+        self.with_context(force_state_change=True).write({"state": "internal_review"})
 
     @api.depends("city_id", "district_id", "street_id", "house_number")
     def _compute_geo_address(self):
@@ -609,24 +644,12 @@ class EstateProperty(models.Model):
 
     # === Синхронизация ===
     external_id = fields.Integer(string="API ID", index=True, copy=False, readonly=True)
-    pending_sync = fields.Boolean(string="Pending Sync", default=False, copy=False, readonly=True)
-    last_synced_at = fields.Datetime(string="Last Synced", copy=False, readonly=True)
 
     # === MLS ===
-    mls_listed = fields.Boolean(string="В MLS", default=False, copy=False)
-    mls_status = fields.Selection(
-        [
-            ("not_listed", "Не размещён"),
-            ("listed", "В MLS"),
-            ("received", "Получен из MLS"),
-        ],
-        string="Статус MLS",
-        compute="_compute_mls_status",
-        store=False,
-    )
-    api_configured = fields.Boolean(
-        compute="_compute_api_configured",
-        store=False,
+    is_locked_by_other_agency = fields.Boolean(
+        string="Заблокирован другим агентством",
+        default=False,
+        copy=False,
     )
 
     # === Медиа ===
@@ -635,43 +658,6 @@ class EstateProperty(models.Model):
         "property_id",
         string="Фотографии",
     )
-
-    @api.depends("external_id", "mls_listed")
-    def _compute_mls_status(self):
-        for record in self:
-            if record.external_id and not record.mls_listed:
-                record.mls_status = "received"
-            elif record.mls_listed:
-                record.mls_status = "listed"
-            else:
-                record.mls_status = "not_listed"
-
-    def _compute_api_configured(self):
-        api_url = (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("estate_kit.api_url", "")
-        )
-        configured = bool(api_url)
-        for record in self:
-            record.api_configured = configured
-
-    def action_publish_to_mls(self):
-        self.with_context(skip_api_sync=True).write({"mls_listed": True})
-        for record in self:
-            record._push_to_api()
-
-    def action_unpublish_from_mls(self):
-        self.with_context(skip_api_sync=True).write({"mls_listed": False})
-        for record in self:
-            record._push_to_api()
-
-    @api.model
-    def _cron_retry_pending_sync(self):
-        pending = self.search([("pending_sync", "=", True)])
-        _logger.info("Retry pending sync: found %d records", len(pending))
-        for record in pending:
-            record._push_to_api()
 
     def _push_owner_to_api(self):
         self.ensure_one()
@@ -714,14 +700,10 @@ class EstateProperty(models.Model):
                     self.with_context(skip_api_sync=True).write(
                         {"external_id": response["id"]}
                     )
-            self.with_context(skip_api_sync=True).write(
-                {"pending_sync": False, "last_synced_at": fields.Datetime.now()}
-            )
         except Exception:
             _logger.exception(
                 "Failed to push property %s (id=%s) to API", self.name, self.id
             )
-            self.with_context(skip_api_sync=True).write({"pending_sync": True})
 
     def _prepare_api_payload(self):
         self.ensure_one()
@@ -797,7 +779,7 @@ class EstateProperty(models.Model):
             "land_status": self.land_status or "",
             "communications_nearby": self.communications_nearby,
             "road_access": self.road_access or "",
-            "is_shared": self.mls_listed,
+            "is_shared": self.is_shared,
             "video_url": self.video_url or "",
             "contract_type": self.contract_type or "",
             "contract_start": (
@@ -855,106 +837,6 @@ class EstateProperty(models.Model):
         )
 
     @api.model
-    def _cron_pull_from_api(self):
-        client = EstateKitApiClient(self.env)
-        if not client._is_configured:
-            return
-
-        config = self.env["ir.config_parameter"].sudo()
-        last_sync = config.get_param("estate_kit.last_sync", "")
-
-        offset = 0
-        total_created = 0
-        total_updated = 0
-
-        while True:
-            params = {"limit": PULL_PAGE_LIMIT, "offset": offset}
-            if last_sync:
-                params["updated_after"] = last_sync
-
-            response = client.get("/properties", params=params)
-            if not response:
-                _logger.error("Failed to fetch properties from API (offset=%d)", offset)
-                break
-
-            items = response.get("items", [])
-            if not items:
-                break
-
-            for item in items:
-                created, updated = self._process_api_item(item)
-                total_created += created
-                total_updated += updated
-
-            if len(items) < PULL_PAGE_LIMIT:
-                break
-
-            offset += PULL_PAGE_LIMIT
-
-        config.set_param("estate_kit.last_sync", fields.Datetime.now())
-        _logger.info(
-            "Pull from API completed: %d created, %d updated",
-            total_created,
-            total_updated,
-        )
-
-    def _process_api_item(self, item):
-        api_id = item.get("id")
-        if not api_id:
-            return 0, 0
-
-        existing = self.search([("external_id", "=", api_id)], limit=1)
-
-        api_updated_at = item.get("updated_at")
-        if existing and api_updated_at and existing.last_synced_at:
-            api_dt = fields.Datetime.to_datetime(
-                api_updated_at.replace("Z", "+00:00")
-            )
-            if api_dt and api_dt <= existing.last_synced_at:
-                return 0, 0
-
-        vals = self._import_from_api_data(item)
-        sync_ctx = self.with_context(skip_api_sync=True, force_state_change=True)
-
-        if existing:
-            sync_ctx.browse(existing.id).write(vals)
-            existing.with_context(skip_api_sync=True).write(
-                {"last_synced_at": fields.Datetime.now()}
-            )
-            self.env["estate.property.image"]._pull_images_for_property(existing)
-            return 0, 1
-
-        vals["external_id"] = api_id
-        vals["last_synced_at"] = fields.Datetime.now()
-        new_record = sync_ctx.create(vals)
-        self.env["estate.property.image"]._pull_images_for_property(new_record)
-        return 1, 0
-
-    @api.model
-    def _handle_webhook_property_created(self, payload):
-        property_id = payload.get("data", {}).get("property_id")
-        if not property_id:
-            _logger.warning("Webhook property.created: missing property_id in payload")
-            return
-
-        client = EstateKitApiClient(self.env)
-        item = client.get(f"/properties/{property_id}")
-        if not item:
-            _logger.warning(
-                "Webhook property.created: failed to fetch property %d from API",
-                property_id,
-            )
-            return
-
-        created, updated = self._process_api_item(item)
-        _logger.info(
-            "Webhook property.created: property_id=%d, created=%d, updated=%d",
-            property_id,
-            created,
-            updated,
-        )
-
-    @api.model
     def _handle_webhook_property_transition(self, payload):
         data = payload.get("data", {})
         property_id = data.get("property_id")
@@ -985,14 +867,10 @@ class EstateProperty(models.Model):
             )
             return
 
-        _logger.info(
-            "Webhook property.transition: property %d not found locally, fetching from API",
+        _logger.warning(
+            "Webhook property.transition: property %d not found locally",
             property_id,
         )
-        client = EstateKitApiClient(self.env)
-        item = client.get(f"/properties/{property_id}")
-        if item:
-            self._process_api_item(item)
 
     @api.model
     def _handle_webhook_contact_request(self, payload):
@@ -1059,10 +937,26 @@ class EstateProperty(models.Model):
 
         vals = self._import_from_api_data(item)
         vals["external_id"] = property_id
-        vals["mls_listed"] = False
-        vals["last_synced_at"] = fields.Datetime.now()
+        vals["state"] = "mls_listed"
         self.with_context(skip_api_sync=True, force_state_change=True).create(vals)
         _logger.info("mls.new_listing: created property with external_id=%d", property_id)
+
+    @api.model
+    def _handle_webhook_mls_listing_removed(self, payload):
+        property_id = payload.get("data", {}).get("property_id")
+        if not property_id:
+            _logger.warning("mls.listing_removed: missing property_id in payload")
+            return
+
+        existing = self.search([("external_id", "=", property_id)], limit=1)
+        if not existing:
+            _logger.warning(
+                "mls.listing_removed: property with external_id=%d not found", property_id
+            )
+            return
+
+        existing.with_context(skip_api_sync=True, force_state_change=True).write({"state": "mls_removed"})
+        _logger.info("mls.listing_removed: set mls_removed for property with external_id=%d", property_id)
 
     @api.model
     def _handle_webhook_mls_listing_updated(self, payload):
@@ -1088,27 +982,41 @@ class EstateProperty(models.Model):
 
         vals = self._import_from_api_data(item)
         existing.with_context(skip_api_sync=True, force_state_change=True).write(vals)
-        existing.with_context(skip_api_sync=True).write(
-            {"last_synced_at": fields.Datetime.now()}
-        )
         _logger.info("mls.listing_updated: updated property with external_id=%d", property_id)
 
     @api.model
-    def _handle_webhook_mls_listing_removed(self, payload):
+    def _handle_webhook_property_locked(self, payload):
         property_id = payload.get("data", {}).get("property_id")
         if not property_id:
-            _logger.warning("mls.listing_removed: missing property_id in payload")
+            _logger.warning("property.locked: missing property_id in payload")
             return
 
         existing = self.search([("external_id", "=", property_id)], limit=1)
         if not existing:
             _logger.warning(
-                "mls.listing_removed: property with external_id=%d not found", property_id
+                "property.locked: property with external_id=%d not found", property_id
             )
             return
 
-        existing.with_context(skip_api_sync=True).write({"active": False})
-        _logger.info("mls.listing_removed: deactivated property with external_id=%d", property_id)
+        existing.with_context(skip_api_sync=True).write({"is_locked_by_other_agency": True})
+        _logger.info("property.locked: locked property with external_id=%d", property_id)
+
+    @api.model
+    def _handle_webhook_property_unlocked(self, payload):
+        property_id = payload.get("data", {}).get("property_id")
+        if not property_id:
+            _logger.warning("property.unlocked: missing property_id in payload")
+            return
+
+        existing = self.search([("external_id", "=", property_id)], limit=1)
+        if not existing:
+            _logger.warning(
+                "property.unlocked: property with external_id=%d not found", property_id
+            )
+            return
+
+        existing.with_context(skip_api_sync=True).write({"is_locked_by_other_agency": False})
+        _logger.info("property.unlocked: unlocked property with external_id=%d", property_id)
 
     @api.model
     def _import_from_api_data(self, data):

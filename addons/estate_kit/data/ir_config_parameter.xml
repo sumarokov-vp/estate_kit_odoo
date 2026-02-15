@@ -17,14 +17,6 @@
             <field name="key">estate_kit.api_key</field>
             <field name="value"></field>
         </record>
-        <record id="config_auto_mls" model="ir.config_parameter">
-            <field name="key">estate_kit.auto_mls</field>
-            <field name="value">True</field>
-        </record>
-        <record id="config_last_sync" model="ir.config_parameter">
-            <field name="key">estate_kit.last_sync</field>
-            <field name="value"></field>
-        </record>
         <record id="config_webhook_secret" model="ir.config_parameter">
             <field name="key">estate_kit.webhook_secret</field>
             <field name="value"></field>

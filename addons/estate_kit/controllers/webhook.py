@@ -65,9 +65,7 @@ class EstateKitWebhookController(http.Controller):
 
         property_model = request.env["estate.property"].sudo()
 
-        if event_type == "property.created":
-            property_model._handle_webhook_property_created(payload)
-        elif event_type.startswith("property.transition."):
+        if event_type.startswith("property.transition."):
             property_model._handle_webhook_property_transition(payload)
         elif event_type == "contact_request.received":
             property_model._handle_webhook_contact_request(payload)
@@ -77,3 +75,7 @@ class EstateKitWebhookController(http.Controller):
             property_model._handle_webhook_mls_listing_updated(payload)
         elif event_type == "mls.listing_removed":
             property_model._handle_webhook_mls_listing_removed(payload)
+        elif event_type == "property.locked":
+            property_model._handle_webhook_property_locked(payload)
+        elif event_type == "property.unlocked":
+            property_model._handle_webhook_property_unlocked(payload)

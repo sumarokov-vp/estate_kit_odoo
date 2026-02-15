@@ -6,12 +6,34 @@
         <field name="arch" type="xml">
             <form string="Объект">
                 <header>
-                    <button name="action_set_ready" type="object" string="Готов к публикации"
-                        class="oe_highlight"
-                        invisible="state != 'new'"
+                    <button name="action_submit_review" type="object" string="На проверку"
+                        class="oe_highlight" invisible="state != 'draft'"
                         groups="estate_kit.group_estate_team_lead,estate_kit.group_estate_listing_coordinator"/>
-                    <field name="state" widget="statusbar" statusbar_visible="new,ready,published,unpublished"/>
+                    <button name="action_return_draft" type="object" string="Вернуть в черновик"
+                        invisible="state != 'internal_review'"
+                        groups="estate_kit.group_estate_team_lead"/>
+                    <button name="action_approve" type="object" string="Одобрить"
+                        class="oe_highlight" invisible="state != 'internal_review'"
+                        groups="estate_kit.group_estate_team_lead"/>
+                    <button name="action_send_to_mls" type="object" string="Отправить в MLS"
+                        class="oe_highlight" invisible="state != 'active'"/>
+                    <button name="action_sell" type="object" string="Продан"
+                        invisible="state not in ('active', 'published')"/>
+                    <button name="action_unpublish" type="object" string="Снять"
+                        invisible="state not in ('active', 'published')"/>
+                    <button name="action_republish" type="object" string="Вернуть в продажу"
+                        class="oe_highlight" invisible="state != 'unpublished'"/>
+                    <button name="action_archive_property" type="object" string="В архив"
+                        invisible="state != 'published'"/>
+                    <button name="action_fix_rejected" type="object" string="Исправить"
+                        class="oe_highlight" invisible="state != 'rejected'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,internal_review,active,published,sold"/>
                 </header>
+                <div class="alert alert-danger" role="alert"
+                     invisible="state != 'active'">
+                    <strong>&#9888; Объект не опубликован в MLS.</strong>
+                    Другие агентства не видят этот объект.
+                </div>
                 <sheet>
                     <div class="oe_title">
                         <h1>
@@ -184,7 +206,6 @@
                                     <field name="listing_agent_id"/>
                                 </group>
                                 <group string="Настройки">
-                                    <field name="is_shared"/>
                                     <field name="active"/>
                                 </group>
                             </group>
@@ -192,24 +213,12 @@
                                 <field name="internal_note" nolabel="1" colspan="2"/>
                             </group>
                         </page>
-                        <page string="MLS" name="mls" invisible="not api_configured">
-                            <field name="api_configured" invisible="1"/>
-                            <field name="mls_listed" invisible="1"/>
+                        <page string="MLS" name="mls">
                             <group>
-                                <group string="Статус">
-                                    <field name="mls_status" widget="badge"/>
+                                <group string="Синхронизация">
                                     <field name="external_id"/>
-                                    <field name="last_synced_at"/>
-                                    <field name="pending_sync"/>
+                                    <field name="is_locked_by_other_agency" readonly="1"/>
                                 </group>
-                            </group>
-                            <group>
-                                <button name="action_publish_to_mls" string="Отправить в MLS"
-                                        type="object" class="btn-primary"
-                                        invisible="mls_listed"/>
-                                <button name="action_unpublish_from_mls" string="Убрать из MLS"
-                                        type="object" class="btn-secondary"
-                                        invisible="not mls_listed"/>
                             </group>
                         </page>
                     </notebook>
@@ -223,7 +232,11 @@
         <field name="name">estate.property.list</field>
         <field name="model">estate.property</field>
         <field name="arch" type="xml">
-            <list string="Объекты" decoration-success="state == 'published'" decoration-muted="state == 'unpublished'">
+            <list string="Объекты"
+                decoration-success="state in ('active', 'published')"
+                decoration-warning="state in ('moderation', 'legal_review')"
+                decoration-danger="state == 'rejected'"
+                decoration-muted="state in ('unpublished', 'archived', 'sold', 'mls_removed', 'mls_sold')">
                 <field name="name"/>
                 <field name="property_type"/>
                 <field name="deal_type"/>
@@ -262,7 +275,11 @@
                 <filter name="sale" string="Продажа" domain="[('deal_type', '=', 'sale')]"/>
                 <filter name="rent" string="Аренда" domain="[('deal_type', 'in', ['rent_long', 'rent_daily'])]"/>
                 <separator/>
+                <filter name="draft" string="Черновики" domain="[('state', '=', 'draft')]"/>
+                <filter name="active_sale" string="В продаже" domain="[('state', '=', 'active')]"/>
                 <filter name="published" string="Опубликованные" domain="[('state', '=', 'published')]"/>
+                <filter name="mls_foreign" string="Чужие (MLS)" domain="[('state', 'in', ['mls_listed', 'mls_removed', 'mls_sold'])]"/>
+                <filter name="sold" string="Проданные" domain="[('state', 'in', ['sold', 'mls_sold'])]"/>
                 <filter name="archived" string="Архив" domain="[('active', '=', False)]"/>
                 <separator/>
                 <filter name="group_type" string="Тип объекта" context="{'group_by': 'property_type'}"/>

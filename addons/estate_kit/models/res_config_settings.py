@@ -7,8 +7,9 @@ from ..services.api_client import EstateKitApiClient
 _logger = logging.getLogger(__name__)
 
 WEBHOOK_EVENTS = [
-    "property.created",
     "property.transition.*",
+    "property.locked",
+    "property.unlocked",
     "mls.new_listing",
     "mls.listing_updated",
     "mls.listing_removed",
@@ -26,11 +27,6 @@ class ResConfigSettings(models.TransientModel):
     estate_kit_api_key = fields.Char(
         string="API-ключ",
         config_parameter="estate_kit.api_key",
-    )
-    estate_kit_auto_mls = fields.Boolean(
-        string="Авто-отправка в MLS",
-        config_parameter="estate_kit.auto_mls",
-        default=True,
     )
     estate_kit_webhook_secret = fields.Char(
         string="Webhook Secret",
