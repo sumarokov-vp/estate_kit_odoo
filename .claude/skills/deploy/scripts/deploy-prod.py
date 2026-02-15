@@ -82,7 +82,7 @@ def main() -> None:
 
     # 1. Fetch DB credentials from server
     print("Fetching DB credentials from server...")
-    env_content = ssh_output(ssh_opts, ssh_target, f"cat {remote_dir}/.env")
+    env_content = ssh_output(ssh_opts, ssh_target, f"sudo cat {remote_dir}/.env")
     env_vars = {}
     for line in env_content.splitlines():
         if "=" in line and not line.startswith("#"):
@@ -116,23 +116,23 @@ def main() -> None:
     # 4. Deploy on server
     print("Deploying on server...")
     ssh_cmd(ssh_opts, ssh_target,
-            f"cd {remote_dir} && docker compose pull && docker compose down && docker compose up -d")
+            f"cd {remote_dir} && sudo docker compose pull && sudo docker compose down && sudo docker compose up -d")
 
     # 5. Update module
     print("Updating estate_kit module...")
     ssh_cmd(ssh_opts, ssh_target,
-            f"docker exec {container} odoo "
+            f"sudo docker exec {container} odoo "
             f"--db_host={db_host} --db_port={db_port} "
             f"--db_user={db_user} --db_password={db_password} "
             f"-d {db_name} -u estate_kit --stop-after-init")
 
     # 6. Restart Odoo
     print("Restarting Odoo...")
-    ssh_cmd(ssh_opts, ssh_target, f"cd {remote_dir} && docker compose restart odoo")
+    ssh_cmd(ssh_opts, ssh_target, f"cd {remote_dir} && sudo docker compose restart odoo")
 
     # 7. Check logs
     print("Checking logs...")
-    ssh_cmd(ssh_opts, ssh_target, f"docker logs --tail 20 {container}")
+    ssh_cmd(ssh_opts, ssh_target, f"sudo docker logs --tail 20 {container}")
 
     print("\nDeploy complete! Site: https://royalestate.smartist.dev/")
 
