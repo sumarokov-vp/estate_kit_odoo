@@ -8,18 +8,17 @@ allowed-tools: Bash(.claude/skills/deploy/scripts/*)
 
 ## Инструкции
 
-Перед запуском убедись, что в `.env` заполнены переменные:
-- `DEPLOY_SSH_KEY` — путь к SSH-ключу
-- `DEPLOY_USER` — пользователь на сервере
-- `DEPLOY_HOST` — адрес сервера
-- `DEPLOY_IMAGE` — имя Docker-образа
-- `DEPLOY_SERVER_PATH` — директория на сервере
-- `DEPLOY_CONTAINER` — имя контейнера Odoo
-- `DEPLOY_DB_NAME` — имя базы данных
+```bash
+uv run python .claude/skills/deploy/scripts/deploy-prod.py
+```
+
+Для проверки без реального деплоя:
 
 ```bash
-.claude/skills/deploy/scripts/deploy.sh
+uv run python .claude/skills/deploy/scripts/deploy-prod.py --dry-run
 ```
+
+Конфиг читается из `.claude/devops.yaml` (секции `deploy`, `servers`).
 
 При ошибке покажи лог и помоги разобраться.
 
