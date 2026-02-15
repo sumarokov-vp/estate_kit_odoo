@@ -32,6 +32,10 @@ filestore/
 # Containers
 odoo-data/
 
+# Claude Code
+.claude/settings.local.json
+.claude/devops.yaml
+
 # Agent branch
 .agent-branch
 
