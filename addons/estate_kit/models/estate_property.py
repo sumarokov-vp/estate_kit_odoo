@@ -5,7 +5,7 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 from ..services.api_client import EstateKitApiClient
-from ..services.api_mapper import get_api_attribute_ids, prepare_api_payload
+from ..services.api_mapper import prepare_api_payload
 
 _logger = logging.getLogger(__name__)
 
@@ -697,7 +697,6 @@ class EstateProperty(models.Model):
         if not client._is_configured:
             return
 
-        self._push_owner_to_api()
         payload = self._prepare_api_payload()
 
         try:
@@ -709,6 +708,16 @@ class EstateProperty(models.Model):
                     self.with_context(skip_api_sync=True).write(
                         {"external_id": response["id"]}
                     )
+                    owner_data = response.get("owner")
+                    if (
+                        owner_data
+                        and owner_data.get("created")
+                        and owner_data.get("id")
+                        and self.owner_id
+                    ):
+                        self.owner_id.write(
+                            {"external_owner_id": owner_data["id"]}
+                        )
         except Exception:
             _logger.exception(
                 "Failed to push property %s (id=%s) to API", self.name, self.id
@@ -716,8 +725,7 @@ class EstateProperty(models.Model):
 
     def _prepare_api_payload(self):
         self.ensure_one()
-        attribute_ids = get_api_attribute_ids(self.env)
-        return prepare_api_payload(self, attribute_ids)
+        return prepare_api_payload(self)
 
     @api.model
     def _find_or_create_owner_from_api(self, owner_data):
