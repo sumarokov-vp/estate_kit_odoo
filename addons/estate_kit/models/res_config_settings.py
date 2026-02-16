@@ -81,7 +81,9 @@ class ResConfigSettings(models.TransientModel):
             payload["phone"] = phone
 
         resp = requests.post(url, json=payload, timeout=15)
-        if resp.status_code not in (200, 201):
+        if resp.status_code == 409:
+            return self._notify("Этот email уже зарегистрирован", "warning")
+        if resp.status_code not in (200, 201, 202):
             return self._notify(f"Ошибка API: {resp.status_code} {resp.text[:200]}", "danger")
 
         data = resp.json()
