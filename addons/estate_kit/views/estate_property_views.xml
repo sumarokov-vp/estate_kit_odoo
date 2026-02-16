@@ -17,6 +17,8 @@
                         groups="estate_kit.group_estate_team_lead"/>
                     <button name="action_send_to_mls" type="object" string="Отправить в MLS"
                         class="oe_highlight" invisible="state != 'active'"/>
+                    <button name="action_remove_from_mls" type="object" string="Убрать из MLS"
+                        invisible="state not in ('moderation', 'legal_review', 'published')"/>
                     <button name="action_sell" type="object" string="Продан"
                         invisible="state not in ('active', 'published')"/>
                     <button name="action_unpublish" type="object" string="Снять"

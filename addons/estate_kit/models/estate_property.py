@@ -5,6 +5,7 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 from ..services.api_client import EstateKitApiClient
+from ..services.api_mapper import get_api_attribute_ids, prepare_api_payload
 
 _logger = logging.getLogger(__name__)
 
@@ -43,8 +44,8 @@ ALLOWED_TRANSITIONS = {
     "internal_review": ["draft", "active"],
     "active": ["moderation", "sold", "unpublished"],
     "moderation": ["legal_review", "rejected", "active"],
-    "legal_review": ["published", "rejected", "moderation"],
-    "published": ["unpublished", "sold", "archived"],
+    "legal_review": ["published", "rejected", "moderation", "active"],
+    "published": ["unpublished", "sold", "archived", "active"],
     "rejected": ["internal_review"],
     "unpublished": ["active"],
     "archived": [],
@@ -193,6 +194,14 @@ class EstateProperty(models.Model):
             if record.state != "active":
                 raise UserError("Отправить в MLS можно только объект в продаже.")
         self.with_context(force_state_change=True).write({"state": "moderation"})
+        for record in self:
+            record._push_to_api()
+
+    def action_remove_from_mls(self):
+        for record in self:
+            if record.state not in ("moderation", "legal_review", "published"):
+                raise UserError("Убрать из MLS возможен только для объектов в MLS-процессе.")
+        self.with_context(force_state_change=True).write({"state": "active"})
 
     def action_sell(self):
         for record in self:
@@ -707,108 +716,8 @@ class EstateProperty(models.Model):
 
     def _prepare_api_payload(self):
         self.ensure_one()
-
-        payload = {
-            "name": self.name,
-            "description": self.description or "",
-            "property_type": self.property_type,
-            "deal_type": self.deal_type,
-            "state": self.state,
-            "price": self.price,
-            "currency": self.currency_id.name if self.currency_id else "KZT",
-            "rooms": self.rooms,
-            "bedrooms": self.bedrooms,
-            "area": self.area_total,
-            "area_living": self.area_living,
-            "area_kitchen": self.area_kitchen,
-            "area_land": self.area_land,
-            "house_number": self.house_number or "",
-            "apartment_number": self.apartment_number or "",
-            "latitude": self.latitude,
-            "longitude": self.longitude,
-            "floor": self.floor,
-            "floors_total": self.floors_total,
-            "year_built": self.year_built,
-            "building_type": self.building_type or "",
-            "ceiling_height": self.ceiling_height,
-            "wall_material": self.wall_material or "",
-            "roof_type": self.roof_type or "",
-            "foundation": self.foundation or "",
-            "bathroom": self.bathroom or "",
-            "bathroom_count": self.bathroom_count,
-            "balcony": self.balcony or "",
-            "balcony_glazed": self.balcony_glazed,
-            "parking": self.parking or "",
-            "parking_count": self.parking_count,
-            "furniture": self.furniture or "",
-            "condition": self.condition or "",
-            "heating": self.heating or "",
-            "water": self.water or "",
-            "sewage": self.sewage or "",
-            "gas": self.gas or "",
-            "electricity": self.electricity or "",
-            "internet": self.internet or "",
-            "window_type": self.window_type or "",
-            "entrance": self.entrance,
-            "not_corner": self.not_corner,
-            "isolated_rooms": self.isolated_rooms,
-            "storage": self.storage,
-            "quiet_yard": self.quiet_yard,
-            "kitchen_studio": self.kitchen_studio,
-            "new_plumbing": self.new_plumbing,
-            "built_in_kitchen": self.built_in_kitchen,
-            "security_intercom": self.security_intercom,
-            "security_alarm": self.security_alarm,
-            "security_guard": self.security_guard,
-            "security_video": self.security_video,
-            "security_coded_lock": self.security_coded_lock,
-            "security_concierge": self.security_concierge,
-            "security_fire_alarm": self.security_fire_alarm,
-            "is_pledged": self.is_pledged,
-            "is_privatized": self.is_privatized,
-            "documents_ready": self.documents_ready,
-            "ownership_type": self.ownership_type or "",
-            "encumbrance": self.encumbrance,
-            "commercial_type": self.commercial_type or "",
-            "area_commercial": self.area_commercial,
-            "area_warehouse": self.area_warehouse,
-            "has_showcase": self.has_showcase,
-            "separate_entrance": self.separate_entrance,
-            "electricity_power": self.electricity_power,
-            "land_category": self.land_category or "",
-            "land_status": self.land_status or "",
-            "communications_nearby": self.communications_nearby,
-            "road_access": self.road_access or "",
-            "is_shared": self.is_shared,
-            "video_url": self.video_url or "",
-            "contract_type": self.contract_type or "",
-            "contract_start": (
-                self.contract_start.isoformat() if self.contract_start else None
-            ),
-            "contract_end": (
-                self.contract_end.isoformat() if self.contract_end else None
-            ),
-            "owner_name": self.owner_name or "",
-        }
-
-        if self.owner_id and self.owner_id.external_owner_id:
-            payload["owner_id"] = self.owner_id.external_owner_id
-
-        if self.city_id:
-            payload["city_id"] = self.city_id.id
-        if self.district_id:
-            payload["district_id"] = self.district_id.id
-        if self.street_id:
-            payload["street_id"] = self.street_id.id
-        if self.source_id:
-            payload["source"] = self.source_id.code or self.source_id.name
-
-        payload["climate_equipment"] = [
-            eq.code or eq.name for eq in self.climate_equipment_ids
-        ]
-        payload["appliances"] = [ap.code or ap.name for ap in self.appliance_ids]
-
-        return payload
+        attribute_ids = get_api_attribute_ids(self.env)
+        return prepare_api_payload(self, attribute_ids)
 
     @api.model
     def _find_or_create_owner_from_api(self, owner_data):
