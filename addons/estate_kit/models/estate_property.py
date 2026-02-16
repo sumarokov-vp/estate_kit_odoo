@@ -695,7 +695,11 @@ class EstateProperty(models.Model):
         self.ensure_one()
         client = EstateKitApiClient(self.env)
         if not client._is_configured:
-            return
+            raise UserError(
+                "API не настроен. Укажите API URL и API Key в "
+                "Настройки → Технические → Параметры системы "
+                "(estate_kit.api_url и estate_kit.api_key)."
+            )
 
         payload = self._prepare_api_payload()
 
