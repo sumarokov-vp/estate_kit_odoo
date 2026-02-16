@@ -32,19 +32,13 @@ class EstateKitApiClient:
         endpoint = endpoint.lstrip("/")
         return f"{self.api_url}/{endpoint}"
 
-    def _request_with_retry(
+    def _retry_loop(
         self,
         method: str,
         url: str,
         **kwargs: Any,
-    ) -> dict[str, Any] | None:
-        if not self._is_configured:
-            _logger.warning("EstateKit API is not configured (api_url or api_key missing)")
-            return None
-
+    ) -> requests.Response | None:
         kwargs.setdefault("timeout", REQUEST_TIMEOUT)
-        kwargs.setdefault("headers", self._build_headers())
-
         last_exception: Exception | None = None
 
         for attempt in range(1, MAX_RETRIES + 1):
@@ -61,19 +55,7 @@ class EstateKitApiClient:
                         delay = RETRY_BASE_DELAY * (2 ** (attempt - 1))
                         time.sleep(delay)
                         continue
-                    return None
-
-                if response.status_code >= 400:
-                    _logger.error(
-                        "API %s %s returned %d: %s",
-                        method.upper(), url, response.status_code, response.text[:500],
-                    )
-                    return None
-
-                if response.status_code == 204 or not response.content:
-                    return {}
-
-                return response.json()
+                return response
 
             except (requests.ConnectionError, requests.Timeout) as exc:
                 last_exception = exc
@@ -96,6 +78,33 @@ class EstateKitApiClient:
         )
         return None
 
+    def _request_with_retry(
+        self,
+        method: str,
+        url: str,
+        **kwargs: Any,
+    ) -> dict[str, Any] | None:
+        if not self._is_configured:
+            _logger.warning("EstateKit API is not configured (api_url or api_key missing)")
+            return None
+
+        kwargs.setdefault("headers", self._build_headers())
+        response = self._retry_loop(method, url, **kwargs)
+        if response is None:
+            return None
+
+        if response.status_code >= 400:
+            _logger.error(
+                "API %s %s returned %d: %s",
+                method.upper(), url, response.status_code, response.text[:500],
+            )
+            return None
+
+        if response.status_code == 204 or not response.content:
+            return {}
+
+        return response.json()
+
     def get(self, endpoint: str, params: dict[str, Any] | None = None) -> dict[str, Any] | None:
         url = self._build_url(endpoint)
         return self._request_with_retry("GET", url, params=params)
@@ -115,6 +124,24 @@ class EstateKitApiClient:
     def delete(self, endpoint: str) -> dict[str, Any] | None:
         url = self._build_url(endpoint)
         return self._request_with_retry("DELETE", url)
+
+    def post_public(self, endpoint: str, data: dict[str, Any]) -> requests.Response | None:
+        if not self.api_url:
+            _logger.warning("EstateKit API URL is not configured")
+            return None
+        url = self._build_url(endpoint)
+        headers = {"Accept": "application/json", "Content-Type": "application/json"}
+        return self._retry_loop("POST", url, json=data, headers=headers)
+
+    def get_public(
+        self, endpoint: str, params: dict[str, Any] | None = None,
+    ) -> requests.Response | None:
+        if not self.api_url:
+            _logger.warning("EstateKit API URL is not configured")
+            return None
+        url = self._build_url(endpoint)
+        headers = {"Accept": "application/json"}
+        return self._retry_loop("GET", url, headers=headers, params=params)
 
     def upload(
         self,

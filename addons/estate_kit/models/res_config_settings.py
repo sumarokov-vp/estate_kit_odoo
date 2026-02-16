@@ -1,7 +1,5 @@
 import logging
 
-import requests
-
 from odoo import fields, models
 
 from ..services.api_client import EstateKitApiClient
@@ -65,22 +63,23 @@ class ResConfigSettings(models.TransientModel):
     def action_register_mls(self):
         self.set_values()
         config = self.env["ir.config_parameter"].sudo()
-        api_url = self.estate_kit_api_url or ""
         company_name = self.estate_kit_reg_company_name
         email = self.estate_kit_reg_email
         phone = self.estate_kit_reg_phone
 
-        if not api_url:
+        client = EstateKitApiClient(self.env)
+        if not client.api_url:
             return self._notify("Заполните URL API", "danger")
         if not company_name or not email:
             return self._notify("Заполните название компании и email", "danger")
 
-        url = f"{api_url.rstrip('/')}/tenants/register"
-        payload = {"company_name": company_name, "email": email}
+        payload: dict[str, str] = {"company_name": company_name, "email": email}
         if phone:
             payload["phone"] = phone
 
-        resp = requests.post(url, json=payload, timeout=15)
+        resp = client.post_public("/tenants/register", payload)
+        if resp is None:
+            return self._notify("Ошибка соединения с API", "danger")
         if resp.status_code not in (200, 201, 202, 409):
             return self._notify(f"Ошибка API: {resp.status_code} {resp.text[:200]}", "danger")
 
@@ -97,15 +96,19 @@ class ResConfigSettings(models.TransientModel):
 
     def action_check_registration_status(self):
         config = self.env["ir.config_parameter"].sudo()
-        api_url = self.estate_kit_api_url or config.get_param("estate_kit.api_url") or ""
         request_code = config.get_param("estate_kit.reg_request_code") or ""
         email = config.get_param("estate_kit.reg_email") or ""
 
-        if not api_url or not request_code or not email:
+        client = EstateKitApiClient(self.env)
+        if not client.api_url or not request_code or not email:
             return self._notify("Нет данных для проверки", "danger")
 
-        url = f"{api_url.rstrip('/')}/tenants/register/{request_code}"
-        resp = requests.get(url, params={"email": email}, timeout=15)
+        resp = client.get_public(
+            f"/tenants/register/{request_code}",
+            params={"email": email},
+        )
+        if resp is None:
+            return self._notify("Ошибка соединения с API", "danger")
         if resp.status_code == 404:
             config.set_param("estate_kit.reg_request_code", "")
             config.set_param("estate_kit.reg_status", "")
