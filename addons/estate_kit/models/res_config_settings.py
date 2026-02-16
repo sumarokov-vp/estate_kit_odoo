@@ -81,13 +81,13 @@ class ResConfigSettings(models.TransientModel):
             payload["phone"] = phone
 
         resp = requests.post(url, json=payload, timeout=15)
-        if resp.status_code == 409:
-            return self._notify("Этот email уже зарегистрирован", "warning")
-        if resp.status_code not in (200, 201, 202):
+        if resp.status_code not in (200, 201, 202, 409):
             return self._notify(f"Ошибка API: {resp.status_code} {resp.text[:200]}", "danger")
 
         data = resp.json()
         request_code = data.get("request_code", "")
+        if resp.status_code == 409 and not request_code:
+            return self._notify("Этот email уже зарегистрирован", "warning")
         status = data.get("status", "pending")
 
         config.set_param("estate_kit.reg_request_code", request_code)
