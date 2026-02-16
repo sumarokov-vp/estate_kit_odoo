@@ -1,21 +1,13 @@
 import logging
-import requests
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 from ..services.api_client import EstateKitApiClient
 from ..services.api_mapper import prepare_api_payload
+from ..services.api_mapper.property_types import API_PROPERTY_TYPE_MAP, PROPERTY_TYPE_LABELS
 
 _logger = logging.getLogger(__name__)
-
-API_PROPERTY_TYPE_MAP = {
-    1: "apartment",
-    2: "house",
-    3: "townhouse",
-    4: "commercial",
-    5: "land",
-}
 
 API_DEAL_TYPE_MAP = {
     1: "sale",
@@ -153,10 +145,6 @@ class EstateProperty(models.Model):
         store=True,
     )
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        return super().create(vals_list)
-
     def write(self, vals):
         if "state" in vals:
             new_state = vals["state"]
@@ -171,67 +159,54 @@ class EstateProperty(models.Model):
         result = super().write(vals)
         return result
 
-    def action_submit_review(self):
+    def _transition_state(self, from_states, to_state, error_msg):
+        if isinstance(from_states, str):
+            from_states = (from_states,)
         for record in self:
-            if record.state != "draft":
-                raise UserError("Отправить на проверку можно только черновик.")
-        self.with_context(force_state_change=True).write({"state": "internal_review"})
+            if record.state not in from_states:
+                raise UserError(error_msg)
+        self.with_context(force_state_change=True).write({"state": to_state})
+
+    def action_submit_review(self):
+        self._transition_state("draft", "internal_review", "Отправить на проверку можно только черновик.")
 
     def action_return_draft(self):
-        for record in self:
-            if record.state != "internal_review":
-                raise UserError("Вернуть в черновик можно только из внутренней проверки.")
-        self.with_context(force_state_change=True).write({"state": "draft"})
+        self._transition_state("internal_review", "draft", "Вернуть в черновик можно только из внутренней проверки.")
 
     def action_approve(self):
-        for record in self:
-            if record.state != "internal_review":
-                raise UserError("Одобрить можно только объект на внутренней проверке.")
-        self.with_context(force_state_change=True).write({"state": "active"})
+        self._transition_state("internal_review", "active", "Одобрить можно только объект на внутренней проверке.")
 
     def action_send_to_mls(self):
-        for record in self:
-            if record.state != "active":
-                raise UserError("Отправить в MLS можно только объект в продаже.")
-        self.with_context(force_state_change=True).write({"state": "moderation"})
+        self._transition_state("active", "moderation", "Отправить в MLS можно только объект в продаже.")
         for record in self:
             record._push_to_api()
 
     def action_remove_from_mls(self):
-        for record in self:
-            if record.state not in ("moderation", "legal_review", "published"):
-                raise UserError("Убрать из MLS возможен только для объектов в MLS-процессе.")
-        self.with_context(force_state_change=True).write({"state": "active"})
+        self._transition_state(
+            ("moderation", "legal_review", "published"), "active",
+            "Убрать из MLS возможен только для объектов в MLS-процессе.",
+        )
 
     def action_sell(self):
-        for record in self:
-            if record.state not in ("active", "published"):
-                raise UserError("Отметить как проданный можно только объект в продаже или опубликованный.")
-        self.with_context(force_state_change=True).write({"state": "sold"})
+        self._transition_state(
+            ("active", "published"), "sold",
+            "Отметить как проданный можно только объект в продаже или опубликованный.",
+        )
 
     def action_unpublish(self):
-        for record in self:
-            if record.state not in ("active", "published"):
-                raise UserError("Снять можно только объект в продаже или опубликованный.")
-        self.with_context(force_state_change=True).write({"state": "unpublished"})
+        self._transition_state(
+            ("active", "published"), "unpublished",
+            "Снять можно только объект в продаже или опубликованный.",
+        )
 
     def action_republish(self):
-        for record in self:
-            if record.state != "unpublished":
-                raise UserError("Вернуть в продажу можно только снятый с публикации объект.")
-        self.with_context(force_state_change=True).write({"state": "active"})
+        self._transition_state("unpublished", "active", "Вернуть в продажу можно только снятый с публикации объект.")
 
     def action_archive_property(self):
-        for record in self:
-            if record.state != "published":
-                raise UserError("Архивировать можно только опубликованный объект.")
-        self.with_context(force_state_change=True).write({"state": "archived"})
+        self._transition_state("published", "archived", "Архивировать можно только опубликованный объект.")
 
     def action_fix_rejected(self):
-        for record in self:
-            if record.state != "rejected":
-                raise UserError("Исправить можно только отклонённый объект.")
-        self.with_context(force_state_change=True).write({"state": "internal_review"})
+        self._transition_state("rejected", "internal_review", "Исправить можно только отклонённый объект.")
 
     @api.depends("city_id", "district_id", "street_id", "house_number")
     def _compute_geo_address(self):
@@ -259,6 +234,8 @@ class EstateProperty(models.Model):
             self.street_id = False
 
     def action_detect_district(self):
+        from ..services.geocoder import geocode_address, reverse_geocode_district
+
         self.ensure_one()
         api_key = (
             self.env["ir.config_parameter"]
@@ -281,79 +258,17 @@ class EstateProperty(models.Model):
 
         address = ", ".join(address_parts)
 
-        # Шаг 1: Прямое геокодирование — получаем координаты
-        response = requests.get(
-            "https://geocode-maps.yandex.ru/1.x/",
-            params={"apikey": api_key, "geocode": address, "format": "json"},
-            timeout=10,
-        )
-        response.raise_for_status()
-        data = response.json()
-
-        feature_members = (
-            data.get("response", {})
-            .get("GeoObjectCollection", {})
-            .get("featureMember", [])
-        )
-        if not feature_members:
+        coords = geocode_address(api_key, address)
+        if not coords:
             raise UserError(f"Адрес не найден: {address}")
 
-        geo_object = feature_members[0].get("GeoObject", {})
-        pos = geo_object.get("Point", {}).get("pos", "")
-        if not pos:
-            raise UserError(f"Координаты не найдены для адреса: {address}")
-
-        lon, lat = pos.split()
-        lon, lat = float(lon), float(lat)
+        lat, lon = coords
 
         if not self.latitude or not self.longitude:
             self.latitude = lat
             self.longitude = lon
 
-        # Шаг 2: Обратное геокодирование с kind=district — получаем район
-        response = requests.get(
-            "https://geocode-maps.yandex.ru/1.x/",
-            params={
-                "apikey": api_key,
-                "geocode": f"{lon},{lat}",
-                "format": "json",
-                "kind": "district",
-            },
-            timeout=10,
-        )
-        response.raise_for_status()
-        data = response.json()
-
-        feature_members = (
-            data.get("response", {})
-            .get("GeoObjectCollection", {})
-            .get("featureMember", [])
-        )
-
-        district_name = None
-        for feature in feature_members:
-            name = feature.get("GeoObject", {}).get("name", "")
-            if "район" in name.lower() and "жилой" not in name.lower():
-                district_name = name
-                break
-
-        if not district_name:
-            for feature in feature_members:
-                components = (
-                    feature.get("GeoObject", {})
-                    .get("metaDataProperty", {})
-                    .get("GeocoderMetaData", {})
-                    .get("Address", {})
-                    .get("Components", [])
-                )
-                for comp in components:
-                    if comp.get("kind") == "district":
-                        name = comp.get("name", "")
-                        if "район" in name.lower() and "жилой" not in name.lower():
-                            district_name = name
-                            break
-                if district_name:
-                    break
+        district_name = reverse_geocode_district(api_key, lat, lon)
 
         if district_name and self.city_id:
             district = self.env["estate.district"].search(
@@ -758,55 +673,53 @@ class EstateProperty(models.Model):
         )
 
     @api.model
+    def _find_property_for_webhook(self, payload, event_name):
+        property_id = payload.get("data", {}).get("property_id")
+        if not property_id:
+            _logger.warning("%s: missing property_id in payload", event_name)
+            return None, None
+        existing = self.search([("external_id", "=", property_id)], limit=1)
+        if not existing:
+            _logger.warning(
+                "%s: property with external_id=%s not found", event_name, property_id
+            )
+        return property_id, existing
+
+    @api.model
     def _handle_webhook_property_transition(self, payload):
         data = payload.get("data", {})
-        property_id = data.get("property_id")
         status_id = data.get("status_id")
-
+        property_id, existing = self._find_property_for_webhook(
+            payload, "property.transition"
+        )
         if not property_id:
-            _logger.warning("Webhook property.transition: missing property_id in payload")
             return
 
         new_state = API_STATE_MAP.get(status_id)
         if not new_state:
             _logger.warning(
-                "Webhook property.transition: unknown status_id=%s for property %d",
+                "property.transition: unknown status_id=%s for property %d",
                 status_id,
                 property_id,
             )
             return
 
-        existing = self.search([("external_id", "=", property_id)], limit=1)
-        if existing:
-            existing.with_context(
-                skip_api_sync=True, force_state_change=True
-            ).write({"state": new_state})
-            _logger.info(
-                "Webhook property.transition: property %d state → %s",
-                property_id,
-                new_state,
-            )
+        if not existing:
             return
 
-        _logger.warning(
-            "Webhook property.transition: property %d not found locally",
-            property_id,
+        existing.with_context(
+            skip_api_sync=True, force_state_change=True
+        ).write({"state": new_state})
+        _logger.info(
+            "property.transition: property %d state → %s", property_id, new_state
         )
 
     @api.model
     def _handle_webhook_contact_request(self, payload):
-        data = payload.get("data", {})
-        property_id = data.get("property_id")
-        if not property_id:
-            _logger.warning("contact_request.received: missing property_id in payload")
-            return
-
-        prop = self.search([("external_id", "=", property_id)], limit=1)
-        if not prop:
-            _logger.warning(
-                "contact_request.received: property with external_id=%s not found",
-                property_id,
-            )
+        property_id, prop = self._find_property_for_webhook(
+            payload, "contact_request.received"
+        )
+        if not property_id or not prop:
             return
 
         responsible_user = prop.user_id or prop.listing_agent_id
@@ -817,6 +730,7 @@ class EstateProperty(models.Model):
             )
             return
 
+        data = payload.get("data", {})
         requester_tenant_id = data.get("requester_tenant_id")
         note = "Запрос контакта собственника"
         if requester_tenant_id:
@@ -864,33 +778,20 @@ class EstateProperty(models.Model):
 
     @api.model
     def _handle_webhook_mls_listing_removed(self, payload):
-        property_id = payload.get("data", {}).get("property_id")
-        if not property_id:
-            _logger.warning("mls.listing_removed: missing property_id in payload")
+        property_id, existing = self._find_property_for_webhook(
+            payload, "mls.listing_removed"
+        )
+        if not property_id or not existing:
             return
-
-        existing = self.search([("external_id", "=", property_id)], limit=1)
-        if not existing:
-            _logger.warning(
-                "mls.listing_removed: property with external_id=%d not found", property_id
-            )
-            return
-
         existing.with_context(skip_api_sync=True, force_state_change=True).write({"state": "mls_removed"})
         _logger.info("mls.listing_removed: set mls_removed for property with external_id=%d", property_id)
 
     @api.model
     def _handle_webhook_mls_listing_updated(self, payload):
-        property_id = payload.get("data", {}).get("property_id")
-        if not property_id:
-            _logger.warning("mls.listing_updated: missing property_id in payload")
-            return
-
-        existing = self.search([("external_id", "=", property_id)], limit=1)
-        if not existing:
-            _logger.warning(
-                "mls.listing_updated: property with external_id=%d not found", property_id
-            )
+        property_id, existing = self._find_property_for_webhook(
+            payload, "mls.listing_updated"
+        )
+        if not property_id or not existing:
             return
 
         client = EstateKitApiClient(self.env)
@@ -907,35 +808,21 @@ class EstateProperty(models.Model):
 
     @api.model
     def _handle_webhook_property_locked(self, payload):
-        property_id = payload.get("data", {}).get("property_id")
-        if not property_id:
-            _logger.warning("property.locked: missing property_id in payload")
+        property_id, existing = self._find_property_for_webhook(
+            payload, "property.locked"
+        )
+        if not property_id or not existing:
             return
-
-        existing = self.search([("external_id", "=", property_id)], limit=1)
-        if not existing:
-            _logger.warning(
-                "property.locked: property with external_id=%d not found", property_id
-            )
-            return
-
         existing.with_context(skip_api_sync=True).write({"is_locked_by_other_agency": True})
         _logger.info("property.locked: locked property with external_id=%d", property_id)
 
     @api.model
     def _handle_webhook_property_unlocked(self, payload):
-        property_id = payload.get("data", {}).get("property_id")
-        if not property_id:
-            _logger.warning("property.unlocked: missing property_id in payload")
+        property_id, existing = self._find_property_for_webhook(
+            payload, "property.unlocked"
+        )
+        if not property_id or not existing:
             return
-
-        existing = self.search([("external_id", "=", property_id)], limit=1)
-        if not existing:
-            _logger.warning(
-                "property.unlocked: property with external_id=%d not found", property_id
-            )
-            return
-
         existing.with_context(skip_api_sync=True).write({"is_locked_by_other_agency": False})
         _logger.info("property.unlocked: unlocked property with external_id=%d", property_id)
 
@@ -1038,14 +925,7 @@ class EstateProperty(models.Model):
     @api.model
     def _generate_name_from_vals(self, vals):
         parts = []
-        property_type_labels = {
-            "apartment": "Квартира",
-            "house": "Дом",
-            "townhouse": "Таунхаус",
-            "commercial": "Коммерция",
-            "land": "Земля",
-        }
-        label = property_type_labels.get(vals.get("property_type"), "Объект")
+        label = PROPERTY_TYPE_LABELS.get(vals.get("property_type"), "Объект")
         parts.append(label)
 
         if vals.get("area_total"):
