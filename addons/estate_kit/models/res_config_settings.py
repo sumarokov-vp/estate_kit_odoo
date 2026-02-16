@@ -106,6 +106,10 @@ class ResConfigSettings(models.TransientModel):
 
         url = f"{api_url.rstrip('/')}/tenants/register/{request_code}"
         resp = requests.get(url, params={"email": email}, timeout=15)
+        if resp.status_code == 404:
+            config.set_param("estate_kit.reg_request_code", "")
+            config.set_param("estate_kit.reg_status", "")
+            return self._reload_settings()
         if resp.status_code != 200:
             return self._notify(f"Ошибка API: {resp.status_code}", "danger")
 
