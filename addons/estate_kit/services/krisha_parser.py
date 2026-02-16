@@ -105,7 +105,7 @@ class KrishaParser:
 
         return items
 
-    def _parse_advert(self, advert: dict[str, Any]) -> dict[str, Any]:
+    def _parse_advert(self, advert: dict[str, Any], *, is_detail: bool = False) -> dict[str, Any]:
         photos = advert.get("photos", [])
         photo_urls = [
             photo.get("src", "").replace("-thumb", "-full")
@@ -117,6 +117,13 @@ class KrishaParser:
         lat = map_data.get("lat")
         lon = map_data.get("lon")
 
+        if is_detail:
+            address = advert.get("addressTitle", "") or advert.get("address", "")
+            description = advert.get("text", "")
+        else:
+            address = advert.get("address", "")
+            description = ""
+
         return {
             "krisha_id": advert.get("id"),
             "url": f"{BASE_URL}/a/show/{advert.get('id')}",
@@ -127,10 +134,10 @@ class KrishaParser:
             "floors_total": advert.get("floorCount"),
             "price": advert.get("price"),
             "city": advert.get("city", {}).get("title", ""),
-            "address": advert.get("address", ""),
+            "address": address,
             "latitude": float(lat) if lat else None,
             "longitude": float(lon) if lon else None,
-            "description": "",
+            "description": description,
             "photo_urls": photo_urls,
         }
 
@@ -188,7 +195,7 @@ class KrishaParser:
                 if match:
                     data = json.loads(match.group(1))
                     advert = data.get("advert", {})
-                    result = self._parse_detail_advert(advert)
+                    result = self._parse_advert(advert, is_detail=True)
                     _logger.info("Parsed details: %d photos found", len(result.get("photo_urls", [])))
                     return result
                 else:
@@ -199,35 +206,6 @@ class KrishaParser:
             _logger.exception("Error fetching details: %s", e)
 
         return {}
-
-    def _parse_detail_advert(self, advert: dict[str, Any]) -> dict[str, Any]:
-        photos = advert.get("photos", [])
-        photo_urls = [
-            photo.get("src", "").replace("-thumb", "-full")
-            for photo in photos
-            if photo.get("src")
-        ]
-
-        map_data = advert.get("map", {})
-        lat = map_data.get("lat")
-        lon = map_data.get("lon")
-
-        return {
-            "krisha_id": advert.get("id"),
-            "url": f"{BASE_URL}/a/show/{advert.get('id')}",
-            "title": advert.get("title", ""),
-            "rooms": self._extract_rooms(advert.get("title", "")),
-            "area": self._extract_area(advert.get("square")),
-            "floor": advert.get("floor"),
-            "floors_total": advert.get("floorCount"),
-            "price": advert.get("price"),
-            "city": advert.get("city", {}).get("title", ""),
-            "address": advert.get("addressTitle", "") or advert.get("address", ""),
-            "latitude": float(lat) if lat else None,
-            "longitude": float(lon) if lon else None,
-            "description": advert.get("text", ""),
-            "photo_urls": photo_urls,
-        }
 
     def parse(self, params: ParseParams, max_pages: int = 1) -> list[dict[str, Any]]:
         all_items: list[dict[str, Any]] = []
