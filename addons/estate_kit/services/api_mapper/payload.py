@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, Protocol
 
 from .attributes import ATTRIBUTE_FIELD_MAP
 from .enum_values import ODOO_TO_API_ENUM_MAP
@@ -11,7 +11,35 @@ from .property_types import (
 _logger = logging.getLogger(__name__)
 
 
-def prepare_api_payload(record: Any) -> dict[str, Any]:
+class _RelatedWithExternalId(Protocol):
+    external_id: str | None
+
+
+class _RelatedWithName(Protocol):
+    name: str
+
+
+class _OwnerLike(Protocol):
+    name: str | None
+    phone: str | None
+
+
+class EstatePropertyLike(Protocol):
+    property_type: str
+    deal_type: str
+    price: float
+    description: str | None
+    owner_id: _OwnerLike | None
+    city_id: _RelatedWithExternalId | None
+    district_id: _RelatedWithExternalId | None
+    street_id: _RelatedWithName | None
+    house_number: str | None
+    apartment_number: str | None
+    latitude: float | None
+    longitude: float | None
+
+
+def prepare_api_payload(record: EstatePropertyLike) -> dict[str, Any]:
     payload: dict[str, Any] = {
         "property_type": ODOO_TO_API_PROPERTY_TYPE.get(record.property_type),
         "deal_type": ODOO_TO_API_DEAL_TYPE.get(record.deal_type),
@@ -33,7 +61,7 @@ def prepare_api_payload(record: Any) -> dict[str, Any]:
     return payload
 
 
-def _build_location(record: Any) -> dict[str, Any]:
+def _build_location(record: EstatePropertyLike) -> dict[str, Any]:
     location: dict[str, Any] = {}
     if record.city_id and record.city_id.external_id:
         location["city_id"] = record.city_id.external_id
@@ -52,7 +80,7 @@ def _build_location(record: Any) -> dict[str, Any]:
     return location
 
 
-def _build_attributes(record: Any) -> dict[str, str]:
+def _build_attributes(record: EstatePropertyLike) -> dict[str, str]:
     attributes: dict[str, str] = {}
 
     for odoo_field, api_name in ATTRIBUTE_FIELD_MAP.items():

@@ -44,7 +44,7 @@ def _init_cities(env):
     for data in cities:
         if not City.search([("code", "=", data["code"])], limit=1):
             City.create(data)
-            _logger.info(f"Created city: {data['name']}")
+            _logger.info("Created city: %s", data["name"])
 
 
 def _init_districts(env):
@@ -69,10 +69,10 @@ def _init_districts(env):
         if existing:
             if not existing.city_id:
                 existing.write({"city_id": almaty.id})
-                _logger.info(f"Updated district with city: {data['name']}")
+                _logger.info("Updated district with city: %s", data["name"])
         else:
             District.create(data)
-            _logger.info(f"Created district: {data['name']}")
+            _logger.info("Created district: %s", data["name"])
 
 
 def _init_sources(env):
@@ -90,4 +90,4 @@ def _init_sources(env):
     for data in sources:
         if not Source.search([("code", "=", data["code"])], limit=1):
             Source.create(data)
-            _logger.info(f"Created source: {data['name']}")
+            _logger.info("Created source: %s", data["name"])

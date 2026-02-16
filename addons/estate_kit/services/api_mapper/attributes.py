@@ -1,7 +1,3 @@
-import logging
-
-_logger = logging.getLogger(__name__)
-
 ATTRIBUTE_FIELD_MAP: dict[str, str] = {
     # Odoo field -> API attribute name
     # Integers
