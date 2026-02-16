@@ -63,8 +63,9 @@ class ResConfigSettings(models.TransientModel):
     )
 
     def action_register_mls(self):
+        self.set_values()
         config = self.env["ir.config_parameter"].sudo()
-        api_url = config.get_param("estate_kit.api_url") or ""
+        api_url = self.estate_kit_api_url or ""
         company_name = self.estate_kit_reg_company_name
         email = self.estate_kit_reg_email
         phone = self.estate_kit_reg_phone
@@ -89,16 +90,12 @@ class ResConfigSettings(models.TransientModel):
 
         config.set_param("estate_kit.reg_request_code", request_code)
         config.set_param("estate_kit.reg_status", status)
-        config.set_param("estate_kit.reg_company_name", company_name)
-        config.set_param("estate_kit.reg_email", email)
-        if phone:
-            config.set_param("estate_kit.reg_phone", phone)
 
-        return self._notify("Заявка отправлена", "success")
+        return self._reload_settings()
 
     def action_check_registration_status(self):
         config = self.env["ir.config_parameter"].sudo()
-        api_url = config.get_param("estate_kit.api_url") or ""
+        api_url = self.estate_kit_api_url or config.get_param("estate_kit.api_url") or ""
         request_code = config.get_param("estate_kit.reg_request_code") or ""
         email = config.get_param("estate_kit.reg_email") or ""
 
@@ -116,11 +113,8 @@ class ResConfigSettings(models.TransientModel):
 
         if status == "approved" and data.get("api_key"):
             config.set_param("estate_kit.api_key", data["api_key"])
-            return self._notify("Регистрация одобрена! API-ключ сохранён.", "success")
 
-        status_labels = {"pending": "На рассмотрении", "approved": "Одобрена", "rejected": "Отклонена"}
-        label = status_labels.get(status, status)
-        return self._notify(f"Статус: {label}", "info")
+        return self._reload_settings()
 
     def _notify(self, message, notification_type="info"):
         return {
@@ -131,6 +125,12 @@ class ResConfigSettings(models.TransientModel):
                 "type": notification_type,
                 "sticky": False,
             },
+        }
+
+    def _reload_settings(self):
+        return {
+            "type": "ir.actions.client",
+            "tag": "reload",
         }
 
     def set_values(self):
