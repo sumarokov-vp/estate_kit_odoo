@@ -1,0 +1,16 @@
+title: Разнести 3 TransientModel по отдельным файлам
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  KrishaParserWizard, KrishaParserResult, KrishaParserPreview — три модели в одном файле.
+  Файл: wizards/krisha_parser_wizard.py
+  Приоритет: MEDIUM
+
+recommendation: |
+  Разнести по отдельным файлам: krisha_parser_wizard.py, krisha_parser_result.py, krisha_parser_preview.py.
+
+solution: |
+  Разнёс 3 TransientModel по файлам: krisha_parser_wizard.py, krisha_parser_result.py, krisha_parser_preview.py.
+  Обновил wizards/__init__.py. Порядок импорта: result → preview → wizard (по зависимостям).

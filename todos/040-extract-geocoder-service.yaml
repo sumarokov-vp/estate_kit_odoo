@@ -1,0 +1,19 @@
+title: Вынести action_detect_district в services/geocoder.py
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  Метод action_detect_district (110 строк, строки 261-370) содержит прямые
+  HTTP-запросы к Yandex Geocoder API, парсинг ответов, создание записей —
+  всё внутри модели Odoo.
+  Файл: models/estate_property.py:261-370
+  Нарушение: SRP, смешение инфраструктуры и бизнес-логики.
+  Приоритет: HIGH
+
+recommendation: |
+  Вынести в services/geocoder.py как отдельный сервис.
+
+solution: |
+  Создан services/geocoder.py с функциями geocode_address() и reverse_geocode_district().
+  action_detect_district в модели теперь вызывает эти функции. Уменьшено ~110 строк до ~40.

@@ -1,0 +1,20 @@
+title: Перевести action_register_mls на EstateKitApiClient
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  action_register_mls использует requests.post напрямую вместо EstateKitApiClient.
+  Несогласованность: остальные API-вызовы идут через клиент с retry.
+  Файл: models/res_config_settings.py:65-96
+  Приоритет: HIGH
+
+recommendation: |
+  Использовать EstateKitApiClient или создать отдельный метод регистрации в клиенте.
+
+solution: |
+  Рефакторинг api_client.py: извлечён _retry_loop из _request_with_retry для переиспользования.
+  Добавлены методы post_public и get_public — публичные запросы без API-ключа, возвращают
+  requests.Response для гибкой обработки статус-кодов (409, 404 и т.д.).
+  action_register_mls и action_check_registration_status переведены на клиент.
+  Удалён неиспользуемый import requests из res_config_settings.py.

@@ -1,0 +1,15 @@
+title: Заменить f-string на %s в логгировании hooks.py
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  f-string в логгировании — антипаттерн, строка форматируется даже если уровень лога отключён.
+  Файл: hooks.py:47,72,75,93
+  Приоритет: LOW
+
+recommendation: |
+  Заменить _logger.info(f"...{var}") на _logger.info("...%s", var).
+
+solution: |
+  Заменены 4 f-string на %s форматирование в hooks.py (строки 47, 72, 75, 93).

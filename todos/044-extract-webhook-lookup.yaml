@@ -1,0 +1,18 @@
+title: Вынести общую логику lookup из webhook-обработчиков
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  7 методов _handle_webhook_* с одинаковой структурой: извлечь property_id →
+  найти запись → обновить.
+  Файл: models/estate_property.py:761-940
+  Приоритет: HIGH
+
+recommendation: |
+  Вынести общую логику lookup в базовый метод _find_property_for_webhook().
+
+solution: |
+  Создан _find_property_for_webhook(payload, event_name) — общий lookup property_id + search.
+  5 из 7 webhook-обработчиков переписаны на использование этого метода.
+  mls.new_listing оставлен со своей логикой (обратная проверка — ищет отсутствие записи).

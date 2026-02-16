@@ -1,0 +1,17 @@
+title: Устранить дублирование _parse_advert и _parse_detail_advert
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  Почти идентичный код парсинга с минимальными отличиями (address vs addressTitle, description).
+  Файл: services/krisha_parser.py:108-135 и 203-230
+  Приоритет: HIGH
+
+recommendation: |
+  Объединить в один метод с параметром, определяющим источник данных.
+
+solution: |
+  Объединил _parse_advert и _parse_detail_advert в один метод _parse_advert
+  с keyword-only параметром is_detail=False. Различия (address/addressTitle,
+  description) обрабатываются через if is_detail. Удалён метод _parse_detail_advert.

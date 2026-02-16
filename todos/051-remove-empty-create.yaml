@@ -1,0 +1,15 @@
+title: Удалить пустой метод create() в EstateProperty
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  create() просто вызывает super().create() без дополнительной логики — мёртвый код.
+  Файл: models/estate_property.py:156-158
+  Приоритет: LOW
+
+recommendation: |
+  Удалить метод полностью.
+
+solution: |
+  Удалён пустой метод create() (строки 156-158), который просто вызывал super().create().

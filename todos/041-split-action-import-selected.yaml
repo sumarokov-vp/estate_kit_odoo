@@ -1,0 +1,17 @@
+title: Разбить action_import_selected на подметоды
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  Метод action_import_selected (85 строк) создаёт property, скачивает фото,
+  парсит детали — слишком много ответственностей.
+  Файл: wizards/krisha_parser_wizard.py:182-255
+  Приоритет: HIGH
+
+recommendation: |
+  Разбить на _create_property_from_result() и _import_photos().
+
+solution: |
+  Извлёк _create_property_from_result() и _import_photos() из action_import_selected.
+  Убрал избыточное логирование из _import_photos.

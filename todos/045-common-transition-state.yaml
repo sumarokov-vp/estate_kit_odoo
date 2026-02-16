@@ -1,0 +1,16 @@
+title: Создать общий _transition_state() для state-action методов
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  10 методов с идентичной структурой: проверка state → raise UserError → write с force_state_change.
+  Файл: models/estate_property.py:174-234
+  Приоритет: MEDIUM
+
+recommendation: |
+  Создать общий _transition_state(self, from_states, to_state, error_msg).
+
+solution: |
+  Создан _transition_state(self, from_states, to_state, error_msg). Все 10 action-методов
+  переписаны как однострочные вызовы _transition_state. Уменьшено ~60 строк до ~20.

@@ -1,0 +1,15 @@
+title: Удалить неиспользуемый import logging в attributes.py
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  import logging и _logger = logging.getLogger(__name__) — нигде не используются.
+  Файл: services/api_mapper/attributes.py:1-3
+  Приоритет: MEDIUM
+
+recommendation: |
+  Удалить неиспользуемый импорт и переменную.
+
+solution: |
+  Удалены import logging и _logger из attributes.py.

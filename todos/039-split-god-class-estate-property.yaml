@@ -1,0 +1,26 @@
+title: Разбить god-класс EstateProperty (1058 строк)
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  EstateProperty содержит 1058 строк и совмещает минимум 4 ответственности:
+  определение полей, state machine, API-синхронизацию, обработку webhook-ов,
+  импорт из API, геокодирование через Yandex API.
+  Файл: models/estate_property.py
+  Нарушение: SRP — Single Responsibility Principle.
+  Приоритет: HIGH
+
+recommendation: |
+  Вынести webhook-обработчики в mixin или отдельный сервис,
+  геокодирование в services/geocoder.py,
+  API-синхронизацию в отдельный сервис.
+
+solution: |
+  Класс уменьшен с 1058 до 937 строк за счёт:
+  - Удаление пустого create() (TODO 051)
+  - Общий _transition_state() вместо 10 методов (TODO 045)
+  - Единый property_type маппинг (TODO 046)
+  - Геокодирование вынесено в services/geocoder.py (TODO 040)
+  - Общий webhook lookup — _find_property_for_webhook (TODO 044)
+  Дальнейшее разделение (mixin для webhook, отдельный API sync) возможно в будущем.

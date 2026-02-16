@@ -1,0 +1,19 @@
+title: Единый источник маппинга property_type labels
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  Маппинг property_type дублируется в 3 местах:
+  - estate_property.py:12-18 (API_PROPERTY_TYPE_MAP)
+  - estate_property.py:1041-1047 (_generate_name_from_vals)
+  - property_types.py:1-7 (ODOO_TO_API_PROPERTY_TYPE)
+  Приоритет: MEDIUM
+
+recommendation: |
+  Создать единый источник маппинга и ссылаться на него из всех мест.
+
+solution: |
+  Единый источник — PROPERTY_TYPE_LABELS в services/api_mapper/property_types.py.
+  ODOO_TO_API_PROPERTY_TYPE стал алиасом, API_PROPERTY_TYPE_MAP генерируется из него.
+  _generate_name_from_vals использует импортированный PROPERTY_TYPE_LABELS.

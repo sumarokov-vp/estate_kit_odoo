@@ -1,0 +1,15 @@
+title: Типизировать record: Any → Protocol в api_mapper/payload.py
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  Все функции принимают record: Any — теряется типизация.
+  Файл: services/api_mapper/payload.py:14,36,55
+  Приоритет: LOW
+
+recommendation: |
+  Создать Protocol для EstatePropertyLike с необходимыми атрибутами.
+
+solution: |
+  Создан Protocol EstatePropertyLike с вспомогательными протоколами _RelatedWithExternalId, _RelatedWithName, _OwnerLike. Заменён record: Any на record: EstatePropertyLike во всех трёх функциях.

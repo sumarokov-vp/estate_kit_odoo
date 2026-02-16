@@ -1,0 +1,15 @@
+title: "Исправить баг: state=\"new\" → state=\"draft\" при импорте из Krisha"
+status: done
+created_at: 16.02.2026
+completed_at: 16.02.2026
+
+description: |
+  state="new" — такого состояния нет в Selection поля state. Должно быть "draft".
+  Файл: wizards/krisha_parser_wizard.py:206
+  Приоритет: MEDIUM (баг)
+
+recommendation: |
+  Заменить "state": "new" на "state": "draft".
+
+solution: |
+  Заменил "state": "new" на "state": "draft" в wizards/krisha_parser_wizard.py:206.
