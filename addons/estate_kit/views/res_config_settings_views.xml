@@ -7,6 +7,44 @@
         <field name="arch" type="xml">
             <xpath expr="//form" position="inside">
                 <app data-string="Estate Kit" string="Estate Kit" name="estate_kit">
+                    <block title="Регистрация в MLS" name="estate_kit_registration">
+                        <setting string="Регистрация" help="Отправьте заявку на подключение к MLS">
+                            <div class="content-group" invisible="estate_kit_reg_request_code">
+                                <div class="row mt16">
+                                    <label for="estate_kit_reg_company_name" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_reg_company_name" class="col-lg-6" placeholder="Название компании" required="True"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_reg_email" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_reg_email" class="col-lg-6" placeholder="email@example.com" required="True"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_reg_phone" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_reg_phone" class="col-lg-6" placeholder="+7 (777) 123-45-67"/>
+                                </div>
+                                <div class="row mt16">
+                                    <button name="action_register_mls" type="object" string="Зарегистрироваться в MLS" class="btn-primary"/>
+                                </div>
+                            </div>
+                            <div class="content-group" invisible="not estate_kit_reg_request_code">
+                                <div class="row mt16">
+                                    <label for="estate_kit_reg_company_name" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_reg_company_name" class="col-lg-6" readonly="True"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_reg_email" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_reg_email" class="col-lg-6" readonly="True"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_reg_status" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_reg_status" class="col-lg-6"/>
+                                </div>
+                                <div class="row mt16">
+                                    <button name="action_check_registration_status" type="object" string="Проверить статус регистрации" class="btn-secondary"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="API" name="estate_kit_api">
                         <setting string="URL API" help="Адрес центрального EstateKit API (например https://api.estatekit.kz/api/v1)">
                             <div class="content-group">
