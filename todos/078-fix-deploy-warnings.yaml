@@ -1,0 +1,24 @@
+title: Исправить предупреждения из деплой-логов
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: medium
+
+description: |
+  После деплоя в логах:
+  1. _sql_constraints is no longer supported — убрать устаревший атрибут
+  2. missing not-null constraint на krisha.parser.wizard.city_id — после замены
+     Selection на Many2one (задача 063) нужно добавить required=True или default
+
+recommendation: |
+  1. Найти _sql_constraints в моделях и удалить или заменить на Python constraints
+  2. Добавить required=True к city_id в krisha_parser_wizard.py
+
+solution: |
+  1. В addons/estate_kit/models/estatekit_webhook_event.py удалён _sql_constraints
+     с уникальным ограничением на event_id. Заменён на @api.constrains("event_id")
+     с поиском дубликата через self.search() и выбросом ValidationError.
+     Добавлен импорт ValidationError из odoo.exceptions.
+  2. krisha_parser_wizard.py уже содержал required=True и default для city_id
+     (было добавлено в задаче 063). Предупреждение о missing not-null constraint
+     исчезнет после следующего деплоя с обновлением модуля (-u estate_kit).

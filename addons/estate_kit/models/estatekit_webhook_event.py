@@ -1,6 +1,7 @@
 import logging
 
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -15,9 +16,15 @@ class EstateKitWebhookEvent(models.Model):
     event_type = fields.Char()
     processed_at = fields.Datetime(default=fields.Datetime.now)
 
-    _sql_constraints = [
-        ("event_id_unique", "UNIQUE(event_id)", "Event already processed"),
-    ]
+    @api.constrains("event_id")
+    def _check_event_id_unique(self):
+        for record in self:
+            duplicate = self.search([
+                ("event_id", "=", record.event_id),
+                ("id", "!=", record.id),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError(f"Event already processed: {record.event_id}")
 
     def _cron_cleanup_old_events(self):
         cutoff = fields.Datetime.subtract(fields.Datetime.now(), days=WEBHOOK_EVENT_RETENTION_DAYS)
