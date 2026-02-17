@@ -7,11 +7,8 @@ from ..services.api_client import EstateKitApiClient
 _logger = logging.getLogger(__name__)
 
 WEBHOOK_EVENTS = [
-    "property.transition.*",
-    "property.locked",
-    "property.unlocked",
+    "property.*",
     "mls.new_listing",
-    "mls.listing_updated",
     "mls.listing_removed",
     "contact_request.received",
 ]
