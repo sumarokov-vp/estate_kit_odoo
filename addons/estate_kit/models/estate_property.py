@@ -180,7 +180,18 @@ class EstateProperty(models.Model):
     def action_send_to_mls(self):
         self._transition_state("active", "moderation", "Отправить в MLS можно только объект в продаже.")
         for record in self:
-            record._push_to_api()
+            if record.external_id:
+                client = EstateKitApiClient(record.env)
+                if client._is_configured:
+                    try:
+                        client.post(f"/properties/{record.external_id}/resume")
+                    except Exception:
+                        _logger.exception(
+                            "Failed to resume property %s (external_id=%s) via API",
+                            record.name, record.external_id,
+                        )
+            else:
+                record._push_to_api()
 
     def action_remove_from_mls(self):
         self._transition_state(
@@ -639,12 +650,6 @@ class EstateProperty(models.Model):
             )
 
         payload = self._prepare_api_payload()
-
-        if self.external_id:
-            raise UserError(
-                "Объект уже опубликован в MLS (external_id=%s). "
-                "Повторная публикация не поддерживается." % self.external_id
-            )
 
         try:
             response = client.post("/properties", payload)
