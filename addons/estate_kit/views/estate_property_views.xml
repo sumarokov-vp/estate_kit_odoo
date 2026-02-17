@@ -110,6 +110,7 @@
                                     <field name="street_id"/>
                                     <field name="house_number"/>
                                     <field name="apartment_number" invisible="property_type not in ('apartment', 'commercial')"/>
+                                    <field name="residential_complex"/>
                                 </group>
                                 <group string="Координаты">
                                     <field name="latitude"/>

@@ -31,6 +31,7 @@ class EstatePropertyLike(Protocol):
     street_id: _RelatedWithName | None
     house_number: str | None
     apartment_number: str | None
+    residential_complex: str | None
     latitude: float | None
     longitude: float | None
 
@@ -67,6 +68,8 @@ def _build_location(record: EstatePropertyLike) -> dict[str, Any]:
         location["street"] = record.street_id.name
     if record.house_number:
         location["house_number"] = record.house_number
+    if record.residential_complex:
+        location["residential_complex"] = record.residential_complex
     if record.apartment_number:
         location["apartment_number"] = record.apartment_number
     if record.latitude:
