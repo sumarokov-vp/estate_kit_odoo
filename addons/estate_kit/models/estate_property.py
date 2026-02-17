@@ -641,6 +641,10 @@ class EstateProperty(models.Model):
             _logger.exception(
                 "Failed to push property %s (id=%s) to API", self.name, self.id
             )
+            raise UserError(
+                "Не удалось отправить объект в MLS. API вернул ошибку. "
+                "Попробуйте позже или обратитесь к администратору."
+            )
 
     def _prepare_api_payload(self):
         self.ensure_one()
@@ -879,27 +883,25 @@ class EstateProperty(models.Model):
         if not location:
             return
 
-        city_ext_id = location.get("city_id")
-        if city_ext_id:
+        city_name = location.get("city_name") or location.get("city")
+        if city_name:
             city = self.env["estate.city"].search(
-                [("external_id", "=", city_ext_id)], limit=1
+                [("name", "=", city_name)], limit=1
             )
             if city:
                 vals["city_id"] = city.id
             else:
-                _logger.warning("City with API ID %d not found, skipping", city_ext_id)
+                _logger.warning("City '%s' not found, skipping", city_name)
 
-        district_ext_id = location.get("district_id")
-        if district_ext_id:
+        district_name = location.get("district_name") or location.get("district")
+        if district_name:
             district = self.env["estate.district"].search(
-                [("external_id", "=", district_ext_id)], limit=1
+                [("name", "=", district_name)], limit=1
             )
             if district:
                 vals["district_id"] = district.id
             else:
-                _logger.warning(
-                    "District with API ID %d not found, skipping", district_ext_id
-                )
+                _logger.warning("District '%s' not found, skipping", district_name)
 
         street_name = location.get("street")
         if street_name and vals.get("city_id"):

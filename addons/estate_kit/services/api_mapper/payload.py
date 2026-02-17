@@ -11,10 +11,6 @@ from .property_types import (
 _logger = logging.getLogger(__name__)
 
 
-class _RelatedWithExternalId(Protocol):
-    external_id: str | None
-
-
 class _RelatedWithName(Protocol):
     name: str
 
@@ -30,8 +26,8 @@ class EstatePropertyLike(Protocol):
     price: float
     description: str | None
     owner_id: _OwnerLike | None
-    city_id: _RelatedWithExternalId | None
-    district_id: _RelatedWithExternalId | None
+    city_id: _RelatedWithName | None
+    district_id: _RelatedWithName | None
     street_id: _RelatedWithName | None
     house_number: str | None
     apartment_number: str | None
@@ -63,10 +59,10 @@ def prepare_api_payload(record: EstatePropertyLike) -> dict[str, Any]:
 
 def _build_location(record: EstatePropertyLike) -> dict[str, Any]:
     location: dict[str, Any] = {}
-    if record.city_id and record.city_id.external_id:
-        location["city_id"] = record.city_id.external_id
-    if record.district_id and record.district_id.external_id:
-        location["district_id"] = record.district_id.external_id
+    if record.city_id:
+        location["city"] = record.city_id.name
+    if record.district_id:
+        location["district"] = record.district_id.name
     if record.street_id:
         location["street"] = record.street_id.name
     if record.house_number:
