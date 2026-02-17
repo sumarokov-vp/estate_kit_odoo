@@ -1,0 +1,24 @@
+title: Удалить мёртвый код из estate_property.py
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: high
+
+description: |
+  Два метода нигде не вызываются:
+  - _find_or_create_owner_from_api (строки 632-648) — логика частично
+    дублируется в importer.py. Перенести find-or-create в importer.
+  - _import_from_api_data (строки 650-653) — делегирующая обёртка
+    нулевой ценности.
+
+recommendation: |
+  Удалить оба метода. Логику find-or-create owner перенести в
+  services/api_mapper/importer.py.
+
+solution: |
+  Удалены _find_or_create_owner_from_api и _import_from_api_data из
+  estate_property.py. Логика find-or-create перенесена в
+  services/api_mapper/importer.py как функция find_or_create_owner(env, owner_data).
+  Функция экспортирована через services/api_mapper/__init__.py.
+  import_from_api_data обновлён — использует find_or_create_owner вместо
+  inline-поиска без create.

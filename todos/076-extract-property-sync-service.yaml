@@ -1,0 +1,26 @@
+title: Вынести _push_to_api и _push_owner_to_api в PropertySyncService
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: medium
+
+description: |
+  Строки 583-631: _push_owner_to_api и _push_to_api — HTTP-операции с разбором
+  ответа API прямо в Odoo-модели. Модель знает про EstateKitApiClient,
+  структуру ответа, порядок операций (owner → property).
+  Также _prepare_api_payload (строки 628-631) — делегат нулевой ценности.
+
+recommendation: |
+  Создать services/property_sync_service.py с PropertySyncService:
+  - push_property(record) — вся логика push owner + property
+  - push_owner(record) — отдельно если нужно
+  В модели оставить фасад: PropertySyncService(self.env).push(self)
+  _prepare_api_payload удалить — сервис вызывает prepare_api_payload напрямую.
+
+solution: |
+  Создан services/property_sync_service.py с классом PropertySyncService:
+  - push_owner(record) — поиск/создание owner через API
+  - push_property(record) — отправка объекта в API с записью external_id
+  В модели _push_owner_to_api и _push_to_api стали однострочными фасадами.
+  _prepare_api_payload удалён — сервис вызывает prepare_api_payload напрямую.
+  services/__init__.py обновлён.

@@ -1,0 +1,20 @@
+title: Вынести логику поиска/создания района из action_detect_district
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: low
+
+description: |
+  Строки 243-281: action_detect_district (39 строк) создаёт и сохраняет
+  estate.district через два внешних ресурса (Yandex API + ORM).
+  Модель не должна содержать логику find-or-create справочника через HTTP.
+
+recommendation: |
+  Вынести в YandexGeocoder.find_or_create_district(env, lat, lon, city_id)
+  или отдельный GeodetectionService. В модели оставить фасад на 5 строк.
+
+solution: |
+  Добавлен метод find_or_create_district(env, lat, lon, city_id) в YandexGeocoder.
+  Метод инкапсулирует reverse-геокодирование + поиск/создание estate.district.
+  action_detect_district в модели сокращён до 12 строк (фасад):
+  геокодирование адреса → запись координат → вызов geocoder.find_or_create_district.

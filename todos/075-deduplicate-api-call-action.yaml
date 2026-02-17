@@ -1,0 +1,23 @@
+title: Устранить дублирование _api_resume/_api_suspend
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: high
+
+description: |
+  _api_resume и _api_suspend (строки 157-169) — точные копии с разным endpoint.
+  Нарушение DRY.
+
+recommendation: |
+  Создать _api_call_action(self, action: str) и вызывать из обоих:
+  def _api_call_action(self, action):
+      for record in self:
+          if record.external_id:
+              client = EstateKitApiClient(record.env)
+              if client.is_configured:
+                  client.post(f"/properties/{record.external_id}/{action}", {})
+
+solution: |
+  Добавлен метод _api_call_action(self, action: str) с общей логикой.
+  _api_resume и _api_suspend стали однострочными фасадами:
+  вызывают _api_call_action("resume") и _api_call_action("suspend").
