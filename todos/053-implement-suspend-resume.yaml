@@ -1,0 +1,20 @@
+title: Реализовать suspend/resume через API
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+
+description: |
+  API предоставляет POST /properties/{id}/suspend и POST /properties/{id}/resume.
+  В Odoo есть action_unpublish/action_republish, но они не вызывают API.
+
+recommendation: |
+  В action_unpublish/action_republish добавить вызовы:
+  - client.post(f"/properties/{self.external_id}/suspend")
+  - client.post(f"/properties/{self.external_id}/resume")
+  Только если есть external_id.
+
+solution: |
+  В action_unpublish добавлен вызов client.post(f"/properties/{external_id}/suspend"),
+  в action_republish — client.post(f"/properties/{external_id}/resume").
+  Вызовы выполняются только при наличии external_id и настроенного API.
+  Ошибки логируются, но не блокируют переход состояния.

@@ -1,0 +1,26 @@
+title: Привести webhook события в соответствие с API docs
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+
+description: |
+  Odoo регистрирует события: property.transition.*, property.locked, property.unlocked,
+  mls.listing_updated — но в API docs таких нет.
+
+  API docs определяет события:
+  - property.created, property.approved, property.suspended, property.resumed
+  - contact_request.received
+  - mls.new_listing, mls.listing_removed
+
+recommendation: |
+  Обновить WEBHOOK_EVENTS в res_config_settings.py:
+  - Заменить property.transition.* на property.*
+  - Убрать property.locked, property.unlocked, mls.listing_updated
+  - Обновить обработчики в webhook.py под новые имена событий.
+
+solution: |
+  WEBHOOK_EVENTS обновлён: ["property.*", "mls.new_listing", "mls.listing_removed", "contact_request.received"].
+  В webhook.py _dispatch_event() обработчик property.transition.* заменён на конкретные события:
+  property.created, property.approved, property.suspended, property.resumed.
+  Удалены обработчики mls.listing_updated, property.locked, property.unlocked
+  и соответствующие методы из estate_property.py.

@@ -1,0 +1,20 @@
+title: Добавить residential_complex в location payload
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+
+description: |
+  API принимает location.residential_complex (string, опционально),
+  но Odoo не отправляет это поле. Нужно добавить поле в модель и в payload.
+
+recommendation: |
+  1. Добавить поле residential_complex (Char) в estate.property
+  2. В payload.py _build_location() добавить отправку этого поля
+  3. Добавить поле в форму объекта (views)
+
+solution: |
+  1. Добавлено поле residential_complex = fields.Char в estate_property.py (рядом с адресными полями)
+  2. В payload.py _build_location() добавлена отправка residential_complex
+  3. В payload.py EstatePropertyLike Protocol добавлено residential_complex: str | None
+  4. В estate_property_views.xml поле добавлено в форму на вкладке "Расположение"
+  5. В _import_location() добавлена обработка residential_complex из API
