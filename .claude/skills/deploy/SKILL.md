@@ -1,25 +1,22 @@
 ---
 name: deploy
-description: Деплой Estate Kit на продакшн сервер.
+description: Деплой Odoo в production. Требует агента devops для выполнения.
 allowed-tools: Bash(.claude/skills/deploy/scripts/*)
 ---
 
-Деплой Estate Kit на продакшн сервер. $ARGUMENTS
+Деплой Odoo в production. $ARGUMENTS
 
 ## Инструкции
 
-```bash
-uv run python .claude/skills/deploy/scripts/deploy-prod.py
-```
+**Делегируй выполнение агенту devops** через Task tool (subagent_type: devops).
 
-Для проверки без реального деплоя:
+Передай агенту следующую задачу:
 
-```bash
-uv run python .claude/skills/deploy/scripts/deploy-prod.py --dry-run
-```
+> Выполни production деплой Odoo. Запусти скрипт:
+> `uv run python .claude/skills/deploy/scripts/deploy-prod.py`
+>
+> Конфиг деплоя в `.claude/devops.yaml` (секция `deploy`), сервер резолвится из `servers` по имени.
+>
+> Для проверки без реального деплоя: `uv run python .claude/skills/deploy/scripts/deploy-prod.py --dry-run`
 
-Конфиг читается из `.claude/devops.yaml` (секции `deploy`, `servers`).
-
-При ошибке покажи лог и помоги разобраться.
-
-Сайт: https://royalestate.smartist.dev/
+Не выполняй деплой-скрипты самостоятельно — всегда делегируй devops агенту.

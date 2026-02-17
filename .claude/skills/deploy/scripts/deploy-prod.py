@@ -116,7 +116,7 @@ def main() -> None:
     # 4. Deploy on server
     print("Deploying on server...")
     ssh_cmd(ssh_opts, ssh_target,
-            f"cd {remote_dir} && sudo docker compose pull && sudo docker compose down && sudo docker compose up -d")
+            f"bash -c 'cd {remote_dir} && sudo docker compose pull && sudo docker compose down && sudo docker compose up -d'")
 
     # 5. Update module
     print("Updating estate_kit module...")
@@ -128,7 +128,7 @@ def main() -> None:
 
     # 6. Restart Odoo
     print("Restarting Odoo...")
-    ssh_cmd(ssh_opts, ssh_target, f"cd {remote_dir} && sudo docker compose restart odoo")
+    ssh_cmd(ssh_opts, ssh_target, f"bash -c 'cd {remote_dir} && sudo docker compose restart odoo'")
 
     # 7. Check logs
     print("Checking logs...")
