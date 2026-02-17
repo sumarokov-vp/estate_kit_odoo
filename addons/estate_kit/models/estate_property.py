@@ -615,10 +615,9 @@ class EstateProperty(models.Model):
         if not client._is_configured:
             return None
         payload = {"name": partner.name, "phone": partner.phone or ""}
+        if partner.external_owner_id:
+            return partner.external_owner_id
         try:
-            if partner.external_owner_id:
-                client.put(f"/owners/{partner.external_owner_id}", payload)
-                return partner.external_owner_id
             response = client.post("/owners", payload)
             if response and "id" in response:
                 partner.write({"external_owner_id": response["id"]})
@@ -641,25 +640,28 @@ class EstateProperty(models.Model):
 
         payload = self._prepare_api_payload()
 
+        if self.external_id:
+            raise UserError(
+                "Объект уже опубликован в MLS (external_id=%s). "
+                "Повторная публикация не поддерживается." % self.external_id
+            )
+
         try:
-            if self.external_id:
-                client.put(f"/properties/{self.external_id}", payload)
-            else:
-                response = client.post("/properties", payload)
-                if response and response.get("id"):
-                    self.with_context(skip_api_sync=True).write(
-                        {"external_id": response["id"]}
+            response = client.post("/properties", payload)
+            if response and response.get("id"):
+                self.with_context(skip_api_sync=True).write(
+                    {"external_id": response["id"]}
+                )
+                owner_data = response.get("owner")
+                if (
+                    owner_data
+                    and owner_data.get("created")
+                    and owner_data.get("id")
+                    and self.owner_id
+                ):
+                    self.owner_id.write(
+                        {"external_owner_id": owner_data["id"]}
                     )
-                    owner_data = response.get("owner")
-                    if (
-                        owner_data
-                        and owner_data.get("created")
-                        and owner_data.get("id")
-                        and self.owner_id
-                    ):
-                        self.owner_id.write(
-                            {"external_owner_id": owner_data["id"]}
-                        )
         except Exception:
             _logger.exception(
                 "Failed to push property %s (id=%s) to API", self.name, self.id
