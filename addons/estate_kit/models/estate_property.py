@@ -184,7 +184,7 @@ class EstateProperty(models.Model):
                 client = EstateKitApiClient(record.env)
                 if client._is_configured:
                     try:
-                        client.post(f"/properties/{record.external_id}/resume")
+                        client.post(f"/properties/{record.external_id}/resume", {})
                     except Exception:
                         _logger.exception(
                             "Failed to resume property %s (external_id=%s) via API",
@@ -215,7 +215,7 @@ class EstateProperty(models.Model):
                 client = EstateKitApiClient(record.env)
                 if client._is_configured:
                     try:
-                        client.post(f"/properties/{record.external_id}/suspend")
+                        client.post(f"/properties/{record.external_id}/suspend", {})
                     except Exception:
                         _logger.exception(
                             "Failed to suspend property %s (external_id=%s) via API",
@@ -229,7 +229,7 @@ class EstateProperty(models.Model):
                 client = EstateKitApiClient(record.env)
                 if client._is_configured:
                     try:
-                        client.post(f"/properties/{record.external_id}/resume")
+                        client.post(f"/properties/{record.external_id}/resume", {})
                     except Exception:
                         _logger.exception(
                             "Failed to resume property %s (external_id=%s) via API",
