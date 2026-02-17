@@ -135,6 +135,7 @@ class EstateProperty(models.Model):
     )
     house_number = fields.Char(string="Дом")
     apartment_number = fields.Char(string="Квартира")
+    residential_complex = fields.Char(string="Жилой комплекс")
 
     # === Геолокация ===
     latitude = fields.Float(string="Широта", digits=(10, 7))
@@ -198,9 +199,31 @@ class EstateProperty(models.Model):
             ("active", "published"), "unpublished",
             "Снять можно только объект в продаже или опубликованный.",
         )
+        for record in self:
+            if record.external_id:
+                client = EstateKitApiClient(record.env)
+                if client._is_configured:
+                    try:
+                        client.post(f"/properties/{record.external_id}/suspend")
+                    except Exception:
+                        _logger.exception(
+                            "Failed to suspend property %s (external_id=%s) via API",
+                            record.name, record.external_id,
+                        )
 
     def action_republish(self):
         self._transition_state("unpublished", "active", "Вернуть в продажу можно только снятый с публикации объект.")
+        for record in self:
+            if record.external_id:
+                client = EstateKitApiClient(record.env)
+                if client._is_configured:
+                    try:
+                        client.post(f"/properties/{record.external_id}/resume")
+                    except Exception:
+                        _logger.exception(
+                            "Failed to resume property %s (external_id=%s) via API",
+                            record.name, record.external_id,
+                        )
 
     def action_archive_property(self):
         self._transition_state("published", "archived", "Архивировать можно только опубликованный объект.")
@@ -791,46 +814,6 @@ class EstateProperty(models.Model):
         _logger.info("mls.listing_removed: set mls_removed for property with external_id=%d", property_id)
 
     @api.model
-    def _handle_webhook_mls_listing_updated(self, payload):
-        property_id, existing = self._find_property_for_webhook(
-            payload, "mls.listing_updated"
-        )
-        if not property_id or not existing:
-            return
-
-        client = EstateKitApiClient(self.env)
-        item = client.get(f"/mls/properties/{property_id}")
-        if not item:
-            _logger.warning(
-                "mls.listing_updated: failed to fetch property %d from API", property_id
-            )
-            return
-
-        vals = self._import_from_api_data(item)
-        existing.with_context(skip_api_sync=True, force_state_change=True).write(vals)
-        _logger.info("mls.listing_updated: updated property with external_id=%d", property_id)
-
-    @api.model
-    def _handle_webhook_property_locked(self, payload):
-        property_id, existing = self._find_property_for_webhook(
-            payload, "property.locked"
-        )
-        if not property_id or not existing:
-            return
-        existing.with_context(skip_api_sync=True).write({"is_locked_by_other_agency": True})
-        _logger.info("property.locked: locked property with external_id=%d", property_id)
-
-    @api.model
-    def _handle_webhook_property_unlocked(self, payload):
-        property_id, existing = self._find_property_for_webhook(
-            payload, "property.unlocked"
-        )
-        if not property_id or not existing:
-            return
-        existing.with_context(skip_api_sync=True).write({"is_locked_by_other_agency": False})
-        _logger.info("property.unlocked: unlocked property with external_id=%d", property_id)
-
-    @api.model
     def _import_from_api_data(self, data):
         vals = {}
 
@@ -914,6 +897,9 @@ class EstateProperty(models.Model):
 
         if location.get("house_number"):
             vals["house_number"] = location["house_number"]
+
+        if location.get("residential_complex"):
+            vals["residential_complex"] = location["residential_complex"]
 
         if location.get("apartment_number"):
             vals["apartment_number"] = location["apartment_number"]
