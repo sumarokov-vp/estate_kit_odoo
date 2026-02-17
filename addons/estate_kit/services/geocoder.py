@@ -86,3 +86,18 @@ class YandexGeocoder:
                         return name
 
         return None
+
+    def find_or_create_district(self, env, lat: float, lon: float, city_id: int):
+        district_name = self.reverse_geocode_district(lat, lon)
+        if not district_name:
+            _logger.warning("Район не найден для координат: %s, %s", lat, lon)
+            return None
+        district = env["estate.district"].search(
+            [("name", "ilike", district_name), ("city_id", "=", city_id)],
+            limit=1,
+        )
+        if not district:
+            district = env["estate.district"].create(
+                {"name": district_name, "city_id": city_id}
+            )
+        return district

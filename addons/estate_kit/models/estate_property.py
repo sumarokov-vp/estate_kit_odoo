@@ -4,7 +4,7 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 from ..services.api_client import EstateKitApiClient
-from ..services.api_mapper import prepare_api_payload
+from ..services.property_sync_service import PropertySyncService
 
 _logger = logging.getLogger(__name__)
 
@@ -154,19 +154,18 @@ class EstateProperty(models.Model):
     def action_approve(self):
         self._transition_state("internal_review", "active", "Одобрить можно только объект на внутренней проверке.")
 
-    def _api_resume(self):
+    def _api_call_action(self, action: str):
         for record in self:
             if record.external_id:
                 client = EstateKitApiClient(record.env)
                 if client.is_configured:
-                    client.post(f"/properties/{record.external_id}/resume", {})
+                    client.post(f"/properties/{record.external_id}/{action}", {})
+
+    def _api_resume(self):
+        self._api_call_action("resume")
 
     def _api_suspend(self):
-        for record in self:
-            if record.external_id:
-                client = EstateKitApiClient(record.env)
-                if client.is_configured:
-                    client.post(f"/properties/{record.external_id}/suspend", {})
+        self._api_call_action("suspend")
 
     def action_send_to_mls(self):
         self._transition_state("active", "moderation", "Отправить в MLS можно только объект в продаже.")
@@ -249,36 +248,22 @@ class EstateProperty(models.Model):
             raise UserError("API ключ Yandex Geocoder не настроен")
 
         address_parts = self._build_address_parts(include_district=False)
-
         if not address_parts:
             raise UserError("Укажите адрес для определения района")
 
-        address = ", ".join(address_parts)
-
-        coords = geocoder.geocode_address(address)
+        coords = geocoder.geocode_address(", ".join(address_parts))
         if not coords:
-            raise UserError(f"Адрес не найден: {address}")
+            raise UserError(f"Адрес не найден: {', '.join(address_parts)}")
 
         lat, lon = coords
-
         if not self.latitude or not self.longitude:
             self.latitude = lat
             self.longitude = lon
 
-        district_name = geocoder.reverse_geocode_district(lat, lon)
-
-        if district_name and self.city_id:
-            district = self.env["estate.district"].search(
-                [("name", "ilike", district_name), ("city_id", "=", self.city_id.id)],
-                limit=1,
-            )
-            if not district:
-                district = self.env["estate.district"].create(
-                    {"name": district_name, "city_id": self.city_id.id}
-                )
-            self.district_id = district.id
-        else:
-            _logger.warning("Район не найден для адреса: %s", address)
+        if self.city_id:
+            district = geocoder.find_or_create_district(self.env, lat, lon, self.city_id.id)
+            if district:
+                self.district_id = district.id
 
     # === Характеристики строения ===
     floor = fields.Integer(string="Этаж")
@@ -582,72 +567,9 @@ class EstateProperty(models.Model):
 
     def _push_owner_to_api(self):
         self.ensure_one()
-        if not self.owner_id:
-            return None
-        partner = self.owner_id
-        client = EstateKitApiClient(self.env)
-        if not client.is_configured:
-            return None
-        payload = {"name": partner.name, "phone": partner.phone or ""}
-        if partner.external_owner_id:
-            return partner.external_owner_id
-        response = client.post("/owners", payload)
-        if response and "id" in response:
-            partner.write({"external_owner_id": response["id"]})
-            return response["id"]
-        return None
+        return PropertySyncService(self.env).push_owner(self)
 
     def _push_to_api(self):
         self.ensure_one()
-        client = EstateKitApiClient(self.env)
-        if not client.is_configured:
-            raise UserError(
-                "API не настроен. Укажите API URL и API Key в "
-                "Настройки → Технические → Параметры системы "
-                "(estate_kit.api_url и estate_kit.api_key)."
-            )
+        PropertySyncService(self.env).push_property(self)
 
-        payload = self._prepare_api_payload()
-
-        response = client.post("/properties", payload)
-        if response and response.get("id"):
-            self.with_context(skip_api_sync=True).write(
-                {"external_id": response["id"]}
-            )
-            owner_data = response.get("owner")
-            if (
-                owner_data
-                and owner_data.get("created")
-                and owner_data.get("id")
-                and self.owner_id
-            ):
-                self.owner_id.write(
-                    {"external_owner_id": owner_data["id"]}
-                )
-
-    def _prepare_api_payload(self):
-        self.ensure_one()
-        return prepare_api_payload(self)
-
-    @api.model
-    def _find_or_create_owner_from_api(self, owner_data):
-        if not owner_data or not owner_data.get("id"):
-            return False
-        external_id = owner_data["id"]
-        partner = self.env["res.partner"].search(
-            [("external_owner_id", "=", external_id)], limit=1
-        )
-        vals = {
-            "name": owner_data.get("name", ""),
-            "phone": owner_data.get("phone", ""),
-            "external_owner_id": external_id,
-        }
-        if partner:
-            partner.write({"name": vals["name"], "phone": vals["phone"]})
-            return partner.id
-        return self.env["res.partner"].create(vals).id
-
-    @api.model
-    def _import_from_api_data(self, data):
-        from ..services.api_mapper import import_from_api_data
-        return import_from_api_data(self.env, data)

@@ -28,6 +28,24 @@ API_STATE_MAP = {
 }
 
 
+def find_or_create_owner(env, owner_data: dict[str, Any]) -> int | None:
+    if not owner_data or not owner_data.get("id"):
+        return None
+    external_id = owner_data["id"]
+    partner = env["res.partner"].search(
+        [("external_owner_id", "=", external_id)], limit=1
+    )
+    vals = {
+        "name": owner_data.get("name", ""),
+        "phone": owner_data.get("phone", ""),
+        "external_owner_id": external_id,
+    }
+    if partner:
+        partner.write({"name": vals["name"], "phone": vals["phone"]})
+        return partner.id
+    return env["res.partner"].create(vals).id
+
+
 def import_from_api_data(env, data: dict[str, Any]) -> dict[str, Any]:
     vals: dict[str, Any] = {}
 
@@ -55,17 +73,14 @@ def import_from_api_data(env, data: dict[str, Any]) -> dict[str, Any]:
     if data.get("owner_name"):
         vals["owner_name"] = data["owner_name"]
 
-    owner_api_id = data.get("owner_id")
-    if owner_api_id:
-        owner = env["res.partner"].search(
-            [("external_owner_id", "=", owner_api_id)], limit=1
-        )
-        if owner:
-            vals["owner_id"] = owner.id
-        else:
-            _logger.warning(
-                "Owner with API ID %d not found, skipping", owner_api_id
-            )
+    owner_data = {
+        "id": data.get("owner_id"),
+        "name": data.get("owner_name", ""),
+        "phone": data.get("owner_phone", ""),
+    }
+    owner_id = find_or_create_owner(env, owner_data)
+    if owner_id:
+        vals["owner_id"] = owner_id
 
     location = data.get("location") or {}
     import_location(env, vals, location)
