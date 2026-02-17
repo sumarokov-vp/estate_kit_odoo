@@ -1,0 +1,24 @@
+title: Вынести HTTP-вызовы из ORM-хуков EstatePropertyImage
+status: done
+completed_at: 17.02.2026
+solution: |
+  Создан services/image_sync_service.py с классом ImageSyncService.
+  Методы push_image, delete_images, pull_images_for_property перенесены из модели.
+  Модель estate_property_image.py теперь делегирует API-вызовы сервису.
+created_at: 17.02.2026
+priority: high
+
+description: |
+  Модель EstatePropertyImage делает HTTP-запросы к API прямо в create() и unlink():
+  - create() → _push_image_to_api (строки 36-43, 66-100)
+  - unlink() → delete через API (строки 44-64)
+  - _pull_images_for_property (строки 102-161)
+
+  HTTP в транзакции: IMAGE_DOWNLOAD_TIMEOUT=30 → блокировка ORM на 30 сек.
+  Файл: models/estate_property_image.py
+  Нарушение: SRP — модель = хранение + синхронизация с внешней системой.
+
+recommendation: |
+  Переместить API-вызовы в services/image_sync_service.py.
+  Модель хранит external_id и image_url.
+  Синхронизация вызывается явно из wizard/webhook, не из ORM-хуков.

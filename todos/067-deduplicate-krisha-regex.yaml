@@ -1,0 +1,18 @@
+title: Устранить дублирование regex jsdata в krisha_parser
+status: done
+completed_at: 17.02.2026
+solution: |
+  Выделил _extract_json_from_script(soup) в KrishaParser. Оба метода
+  parse_listing_page и fetch_property_details теперь используют общий метод.
+created_at: 17.02.2026
+priority: low
+
+description: |
+  krisha_parser.py — паттерн поиска window.__DATA__ дублируется:
+  - строки 90-96 (parse_listing_page)
+  - строки 192-198 (fetch_property_details)
+
+  Идентичный regex и логика парсинга.
+
+recommendation: |
+  Выделить _extract_json_from_script(script_string) -> dict | None.

@@ -1,0 +1,30 @@
+title: Вынести webhook-обработчики из EstateProperty в mixin
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: high
+
+description: |
+  Методы _handle_webhook_* (строки 709-821) в estate_property.py содержат
+  инфраструктурный код обработки событий: парсинг webhook payload, поиск
+  объектов по property_id, создание mail.activity. Это не бизнес-логика модели.
+
+  Файл: models/estate_property.py
+  Нарушение: SRP — модель данных обрабатывает webhook-события.
+
+recommendation: |
+  Создать models/estate_property_webhook_mixin.py с классом
+  EstatePropertyWebhookMixin(models.AbstractModel).
+  Перенести туда все _handle_webhook_* методы, _find_property_for_webhook,
+  _import_from_api_data, _import_location, _generate_name_from_vals.
+  Также перенести константы API_DEAL_TYPE_MAP и API_STATE_MAP.
+  EstateProperty наследует от mixin.
+
+solution: |
+  Создан models/estate_property_webhook_mixin.py с классом
+  EstatePropertyWebhookMixin(models.AbstractModel). Перенесены методы:
+  _find_property_for_webhook, _handle_webhook_property_transition,
+  _handle_webhook_contact_request, _handle_webhook_mls_new_listing,
+  _handle_webhook_mls_listing_removed. Константы API_DEAL_TYPE_MAP и
+  API_STATE_MAP используются из api_mapper.importer (куда их вынес Batch 2).
+  EstateProperty наследует от mixin через _inherit.

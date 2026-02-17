@@ -1,0 +1,18 @@
+title: Оформить geocoder.py классом вместо процедурного стиля
+status: done
+completed_at: 17.02.2026
+solution: |
+  Оформил geocoder.py классом YandexGeocoder с конструктором, читающим ключ
+  из ir.config_parameter. Добавил is_configured property. Обновил вызовы
+  в estate_property.py. Вынесены константы DISTRICT_MARKER, RESIDENTIAL_MARKER.
+created_at: 17.02.2026
+priority: low
+
+description: |
+  services/geocoder.py — две функции принимают api_key аргументом.
+  Api_key извлекается в estate_property.py:274-278 из ir.config_parameter —
+  дублирование инфраструктурного кода (то же делает EstateKitApiClient.__init__).
+
+recommendation: |
+  Оформить YandexGeocoder классом по аналогии с EstateKitApiClient:
+  конструктор читает ключ из env, методы geocode/reverse_geocode без api_key.

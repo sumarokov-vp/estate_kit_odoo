@@ -1,0 +1,20 @@
+title: Устранить дублирование сборки адреса в estate_property
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: low
+
+description: |
+  Адрес собирается дважды с разной логикой:
+  - _compute_geo_address (строки 247-257) — с district
+  - action_detect_district (строки 282-293) — без district
+
+  Файл: models/estate_property.py
+
+recommendation: |
+  Выделить метод _build_address_parts(include_district=True) -> list[str].
+
+solution: |
+  Создан метод _build_address_parts(include_district=True) -> list[str].
+  _compute_geo_address и action_detect_district теперь используют его
+  с параметром include_district=True и include_district=False соответственно.

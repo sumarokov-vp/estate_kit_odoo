@@ -1,0 +1,17 @@
+title: Переименовать photo_urls_json → photo_urls_csv или использовать JSON
+status: done
+completed_at: 17.02.2026
+solution: |
+  Переименовано photo_urls_json → photo_urls_csv в krisha_parser_result.py,
+  krisha_parser_wizard.py, krisha_parser_preview.py.
+created_at: 17.02.2026
+priority: low
+
+description: |
+  wizards/krisha_parser_result.py:23 — поле photo_urls_json содержит CSV,
+  не JSON. Записывается через ",".join(), читается через .split(",").
+  Имя вводит в заблуждение.
+
+recommendation: |
+  Переименовать в photo_urls_csv или использовать json.dumps/loads
+  для реального JSON (что корректно обработает URL с запятыми).

@@ -1,0 +1,23 @@
+title: Сделать _is_configured публичным в EstateKitApiClient
+status: done
+completed_at: 17.02.2026
+solution: |
+  Переименовал _is_configured в is_configured (property) в api_client.py.
+  Обновил все вызовы в estate_property.py, res_config_settings.py, estate_property_image.py.
+created_at: 17.02.2026
+priority: medium
+
+description: |
+  Приватный атрибут client._is_configured читается из 6+ мест:
+  - estate_property.py (строки 185, 215, 229, 626, 645)
+  - res_config_settings.py (строки 159, 173)
+  - estate_property_image.py (строки 53, 72)
+
+  Нарушение инкапсуляции: внешний код полагается на приватный предикат.
+  Файл: services/api_client.py
+
+recommendation: |
+  Вариант A: Переименовать в публичное свойство is_configured (property).
+  Вариант B: Убрать проверку совсем — клиент уже возвращает None при
+  отсутствии конфигурации через _request_with_retry. Пусть вызывающий
+  код проверяет результат, а не внутреннее состояние клиента.

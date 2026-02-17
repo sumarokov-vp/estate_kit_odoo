@@ -1,0 +1,23 @@
+title: Создать api_mapper/importer.py — симметрично payload.py
+status: done
+completed_at: 17.02.2026
+solution: |
+  Создал services/api_mapper/importer.py с функциями import_from_api_data(env, data)
+  и import_location(env, vals, location). Перенёс API_DEAL_TYPE_MAP, API_STATE_MAP
+  и _generate_name из estate_property.py. Модель делегирует вызов сервису.
+created_at: 17.02.2026
+priority: medium
+
+description: |
+  Асимметрия: payload → API живёт в services/api_mapper/payload.py,
+  но API → Odoo живёт в модели estate_property.py (методы
+  _import_from_api_data строки 824-869, _import_location строки 871-918).
+
+  Эти методы по сути парсеры входящих API-данных и должны быть рядом
+  с payload.py в сервисном слое.
+
+recommendation: |
+  Создать services/api_mapper/importer.py с функциями:
+  - import_from_api_data(env, data) -> dict (vals для create/write)
+  - import_location(env, location_data) -> dict
+  Модель будет вызывать сервис, а не парсить API сама.

@@ -1,0 +1,21 @@
+title: Вынести бизнес-логику импорта из wizard в сервис
+status: done
+completed_at: 17.02.2026
+solution: |
+  Создан services/property_import_service.py с классом PropertyImportService.
+  Методы create_from_krisha_result, import_photos, get_city_mapping перенесены из wizard.
+  krisha_parser_preview.py теперь делегирует бизнес-логику сервису.
+created_at: 17.02.2026
+priority: medium
+
+description: |
+  wizards/krisha_parser_preview.py:41-115 — методы action_import_selected,
+  _create_property_from_result, _import_photos, _get_city_mapping содержат
+  полный пайплайн создания недвижимости. Wizard — UI-артефакт; если нужен
+  импорт без UI (API, крон), логику придётся дублировать.
+
+recommendation: |
+  Создать services/property_import_service.py:
+  - create_from_krisha_result(env, result, details) -> estate.property
+  - import_photos(property, photo_urls, parser)
+  Wizard вызывает сервис, не содержит бизнес-логику.

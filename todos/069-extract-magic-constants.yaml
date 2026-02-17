@@ -1,0 +1,22 @@
+title: Вынести магические константы в именованные переменные
+status: done
+completed_at: 17.02.2026
+solution: |
+  MAX_IMPORT_PHOTOS=10 в property_import_service.py.
+  WEBHOOK_EVENT_RETENTION_DAYS=30 в estatekit_webhook_event.py.
+  Остальные константы (payload.py, geocoder.py) выполнены в Batch 2.
+created_at: 17.02.2026
+priority: low
+
+description: |
+  Найдены магические значения без именованных констант:
+  - krisha_parser_preview.py:101 — photo_urls[:10] (макс. фото)
+  - estatekit_webhook_event.py:17 — days=30 (retention)
+  - payload.py:92 — "not_corner" (инвертированное boolean поле)
+  - geocoder.py:58,72 — "район", "жилой" (фильтрация на русском)
+
+recommendation: |
+  MAX_IMPORT_PHOTOS = 10
+  WEBHOOK_EVENT_RETENTION_DAYS = 30
+  INVERTED_BOOL_FIELDS = frozenset({"not_corner"})
+  DISTRICT_MARKER = "район", RESIDENTIAL_MARKER = "жилой"

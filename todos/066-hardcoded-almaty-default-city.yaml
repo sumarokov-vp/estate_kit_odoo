@@ -1,0 +1,18 @@
+title: Вынести хардкод города "almaty" в системный параметр
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: low
+
+description: |
+  estate_property.py:261 — код города по умолчанию захардкожен:
+  search([("code", "=", "almaty")])
+
+  При смене региона поведение сломается незаметно.
+
+recommendation: |
+  Вынести в ir.config_parameter estate_kit.default_city_code.
+
+solution: |
+  _default_city() теперь читает ir.config_parameter estate_kit.default_city_code
+  с fallback на "almaty". Город по умолчанию настраивается через системные параметры.

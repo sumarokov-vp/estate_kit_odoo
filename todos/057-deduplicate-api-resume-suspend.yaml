@@ -1,0 +1,24 @@
+title: Устранить дублирование API resume/suspend в EstateProperty
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: high
+
+description: |
+  Три места содержат идентичный паттерн создания клиента + try/except + resume/suspend:
+  - action_send_to_mls (строки 183-194)
+  - action_suspend_mls (строки 213-223)
+  - action_republish (строки 227-237)
+
+  Клиент создаётся 6+ раз в разных местах модели.
+  Файл: models/estate_property.py
+
+recommendation: |
+  Выделить приватные методы _api_resume() и _api_suspend().
+  Или создать _get_api_client() → EstateKitApiClient с проверкой конфигурации.
+  Убрать дублирование try/except — перенести обработку ошибок в клиент.
+
+solution: |
+  Выделены методы _api_resume() и _api_suspend(), каждый итерирует по recordset
+  и вызывает API. action_send_to_mls, action_unpublish и action_republish
+  теперь используют эти методы вместо дублированного кода.

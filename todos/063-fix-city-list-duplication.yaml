@@ -1,0 +1,21 @@
+title: Устранить дублирование списка городов wizard/hooks
+status: done
+completed_at: 17.02.2026
+solution: |
+  Заменён Selection на Many2one к estate.city в krisha_parser_wizard.py.
+  Поле city → city_id, default ищет Алматы по коду.
+  Обновлена XML view. Парсер получает city code через self.city_id.code.
+created_at: 17.02.2026
+priority: medium
+
+description: |
+  Список городов объявлен дважды и не совпадает:
+  - wizards/krisha_parser_wizard.py:15-40 — 19 городов (Selection)
+  - hooks.py:13-42 — 28 городов (_init_cities)
+
+  В hooks есть 10 городов, отсутствующих в wizard (Темиртау, Экибастуз и др.).
+  Гарантированный рассинхрон.
+
+recommendation: |
+  Selection в wizard строить динамически из estate.city (Many2one),
+  а не хардкодить. Единственный источник городов — hooks.py → estate.city.

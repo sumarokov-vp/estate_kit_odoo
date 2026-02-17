@@ -1,0 +1,15 @@
+title: Вынести дублирование _reopen_wizard в krisha_parser_preview
+status: done
+completed_at: 17.02.2026
+solution: |
+  Выделен метод _reopen_wizard() в krisha_parser_preview.py.
+  action_select_all и action_deselect_all используют его вместо дублирования.
+created_at: 17.02.2026
+priority: low
+
+description: |
+  wizards/krisha_parser_preview.py:126-146 — action_select_all и
+  action_deselect_all возвращают идентичный словарь ir.actions.act_window.
+
+recommendation: |
+  Выделить _reopen_wizard() -> dict с общим boilerplate.

@@ -1,0 +1,16 @@
+title: Использовать batch create в hooks.py
+status: done
+completed_at: 17.02.2026
+solution: |
+  _init_cities, _init_districts, _init_sources теперь собирают записи для создания
+  в список и вызывают Model.create(list) одним вызовом вместо поштучного создания.
+created_at: 17.02.2026
+priority: low
+
+description: |
+  hooks.py:44-47, 67-75 — _init_cities и _init_districts создают записи
+  по одной в цикле. При частичном сбое часть записей создана, часть нет.
+
+recommendation: |
+  Использовать City.create(cities_list) — один вызов, одна транзакция.
+  Odoo поддерживает create со списком с версии 13 (@api.model_create_multi).

@@ -1,0 +1,26 @@
+title: Убрать try-except из реализации классов
+status: done
+completed_at: 17.02.2026
+solution: |
+  Убраны try-except из:
+  - estate_property.py: action_send_to_mls, action_unpublish, action_republish,
+    _push_owner_to_api, _push_to_api
+  - krisha_parser.py: fetch_property_details, parse, download_image
+  - krisha_parser_preview.py: action_import_selected, _import_photos
+  - krisha_parser_wizard.py: action_parse
+  Исключения всплывают на верхний уровень.
+created_at: 17.02.2026
+priority: medium
+
+description: |
+  Нарушение правила проекта "Do not use try-except in class implementation".
+  Найдено в:
+  - estate_property.py: строки 186-192, 218-222, 233-237, 631-639, 670-673
+  - krisha_parser.py: строки 205, 254-259
+  - krisha_parser_preview.py: строки 53-57, 104-115
+  - krisha_parser_wizard.py: строки 64-68
+
+recommendation: |
+  Перенести обработку исключений на верхний уровень (controller, cron).
+  Для API-клиента: пусть клиент логирует и выбрасывает типизированное исключение.
+  Для wizard: дать Odoo обработать — покажет ошибку пользователю.

@@ -1,0 +1,19 @@
+title: Перенести get_twogis_api_key из EstateProperty
+status: done
+created_at: 17.02.2026
+completed_at: 17.02.2026
+priority: low
+
+description: |
+  estate_property.py:701-707 — модель недвижимости является провайдером
+  API-ключа для 2GIS карт. Инфраструктурная деталь, не связанная
+  с бизнес-логикой объекта.
+
+recommendation: |
+  Перенести в res_config_settings.py или в controller,
+  который обслуживает JS-виджет карты.
+
+solution: |
+  Метод get_twogis_api_key перенесён в ResConfigSettings (res_config_settings.py).
+  JS-виджет location_map_field.js обновлён: вызывает res.config.settings
+  вместо estate.property.

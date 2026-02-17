@@ -1,0 +1,20 @@
+title: Перенести _dispatch_event из webhook controller в модель
+status: done
+completed_at: 17.02.2026
+solution: |
+  Метод dispatch_event перенесён в модель estatekit.webhook.event.
+  Контроллер вызывает webhook_event.dispatch_event(event_type, payload).
+created_at: 17.02.2026
+priority: medium
+
+description: |
+  controllers/webhook.py:63-80 — метод _dispatch_event помечен @staticmethod,
+  но использует request.env. Содержит бизнес-логику диспетчеризации событий.
+  Контроллер знает обо всех типах событий — нарушение OCP.
+
+  Файл: controllers/webhook.py
+
+recommendation: |
+  Контроллер должен только верифицировать подпись, записать идемпотентный ключ
+  и вызвать один метод модели/сервиса. Перенести _dispatch_event в
+  estatekit.webhook.event или estate.property как метод модели.
