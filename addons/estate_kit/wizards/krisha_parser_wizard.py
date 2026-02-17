@@ -1,41 +1,17 @@
-import logging
-
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 from ..services.krisha_parser import KrishaParser, ParseParams
-
-_logger = logging.getLogger(__name__)
 
 
 class KrishaParserWizard(models.TransientModel):
     _name = "krisha.parser.wizard"
     _description = "Параметры парсинга Krisha.kz"
 
-    city = fields.Selection(
-        [
-            ("almaty", "Алматы"),
-            ("astana", "Астана"),
-            ("shymkent", "Шымкент"),
-            ("aktau", "Актау"),
-            ("aktobe", "Актобе"),
-            ("atyrau", "Атырау"),
-            ("karaganda", "Караганда"),
-            ("kokshetau", "Кокшетау"),
-            ("kostanay", "Костанай"),
-            ("kyzylorda", "Кызылорда"),
-            ("mangystau", "Мангистауская область"),
-            ("pavlodar", "Павлодар"),
-            ("petropavlovsk", "Петропавловск"),
-            ("semey", "Семей"),
-            ("taldykorgan", "Талдыкорган"),
-            ("taraz", "Тараз"),
-            ("turkestan", "Туркестан"),
-            ("uralsk", "Уральск"),
-            ("ust-kamenogorsk", "Усть-Каменогорск"),
-        ],
+    city_id = fields.Many2one(
+        "estate.city",
         string="Город",
-        default="almaty",
+        default=lambda self: self.env["estate.city"].search([("code", "=", "almaty")], limit=1),
         required=True,
     )
     rooms = fields.Char(
@@ -53,7 +29,7 @@ class KrishaParserWizard(models.TransientModel):
 
         parser = KrishaParser()
         params = ParseParams(
-            city=self.city,
+            city=self.city_id.code,
             rooms=self.rooms or "",
             price_from=self.price_from or 0,
             price_to=self.price_to or 0,
@@ -61,11 +37,7 @@ class KrishaParserWizard(models.TransientModel):
             owner=self.owner,
         )
 
-        try:
-            results = parser.parse(params, max_pages=self.max_pages)
-        except Exception as e:
-            _logger.exception("Krisha parser error")
-            raise UserError(_("Ошибка парсинга: %s") % str(e)) from e
+        results = parser.parse(params, max_pages=self.max_pages)
 
         if not results:
             raise UserError(_("Ничего не найдено по заданным параметрам"))
@@ -97,7 +69,7 @@ class KrishaParserWizard(models.TransientModel):
                 "latitude": item.get("latitude"),
                 "longitude": item.get("longitude"),
                 "photo_url": item.get("photo_urls", [""])[0] if item.get("photo_urls") else "",
-                "photo_urls_json": ",".join(item.get("photo_urls", [])),
+                "photo_urls_csv": ",".join(item.get("photo_urls", [])),
                 "is_duplicate": is_duplicate,
                 "selected": not is_duplicate,
             })

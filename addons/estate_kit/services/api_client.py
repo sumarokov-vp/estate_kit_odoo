@@ -19,7 +19,7 @@ class EstateKitApiClient:
         self.api_key = config.get_param("estate_kit.api_key") or ""
 
     @property
-    def _is_configured(self) -> bool:
+    def is_configured(self) -> bool:
         return bool(self.api_url and self.api_key)
 
     def _build_headers(self) -> dict[str, str]:
@@ -84,7 +84,7 @@ class EstateKitApiClient:
         url: str,
         **kwargs: Any,
     ) -> dict[str, Any] | None:
-        if not self._is_configured:
+        if not self.is_configured:
             _logger.warning("EstateKit API is not configured (api_url or api_key missing)")
             return None
 

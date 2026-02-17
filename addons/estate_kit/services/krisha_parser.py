@@ -87,23 +87,28 @@ class KrishaParser:
         soup = BeautifulSoup(html, "html.parser")
         items: list[dict[str, Any]] = []
 
-        script_tag = soup.find("script", {"id": "jsdata"})
-        if script_tag and script_tag.string:
-            try:
-                # Try both old and new formats
-                match = re.search(r"window\.(?:__DATA__|data)\s*=\s*(\{.+\})", script_tag.string)
-                if match:
-                    data = json.loads(match.group(1))
-                    adverts = data.get("adverts", [])
-                    for advert in adverts:
-                        items.append(self._parse_advert(advert))
-            except (json.JSONDecodeError, KeyError) as e:
-                _logger.warning("Failed to parse jsdata: %s", e)
+        data = self._extract_json_from_script(soup)
+        if data:
+            adverts = data.get("adverts", [])
+            for advert in adverts:
+                items.append(self._parse_advert(advert))
 
         if not items:
             items = self._parse_html_fallback(soup)
 
         return items
+
+    def _extract_json_from_script(self, soup: BeautifulSoup) -> dict[str, Any] | None:
+        script_tag = soup.find("script", {"id": "jsdata"})
+        if not script_tag or not script_tag.string:
+            return None
+        try:
+            match = re.search(r"window\.(?:__DATA__|data)\s*=\s*(\{.+\})", script_tag.string)
+            if match:
+                return json.loads(match.group(1))
+        except (json.JSONDecodeError, KeyError) as e:
+            _logger.warning("Failed to parse jsdata: %s", e)
+        return None
 
     def _parse_advert(self, advert: dict[str, Any], *, is_detail: bool = False) -> dict[str, Any]:
         photos = advert.get("photos", [])
@@ -182,29 +187,17 @@ class KrishaParser:
 
     def fetch_property_details(self, url: str) -> dict[str, Any]:
         _logger.info("Fetching details from: %s", url)
-        try:
-            html = self.fetch_page(url)
-            soup = BeautifulSoup(html, "html.parser")
+        html = self.fetch_page(url)
+        soup = BeautifulSoup(html, "html.parser")
 
-            script_tag = soup.find("script", {"id": "jsdata"})
-            _logger.info("Script tag found: %s, has string: %s", script_tag is not None, script_tag.string is not None if script_tag else False)
+        data = self._extract_json_from_script(soup)
+        if data:
+            advert = data.get("advert", {})
+            result = self._parse_advert(advert, is_detail=True)
+            _logger.info("Parsed details: %d photos found", len(result.get("photo_urls", [])))
+            return result
 
-            if script_tag and script_tag.string:
-                # Try both old and new formats
-                match = re.search(r"window\.(?:__DATA__|data)\s*=\s*(\{.+\})", script_tag.string)
-                if match:
-                    data = json.loads(match.group(1))
-                    advert = data.get("advert", {})
-                    result = self._parse_advert(advert, is_detail=True)
-                    _logger.info("Parsed details: %d photos found", len(result.get("photo_urls", [])))
-                    return result
-                else:
-                    _logger.warning("Regex did not match __DATA__")
-            else:
-                _logger.warning("No jsdata script found or empty string")
-        except Exception as e:
-            _logger.exception("Error fetching details: %s", e)
-
+        _logger.warning("No jsdata script found or regex did not match")
         return {}
 
     def parse(self, params: ParseParams, max_pages: int = 1) -> list[dict[str, Any]]:
@@ -214,20 +207,15 @@ class KrishaParser:
             url = self.build_search_url(params, page)
             _logger.info("Parsing page %d: %s", page, url)
 
-            try:
-                html = self.fetch_page(url)
-                items = self.parse_listing_page(html)
+            html = self.fetch_page(url)
+            items = self.parse_listing_page(html)
 
-                if not items:
-                    _logger.info("No items found on page %d, stopping", page)
-                    break
-
-                all_items.extend(items)
-                _logger.info("Found %d items on page %d", len(items), page)
-
-            except requests.RequestException as e:
-                _logger.exception("Failed to fetch page %d: %s", page, e)
+            if not items:
+                _logger.info("No items found on page %d, stopping", page)
                 break
+
+            all_items.extend(items)
+            _logger.info("Found %d items on page %d", len(items), page)
 
         return all_items
 
@@ -251,10 +239,6 @@ class KrishaParser:
         return int(digits) if digits else 0
 
     def download_image(self, url: str) -> bytes | None:
-        try:
-            response = self.session.get(url, timeout=self.timeout)
-            response.raise_for_status()
-            return response.content
-        except requests.RequestException as e:
-            _logger.warning("Failed to download image %s: %s", url, e)
-            return None
+        response = self.session.get(url, timeout=self.timeout)
+        response.raise_for_status()
+        return response.content

@@ -1,6 +1,6 @@
 import logging
 
-from odoo import fields, models
+from odoo import api, fields, models
 
 from ..services.api_client import EstateKitApiClient
 
@@ -56,6 +56,14 @@ class ResConfigSettings(models.TransientModel):
         string="Webhook URL",
         config_parameter="estate_kit.webhook_url",
     )
+
+    @api.model
+    def get_twogis_api_key(self):
+        return (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("estate_kit.twogis_api_key", "")
+        )
 
     def action_register_mls(self):
         self.set_values()
@@ -156,7 +164,7 @@ class ResConfigSettings(models.TransientModel):
 
     def _register_webhook(self, config, new_url, new_secret, old_url):
         client = EstateKitApiClient(self.env)
-        if not client._is_configured:
+        if not client.is_configured:
             _logger.warning("Cannot register webhook: API not configured")
             return
 

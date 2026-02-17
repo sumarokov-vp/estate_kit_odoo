@@ -19,7 +19,7 @@ class KrishaParserResult(models.TransientModel):
     latitude = fields.Float(string="Широта")
     longitude = fields.Float(string="Долгота")
     photo_url = fields.Char(string="Фото URL")
-    photo_urls_json = fields.Text(string="Все фото URLs")
+    photo_urls_csv = fields.Text(string="Все фото URLs")
     is_duplicate = fields.Boolean(string="Дубликат")
     selected = fields.Boolean(string="Импортировать", default=True)
 

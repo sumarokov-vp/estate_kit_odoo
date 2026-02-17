@@ -47,7 +47,7 @@ class EstateKitWebhookController(http.Controller):
 
         webhook_event.create({"event_id": event_id, "event_type": event_type})
 
-        self._dispatch_event(event_type, payload)
+        webhook_event.dispatch_event(event_type, payload)
 
         return Response("OK", status=200)
 
@@ -58,23 +58,3 @@ class EstateKitWebhookController(http.Controller):
         expected = hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
         expected_full = f"sha256={expected}"
         return hmac.compare_digest(expected_full, signature)
-
-    @staticmethod
-    def _dispatch_event(event_type: str, payload: dict) -> None:
-        _logger.info("Webhook event received: %s", event_type)
-
-        property_model = request.env["estate.property"].sudo()
-
-        if event_type in (
-            "property.created",
-            "property.approved",
-            "property.suspended",
-            "property.resumed",
-        ):
-            property_model._handle_webhook_property_transition(payload)
-        elif event_type == "contact_request.received":
-            property_model._handle_webhook_contact_request(payload)
-        elif event_type == "mls.new_listing":
-            property_model._handle_webhook_mls_new_listing(payload)
-        elif event_type == "mls.listing_removed":
-            property_model._handle_webhook_mls_listing_removed(payload)

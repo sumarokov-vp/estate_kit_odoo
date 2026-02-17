@@ -3,6 +3,7 @@ from . import estate_district
 from . import estate_street
 from . import estate_climate_equipment
 from . import estate_appliance
+from . import estate_property_webhook_mixin
 from . import estate_property
 from . import estate_source
 from . import estate_property_image

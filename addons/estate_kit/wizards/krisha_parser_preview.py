@@ -1,12 +1,8 @@
-import base64
-import logging
-
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 from ..services.krisha_parser import KrishaParser
-
-_logger = logging.getLogger(__name__)
+from ..services.property_import_service import PropertyImportService
 
 
 class KrishaParserPreview(models.TransientModel):
@@ -46,19 +42,15 @@ class KrishaParserPreview(models.TransientModel):
             raise UserError(_("Не выбрано ни одного объекта для импорта"))
 
         parser = KrishaParser()
-        city_mapping = self._get_city_mapping()
+        service = PropertyImportService(self.env)
+        city_mapping = service.get_city_mapping()
         created_properties = self.env["estate.property"]
 
         for result in selected:
-            try:
-                details = parser.fetch_property_details(result.krisha_url)
-            except Exception as e:
-                _logger.warning("Failed to fetch details for %s: %s", result.krisha_url, e)
-                details = {}
-
-            prop = self._create_property_from_result(result, details, city_mapping)
+            details = parser.fetch_property_details(result.krisha_url)
+            prop = service.create_from_krisha_result(result, details, city_mapping)
             created_properties |= prop
-            self._import_photos(prop, result, details, parser)
+            service.import_photos(prop, result, details, parser)
 
         return {
             "type": "ir.actions.act_window",
@@ -69,74 +61,17 @@ class KrishaParserPreview(models.TransientModel):
             "name": _("Импортированные объекты"),
         }
 
-    def _create_property_from_result(self, result, details, city_mapping):
-        city_id = city_mapping.get(result.city.lower()) if result.city else False
-
-        property_vals = {
-            "name": result.title or f"{result.rooms}-комн. квартира, {result.area} м²",
-            "property_type": "apartment",
-            "deal_type": "sale",
-            "state": "draft",
-            "rooms": result.rooms,
-            "area_total": result.area,
-            "floor": result.floor,
-            "floors_total": result.floors_total,
-            "price": result.price,
-            "krisha_url": result.krisha_url,
-            "latitude": result.latitude,
-            "longitude": result.longitude,
-            "description": details.get("description", ""),
-        }
-
-        if city_id:
-            property_vals["city_id"] = city_id
-
-        return self.env["estate.property"].create(property_vals)
-
-    def _import_photos(self, prop, result, details, parser):
-        photo_urls = result.photo_urls_json.split(",") if result.photo_urls_json else []
-        if details.get("photo_urls"):
-            photo_urls = details["photo_urls"]
-
-        for i, photo_url in enumerate(photo_urls[:10]):
-            if not photo_url:
-                continue
-            try:
-                image_data = parser.download_image(photo_url)
-                if image_data:
-                    self.env["estate.property.image"].create({
-                        "property_id": prop.id,
-                        "name": f"Фото {i + 1}",
-                        "image": base64.b64encode(image_data).decode("utf-8"),
-                        "sequence": i * 10,
-                        "is_main": i == 0,
-                    })
-            except Exception as e:
-                _logger.warning("Failed to download image %s: %s", photo_url, e)
-
-    def _get_city_mapping(self) -> dict[str, int]:
-        cities = self.env["estate.city"].search([])
-        mapping: dict[str, int] = {}
-        for city in cities:
-            mapping[city.name.lower()] = city.id
-            if city.code:
-                mapping[city.code.lower()] = city.id
-        return mapping
-
     def action_select_all(self):
         self.ensure_one()
         self.result_ids.filtered(lambda r: not r.is_duplicate).write({"selected": True})
-        return {
-            "type": "ir.actions.act_window",
-            "res_model": self._name,
-            "res_id": self.id,
-            "view_mode": "form",
-            "target": "new",
-        }
+        return self._reopen_wizard()
 
     def action_deselect_all(self):
         self.ensure_one()
         self.result_ids.write({"selected": False})
+        return self._reopen_wizard()
+
+    def _reopen_wizard(self):
         return {
             "type": "ir.actions.act_window",
             "res_model": self._name,

@@ -5,31 +5,8 @@ from odoo.exceptions import UserError
 
 from ..services.api_client import EstateKitApiClient
 from ..services.api_mapper import prepare_api_payload
-from ..services.api_mapper.property_types import API_PROPERTY_TYPE_MAP, PROPERTY_TYPE_LABELS
 
 _logger = logging.getLogger(__name__)
-
-API_DEAL_TYPE_MAP = {
-    1: "sale",
-    2: "rent_long",
-    3: "rent_daily",
-}
-
-API_STATE_MAP = {
-    1: "draft",
-    2: "internal_review",
-    3: "active",
-    4: "moderation",
-    5: "legal_review",
-    6: "published",
-    7: "rejected",
-    8: "unpublished",
-    9: "sold",
-    10: "archived",
-    11: "mls_listed",
-    12: "mls_removed",
-    13: "mls_sold",
-}
 
 ALLOWED_TRANSITIONS = {
     "draft": ["internal_review"],
@@ -51,7 +28,7 @@ ALLOWED_TRANSITIONS = {
 class EstateProperty(models.Model):
     _name = "estate.property"
     _description = "Объект недвижимости"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit = ["mail.thread", "mail.activity.mixin", "estate.property.webhook.mixin"]
     _order = "create_date desc"
 
     # === Основные ===
@@ -177,19 +154,25 @@ class EstateProperty(models.Model):
     def action_approve(self):
         self._transition_state("internal_review", "active", "Одобрить можно только объект на внутренней проверке.")
 
+    def _api_resume(self):
+        for record in self:
+            if record.external_id:
+                client = EstateKitApiClient(record.env)
+                if client.is_configured:
+                    client.post(f"/properties/{record.external_id}/resume", {})
+
+    def _api_suspend(self):
+        for record in self:
+            if record.external_id:
+                client = EstateKitApiClient(record.env)
+                if client.is_configured:
+                    client.post(f"/properties/{record.external_id}/suspend", {})
+
     def action_send_to_mls(self):
         self._transition_state("active", "moderation", "Отправить в MLS можно только объект в продаже.")
         for record in self:
             if record.external_id:
-                client = EstateKitApiClient(record.env)
-                if client._is_configured:
-                    try:
-                        client.post(f"/properties/{record.external_id}/resume", {})
-                    except Exception:
-                        _logger.exception(
-                            "Failed to resume property %s (external_id=%s) via API",
-                            record.name, record.external_id,
-                        )
+                record._api_resume()
             else:
                 record._push_to_api()
 
@@ -210,31 +193,11 @@ class EstateProperty(models.Model):
             ("active", "published"), "unpublished",
             "Снять можно только объект в продаже или опубликованный.",
         )
-        for record in self:
-            if record.external_id:
-                client = EstateKitApiClient(record.env)
-                if client._is_configured:
-                    try:
-                        client.post(f"/properties/{record.external_id}/suspend", {})
-                    except Exception:
-                        _logger.exception(
-                            "Failed to suspend property %s (external_id=%s) via API",
-                            record.name, record.external_id,
-                        )
+        self._api_suspend()
 
     def action_republish(self):
         self._transition_state("unpublished", "active", "Вернуть в продажу можно только снятый с публикации объект.")
-        for record in self:
-            if record.external_id:
-                client = EstateKitApiClient(record.env)
-                if client._is_configured:
-                    try:
-                        client.post(f"/properties/{record.external_id}/resume", {})
-                    except Exception:
-                        _logger.exception(
-                            "Failed to resume property %s (external_id=%s) via API",
-                            record.name, record.external_id,
-                        )
+        self._api_resume()
 
     def action_archive_property(self):
         self._transition_state("published", "archived", "Архивировать можно только опубликованный объект.")
@@ -242,23 +205,33 @@ class EstateProperty(models.Model):
     def action_fix_rejected(self):
         self._transition_state("rejected", "internal_review", "Исправить можно только отклонённый объект.")
 
+    def _build_address_parts(self, include_district=True):
+        self.ensure_one()
+        parts = []
+        if self.city_id:
+            parts.append(self.city_id.name)
+        if include_district and self.district_id:
+            parts.append(self.district_id.name)
+        if self.street_id:
+            parts.append(self.street_id.name)
+        if self.house_number:
+            parts.append(self.house_number)
+        return parts
+
     @api.depends("city_id", "district_id", "street_id", "house_number")
     def _compute_geo_address(self):
         for record in self:
-            parts = []
-            if record.city_id:
-                parts.append(record.city_id.name)
-            if record.district_id:
-                parts.append(record.district_id.name)
-            if record.street_id:
-                parts.append(record.street_id.name)
-            if record.house_number:
-                parts.append(record.house_number)
+            parts = record._build_address_parts(include_district=True)
             record.geo_address = ", ".join(parts) if parts else False
 
     @api.model
     def _default_city(self):
-        return self.env["estate.city"].search([("code", "=", "almaty")], limit=1)
+        code = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("estate_kit.default_city_code", "almaty")
+        )
+        return self.env["estate.city"].search([("code", "=", code)], limit=1)
 
     @api.onchange("city_id")
     def _onchange_city_id(self):
@@ -268,31 +241,21 @@ class EstateProperty(models.Model):
             self.street_id = False
 
     def action_detect_district(self):
-        from ..services.geocoder import geocode_address, reverse_geocode_district
+        from ..services.geocoder import YandexGeocoder
 
         self.ensure_one()
-        api_key = (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("estate_kit.yandex_geocoder_api_key")
-        )
-        if not api_key:
+        geocoder = YandexGeocoder(self.env)
+        if not geocoder.is_configured:
             raise UserError("API ключ Yandex Geocoder не настроен")
 
-        address_parts = []
-        if self.city_id:
-            address_parts.append(self.city_id.name)
-        if self.street_id:
-            address_parts.append(self.street_id.name)
-        if self.house_number:
-            address_parts.append(self.house_number)
+        address_parts = self._build_address_parts(include_district=False)
 
         if not address_parts:
             raise UserError("Укажите адрес для определения района")
 
         address = ", ".join(address_parts)
 
-        coords = geocode_address(api_key, address)
+        coords = geocoder.geocode_address(address)
         if not coords:
             raise UserError(f"Адрес не найден: {address}")
 
@@ -302,7 +265,7 @@ class EstateProperty(models.Model):
             self.latitude = lat
             self.longitude = lon
 
-        district_name = reverse_geocode_district(api_key, lat, lon)
+        district_name = geocoder.reverse_geocode_district(lat, lon)
 
         if district_name and self.city_id:
             district = self.env["estate.district"].search(
@@ -623,26 +586,21 @@ class EstateProperty(models.Model):
             return None
         partner = self.owner_id
         client = EstateKitApiClient(self.env)
-        if not client._is_configured:
+        if not client.is_configured:
             return None
         payload = {"name": partner.name, "phone": partner.phone or ""}
         if partner.external_owner_id:
             return partner.external_owner_id
-        try:
-            response = client.post("/owners", payload)
-            if response and "id" in response:
-                partner.write({"external_owner_id": response["id"]})
-                return response["id"]
-        except Exception:
-            _logger.exception(
-                "Failed to push owner %s (id=%s) to API", partner.name, partner.id
-            )
+        response = client.post("/owners", payload)
+        if response and "id" in response:
+            partner.write({"external_owner_id": response["id"]})
+            return response["id"]
         return None
 
     def _push_to_api(self):
         self.ensure_one()
         client = EstateKitApiClient(self.env)
-        if not client._is_configured:
+        if not client.is_configured:
             raise UserError(
                 "API не настроен. Укажите API URL и API Key в "
                 "Настройки → Технические → Параметры системы "
@@ -651,30 +609,21 @@ class EstateProperty(models.Model):
 
         payload = self._prepare_api_payload()
 
-        try:
-            response = client.post("/properties", payload)
-            if response and response.get("id"):
-                self.with_context(skip_api_sync=True).write(
-                    {"external_id": response["id"]}
+        response = client.post("/properties", payload)
+        if response and response.get("id"):
+            self.with_context(skip_api_sync=True).write(
+                {"external_id": response["id"]}
+            )
+            owner_data = response.get("owner")
+            if (
+                owner_data
+                and owner_data.get("created")
+                and owner_data.get("id")
+                and self.owner_id
+            ):
+                self.owner_id.write(
+                    {"external_owner_id": owner_data["id"]}
                 )
-                owner_data = response.get("owner")
-                if (
-                    owner_data
-                    and owner_data.get("created")
-                    and owner_data.get("id")
-                    and self.owner_id
-                ):
-                    self.owner_id.write(
-                        {"external_owner_id": owner_data["id"]}
-                    )
-        except Exception:
-            _logger.exception(
-                "Failed to push property %s (id=%s) to API", self.name, self.id
-            )
-            raise UserError(
-                "Не удалось отправить объект в MLS. API вернул ошибку. "
-                "Попробуйте позже или обратитесь к администратору."
-            )
 
     def _prepare_api_payload(self):
         self.ensure_one()
@@ -699,234 +648,6 @@ class EstateProperty(models.Model):
         return self.env["res.partner"].create(vals).id
 
     @api.model
-    def get_twogis_api_key(self):
-        return (
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("estate_kit.twogis_api_key", "")
-        )
-
-    @api.model
-    def _find_property_for_webhook(self, payload, event_name):
-        property_id = payload.get("data", {}).get("property_id")
-        if not property_id:
-            _logger.warning("%s: missing property_id in payload", event_name)
-            return None, None
-        existing = self.search([("external_id", "=", property_id)], limit=1)
-        if not existing:
-            _logger.warning(
-                "%s: property with external_id=%s not found", event_name, property_id
-            )
-        return property_id, existing
-
-    @api.model
-    def _handle_webhook_property_transition(self, payload):
-        data = payload.get("data", {})
-        status_id = data.get("status_id")
-        property_id, existing = self._find_property_for_webhook(
-            payload, "property.transition"
-        )
-        if not property_id:
-            return
-
-        new_state = API_STATE_MAP.get(status_id)
-        if not new_state:
-            _logger.warning(
-                "property.transition: unknown status_id=%s for property %d",
-                status_id,
-                property_id,
-            )
-            return
-
-        if not existing:
-            return
-
-        existing.with_context(
-            skip_api_sync=True, force_state_change=True
-        ).write({"state": new_state})
-        _logger.info(
-            "property.transition: property %d state → %s", property_id, new_state
-        )
-
-    @api.model
-    def _handle_webhook_contact_request(self, payload):
-        property_id, prop = self._find_property_for_webhook(
-            payload, "contact_request.received"
-        )
-        if not property_id or not prop:
-            return
-
-        responsible_user = prop.user_id or prop.listing_agent_id
-        if not responsible_user:
-            _logger.warning(
-                "contact_request.received: no responsible user for property id=%s",
-                prop.id,
-            )
-            return
-
-        data = payload.get("data", {})
-        requester_tenant_id = data.get("requester_tenant_id")
-        note = "Запрос контакта собственника"
-        if requester_tenant_id:
-            note += f" (tenant_id: {requester_tenant_id})"
-
-        activity_type = self.env.ref("mail.mail_activity_data_todo")
-        self.env["mail.activity"].create({
-            "activity_type_id": activity_type.id,
-            "summary": "Запрос контакта собственника",
-            "note": note,
-            "res_model_id": self.env["ir.model"]._get_id("estate.property"),
-            "res_id": prop.id,
-            "user_id": responsible_user.id,
-        })
-
-        _logger.info(
-            "contact_request.received: created activity for property id=%s, user=%s",
-            prop.id,
-            responsible_user.login,
-        )
-
-    @api.model
-    def _handle_webhook_mls_new_listing(self, payload):
-        property_id = payload.get("data", {}).get("property_id")
-        if not property_id:
-            _logger.warning("mls.new_listing: missing property_id in payload")
-            return
-
-        existing = self.search([("external_id", "=", property_id)], limit=1)
-        if existing:
-            _logger.info("mls.new_listing: property with external_id=%d already exists", property_id)
-            return
-
-        client = EstateKitApiClient(self.env)
-        item = client.get(f"/mls/properties/{property_id}")
-        if not item:
-            _logger.warning("mls.new_listing: failed to fetch property %d from API", property_id)
-            return
-
-        vals = self._import_from_api_data(item)
-        vals["external_id"] = property_id
-        vals["state"] = "mls_listed"
-        self.with_context(skip_api_sync=True, force_state_change=True).create(vals)
-        _logger.info("mls.new_listing: created property with external_id=%d", property_id)
-
-    @api.model
-    def _handle_webhook_mls_listing_removed(self, payload):
-        property_id, existing = self._find_property_for_webhook(
-            payload, "mls.listing_removed"
-        )
-        if not property_id or not existing:
-            return
-        existing.with_context(skip_api_sync=True, force_state_change=True).write({"state": "mls_removed"})
-        _logger.info("mls.listing_removed: set mls_removed for property with external_id=%d", property_id)
-
-    @api.model
     def _import_from_api_data(self, data):
-        vals = {}
-
-        property_type = API_PROPERTY_TYPE_MAP.get(data.get("property_type_id"))
-        if property_type:
-            vals["property_type"] = property_type
-
-        deal_type = API_DEAL_TYPE_MAP.get(data.get("deal_type_id"))
-        if deal_type:
-            vals["deal_type"] = deal_type
-
-        state = API_STATE_MAP.get(data.get("status_id"))
-        if state:
-            vals["state"] = state
-
-        if data.get("description"):
-            vals["description"] = data["description"]
-
-        if data.get("price") is not None:
-            vals["price"] = float(data["price"])
-
-        if data.get("area") is not None:
-            vals["area_total"] = float(data["area"])
-
-        if data.get("owner_name"):
-            vals["owner_name"] = data["owner_name"]
-
-        owner_api_id = data.get("owner_id")
-        if owner_api_id:
-            owner = self.env["res.partner"].search(
-                [("external_owner_id", "=", owner_api_id)], limit=1
-            )
-            if owner:
-                vals["owner_id"] = owner.id
-            else:
-                _logger.warning(
-                    "Owner with API ID %d not found, skipping", owner_api_id
-                )
-
-        location = data.get("location") or {}
-        self._import_location(vals, location)
-
-        if not vals.get("name"):
-            vals["name"] = self._generate_name_from_vals(vals)
-
-        return vals
-
-    @api.model
-    def _import_location(self, vals, location):
-        if not location:
-            return
-
-        city_name = location.get("city_name") or location.get("city")
-        if city_name:
-            city = self.env["estate.city"].search(
-                [("name", "=", city_name)], limit=1
-            )
-            if city:
-                vals["city_id"] = city.id
-            else:
-                _logger.warning("City '%s' not found, skipping", city_name)
-
-        district_name = location.get("district_name") or location.get("district")
-        if district_name:
-            district = self.env["estate.district"].search(
-                [("name", "=", district_name)], limit=1
-            )
-            if district:
-                vals["district_id"] = district.id
-            else:
-                _logger.warning("District '%s' not found, skipping", district_name)
-
-        street_name = location.get("street")
-        if street_name and vals.get("city_id"):
-            street = self.env["estate.street"].search(
-                [("name", "=", street_name), ("city_id", "=", vals["city_id"])],
-                limit=1,
-            )
-            if street:
-                vals["street_id"] = street.id
-
-        if location.get("house_number"):
-            vals["house_number"] = location["house_number"]
-
-        if location.get("residential_complex"):
-            vals["residential_complex"] = location["residential_complex"]
-
-        if location.get("apartment_number"):
-            vals["apartment_number"] = location["apartment_number"]
-
-        if location.get("latitude") is not None:
-            vals["latitude"] = float(location["latitude"])
-
-        if location.get("longitude") is not None:
-            vals["longitude"] = float(location["longitude"])
-
-    @api.model
-    def _generate_name_from_vals(self, vals):
-        parts = []
-        label = PROPERTY_TYPE_LABELS.get(vals.get("property_type"), "Объект")
-        parts.append(label)
-
-        if vals.get("area_total"):
-            parts.append(f"{vals['area_total']} м²")
-
-        if vals.get("price"):
-            parts.append(f"{vals['price']:,.0f}")
-
-        return " — ".join(parts) if len(parts) > 1 else parts[0]
+        from ..services.api_mapper import import_from_api_data
+        return import_from_api_data(self.env, data)

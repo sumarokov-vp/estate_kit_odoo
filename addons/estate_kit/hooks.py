@@ -41,10 +41,11 @@ def _init_cities(env):
         {"name": "Конаев", "code": "konayev", "sequence": 34},
     ]
     City = env["estate.city"]
-    for data in cities:
-        if not City.search([("code", "=", data["code"])], limit=1):
-            City.create(data)
-            _logger.info("Created city: %s", data["name"])
+    existing_codes = set(City.search([]).mapped("code"))
+    to_create = [c for c in cities if c["code"] not in existing_codes]
+    if to_create:
+        City.create(to_create)
+        _logger.info("Created %d cities", len(to_create))
 
 
 def _init_districts(env):
@@ -64,15 +65,21 @@ def _init_districts(env):
         {"name": "Турксибский", "code": "turksib", "city_id": almaty.id},
     ]
     District = env["estate.district"]
+    existing = {d.code: d for d in District.search([])}
+
+    to_create = []
     for data in districts:
-        existing = District.search([("code", "=", data["code"])], limit=1)
-        if existing:
-            if not existing.city_id:
-                existing.write({"city_id": almaty.id})
+        if data["code"] in existing:
+            district = existing[data["code"]]
+            if not district.city_id:
+                district.write({"city_id": almaty.id})
                 _logger.info("Updated district with city: %s", data["name"])
         else:
-            District.create(data)
-            _logger.info("Created district: %s", data["name"])
+            to_create.append(data)
+
+    if to_create:
+        District.create(to_create)
+        _logger.info("Created %d districts", len(to_create))
 
 
 def _init_sources(env):
@@ -87,7 +94,8 @@ def _init_sources(env):
         {"name": "Telegram-бот", "code": "telegram_bot", "sequence": 80},
     ]
     Source = env["estate.source"]
-    for data in sources:
-        if not Source.search([("code", "=", data["code"])], limit=1):
-            Source.create(data)
-            _logger.info("Created source: %s", data["name"])
+    existing_codes = set(Source.search([]).mapped("code"))
+    to_create = [s for s in sources if s["code"] not in existing_codes]
+    if to_create:
+        Source.create(to_create)
+        _logger.info("Created %d sources", len(to_create))

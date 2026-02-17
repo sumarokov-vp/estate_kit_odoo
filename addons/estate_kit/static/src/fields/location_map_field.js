@@ -36,7 +36,7 @@ export class LocationMapField extends Component {
     async loadApiKey() {
         try {
             const result = await this.orm.call(
-                "estate.property",
+                "res.config.settings",
                 "get_twogis_api_key",
                 []
             );

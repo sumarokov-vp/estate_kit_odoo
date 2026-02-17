@@ -10,6 +10,8 @@ from .property_types import (
 
 _logger = logging.getLogger(__name__)
 
+INVERTED_BOOL_FIELDS = frozenset({"not_corner"})
+
 
 class _RelatedWithName(Protocol):
     name: str
@@ -88,9 +90,7 @@ def _build_attributes(record: EstatePropertyLike) -> dict[str, str]:
             continue
 
         if isinstance(value, bool):
-            bool_value = value
-            if odoo_field == "not_corner":
-                bool_value = not bool_value
+            bool_value = not value if odoo_field in INVERTED_BOOL_FIELDS else value
             attributes[api_name] = "true" if bool_value else "false"
 
         elif odoo_field in ODOO_TO_API_ENUM_MAP:

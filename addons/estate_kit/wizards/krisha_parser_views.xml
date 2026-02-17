@@ -8,7 +8,7 @@
             <form string="Парсинг Krisha.kz">
                 <group>
                     <group string="Параметры поиска">
-                        <field name="city"/>
+                        <field name="city_id"/>
                         <field name="rooms" placeholder="1,2,3"/>
                         <field name="price_from"/>
                         <field name="price_to"/>
