@@ -38,6 +38,7 @@ class ResConfigSettings(models.TransientModel):
         config_parameter="estate_kit.api_url",
     )
 
+
     @api.model
     def get_twogis_api_key(self):
         return (
@@ -73,9 +74,7 @@ class ResConfigSettings(models.TransientModel):
             return self._notify(f"Ошибка API: {resp.status_code} {resp.text[:200]}", "danger")
 
         data = resp.json()
-        if resp.status_code == 200:
-            return self._notify("Данные совпадают, изменений нет", "info")
-
+        _logger.info("MLS register response: status_code=%s, data=%s", resp.status_code, data)
         request_code = data.get("request_code", "")
         status = data.get("status", "pending")
 
@@ -108,15 +107,12 @@ class ResConfigSettings(models.TransientModel):
             return self._notify(f"Ошибка API: {resp.status_code} {resp.text[:200]}", "danger")
 
         data = resp.json()
-        if resp.status_code == 200:
-            return self._notify("Данные совпадают, изменений нет", "info")
-
         request_code = data.get("request_code", "")
         status = data.get("status", "pending")
         config.set_param("estate_kit.reg_request_code", request_code)
         config.set_param("estate_kit.reg_status", status)
 
-        return self._notify("Заявка отправлена повторно", "success")
+        return self._reload_settings()
 
     def action_check_registration_status(self):
         config = self.env["ir.config_parameter"].sudo()
@@ -142,7 +138,9 @@ class ResConfigSettings(models.TransientModel):
         if resp is None:
             return self._notify("Ошибка соединения с API", "danger")
         if resp.status_code == 404:
-            return self._notify("Заявка не найдена в API", "warning")
+            config.set_param("estate_kit.reg_request_code", "")
+            config.set_param("estate_kit.reg_status", "")
+            return self._reload_settings()
         if resp.status_code != 200:
             return self._notify(f"Ошибка API: {resp.status_code}", "danger")
 
@@ -150,14 +148,13 @@ class ResConfigSettings(models.TransientModel):
         status = data.get("status", "unknown")
 
         if status == "approved":
-            if current_status == "pending_update":
-                config.set_param("estate_kit.reg_status", "active")
-            else:
+            if current_status != "pending_update":
                 if data.get("api_key"):
                     config.set_param("estate_kit.api_key", data["api_key"])
                 if data.get("webhook_secret"):
                     config.set_param("estate_kit.webhook_secret", data["webhook_secret"])
-                config.set_param("estate_kit.reg_status", "active")
+            config.set_param("estate_kit.reg_request_code", "")
+            config.set_param("estate_kit.reg_status", "")
         else:
             config.set_param("estate_kit.reg_status", status)
 

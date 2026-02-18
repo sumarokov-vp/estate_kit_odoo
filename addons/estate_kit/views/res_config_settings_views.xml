@@ -9,8 +9,8 @@
                 <app data-string="Estate Kit" string="Estate Kit" name="estate_kit">
                     <block title="Регистрация в MLS" name="estate_kit_registration">
                         <setting string="Регистрация" help="Отправьте заявку на подключение к MLS">
-                            <!-- Состояние 1: Не зарегистрирован -->
-                            <div class="content-group" invisible="estate_kit_reg_request_code or estate_kit_reg_status in ('approved', 'active')">
+                            <!-- Состояние 1: Форма регистрации (показывается когда нет активной заявки) -->
+                            <div class="content-group" invisible="estate_kit_reg_status in ('pending', 'pending_update')">
                                 <div class="row mt16">
                                     <label for="estate_kit_reg_company_name" class="col-lg-3 o_light_label"/>
                                     <field name="estate_kit_reg_company_name" class="col-lg-6" placeholder="Название компании" required="True"/>
@@ -24,7 +24,7 @@
                                     <field name="estate_kit_reg_phone" class="col-lg-6" placeholder="+7 (777) 123-45-67"/>
                                 </div>
                                 <div class="row mt16">
-                                    <button name="action_register_mls" type="object" string="Зарегистрироваться в MLS" class="btn-primary"/>
+                                    <button name="action_register_mls" type="object" string="Отправить заявку" class="btn-primary"/>
                                 </div>
                             </div>
                             <!-- Состояние 2: Заявка на рассмотрении (pending или pending_update) -->
@@ -48,28 +48,6 @@
                                 <div class="mt16 d-flex gap-2">
                                     <button name="action_check_registration_status" type="object" string="Проверить статус" class="btn-secondary"/>
                                     <button name="action_resend_registration" type="object" string="Отправить повторно" class="btn-secondary" invisible="estate_kit_reg_status != 'pending'"/>
-                                </div>
-                            </div>
-                            <!-- Состояние 3: Активная подписка -->
-                            <div class="content-group" invisible="estate_kit_reg_status not in ('approved', 'active')">
-                                <div class="row mt16">
-                                    <label for="estate_kit_reg_company_name" class="col-lg-3 o_light_label"/>
-                                    <field name="estate_kit_reg_company_name" class="col-lg-6"/>
-                                </div>
-                                <div class="row mt16">
-                                    <label for="estate_kit_reg_email" class="col-lg-3 o_light_label"/>
-                                    <field name="estate_kit_reg_email" class="col-lg-6" readonly="True"/>
-                                </div>
-                                <div class="row mt16">
-                                    <label for="estate_kit_reg_phone" class="col-lg-3 o_light_label"/>
-                                    <field name="estate_kit_reg_phone" class="col-lg-6"/>
-                                </div>
-                                <div class="row mt16">
-                                    <label for="estate_kit_reg_status" class="col-lg-3 o_light_label"/>
-                                    <field name="estate_kit_reg_status" class="col-lg-6"/>
-                                </div>
-                                <div class="mt16">
-                                    <button name="action_update_tenant_data" type="object" string="Обновить данные" class="btn-primary"/>
                                 </div>
                             </div>
                         </setting>
