@@ -15,7 +15,7 @@ class EstateKitWebhookController(http.Controller):
     def receive_webhook(self):
         body = request.httprequest.get_data()
 
-        signature = request.httprequest.headers.get("X-EstateKit-Signature", "")
+        signature = request.httprequest.headers.get("X-Signature", "")
         event_type = request.httprequest.headers.get("X-Event-Type", "")
         delivery_id = request.httprequest.headers.get("X-Delivery-Id", "")
 
