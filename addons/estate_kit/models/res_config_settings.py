@@ -134,9 +134,7 @@ class ResConfigSettings(models.TransientModel):
         if resp is None:
             return self._notify("Ошибка соединения с API", "danger")
         if resp.status_code == 404:
-            config.set_param("estate_kit.reg_request_code", "")
-            config.set_param("estate_kit.reg_status", "")
-            return self._reload_settings()
+            return self._notify("Заявка не найдена в API", "warning")
         if resp.status_code != 200:
             return self._notify(f"Ошибка API: {resp.status_code}", "danger")
 
