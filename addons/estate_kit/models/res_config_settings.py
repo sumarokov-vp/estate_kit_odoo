@@ -6,13 +6,6 @@ from ..services.api_client import EstateKitApiClient
 
 _logger = logging.getLogger(__name__)
 
-WEBHOOK_EVENTS = [
-    "property.*",
-    "mls.new_listing",
-    "mls.listing_removed",
-    "contact_request.received",
-]
-
 
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
@@ -44,18 +37,6 @@ class ResConfigSettings(models.TransientModel):
         string="URL API",
         config_parameter="estate_kit.api_url",
     )
-    estate_kit_api_key = fields.Char(
-        string="API-ключ",
-        config_parameter="estate_kit.api_key",
-    )
-    estate_kit_webhook_secret = fields.Char(
-        string="Webhook Secret",
-        config_parameter="estate_kit.webhook_secret",
-    )
-    estate_kit_webhook_url = fields.Char(
-        string="Webhook URL",
-        config_parameter="estate_kit.webhook_url",
-    )
 
     @api.model
     def get_twogis_api_key(self):
@@ -81,9 +62,9 @@ class ResConfigSettings(models.TransientModel):
         payload: dict[str, str] = {"company_name": company_name, "email": email}
         if phone:
             payload["phone"] = phone
-        webhook_url = self.estate_kit_webhook_url
-        if webhook_url:
-            payload["webhook_url"] = webhook_url
+        base_url = config.get_param("web.base.url") or ""
+        if base_url:
+            payload["webhook_url"] = f"{base_url}/estatekit/webhook"
 
         resp = client.post_public("/tenants/register", payload)
         if resp is None:
@@ -128,8 +109,11 @@ class ResConfigSettings(models.TransientModel):
         status = data.get("status", "unknown")
         config.set_param("estate_kit.reg_status", status)
 
-        if status == "approved" and data.get("api_key"):
-            config.set_param("estate_kit.api_key", data["api_key"])
+        if status == "approved":
+            if data.get("api_key"):
+                config.set_param("estate_kit.api_key", data["api_key"])
+            if data.get("webhook_secret"):
+                config.set_param("estate_kit.webhook_secret", data["webhook_secret"])
 
         return self._reload_settings()
 
@@ -150,46 +134,3 @@ class ResConfigSettings(models.TransientModel):
             "tag": "reload",
         }
 
-    def set_values(self):
-        config = self.env["ir.config_parameter"].sudo()
-        old_url = config.get_param("estate_kit.webhook_url") or ""
-        old_secret = config.get_param("estate_kit.webhook_secret") or ""
-
-        super().set_values()
-
-        new_url = self.estate_kit_webhook_url or ""
-        new_secret = self.estate_kit_webhook_secret or ""
-
-        if new_url == old_url and new_secret == old_secret:
-            return
-
-        self._register_webhook(config, new_url, new_secret, old_url)
-
-    def _register_webhook(self, config, new_url, new_secret, old_url):
-        client = EstateKitApiClient(self.env)
-        if not client.is_configured:
-            _logger.warning("Cannot register webhook: API not configured")
-            return
-
-        old_subscription_id = config.get_param("estate_kit.webhook_subscription_id") or ""
-
-        if old_subscription_id and old_url != new_url:
-            result = client.delete(f"/webhooks/{old_subscription_id}")
-            if result is not None:
-                _logger.info("Deleted old webhook subscription %s", old_subscription_id)
-            config.set_param("estate_kit.webhook_subscription_id", "")
-
-        if not new_url or not new_secret:
-            return
-
-        result = client.post("/webhooks", {
-            "url": new_url,
-            "secret": new_secret,
-            "events": WEBHOOK_EVENTS,
-        })
-
-        if result and result.get("id"):
-            config.set_param("estate_kit.webhook_subscription_id", result["id"])
-            _logger.info("Registered webhook subscription %s", result["id"])
-        else:
-            _logger.warning("Failed to register webhook subscription")
