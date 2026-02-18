@@ -37,6 +37,16 @@ class ResConfigSettings(models.TransientModel):
         string="URL API",
         config_parameter="estate_kit.api_url",
     )
+    estate_kit_is_registered = fields.Boolean(
+        string="Зарегистрирован",
+        compute="_compute_is_registered",
+    )
+
+    @api.depends("estate_kit_api_url")
+    def _compute_is_registered(self):
+        api_key = self.env["ir.config_parameter"].sudo().get_param("estate_kit.api_key") or ""
+        for rec in self:
+            rec.estate_kit_is_registered = bool(api_key)
 
 
     @api.model
@@ -78,37 +88,6 @@ class ResConfigSettings(models.TransientModel):
         request_code = data.get("request_code", "")
         status = data.get("status", "pending")
 
-        config.set_param("estate_kit.reg_request_code", request_code)
-        config.set_param("estate_kit.reg_status", status)
-
-        return self._reload_settings()
-
-    def action_resend_registration(self):
-        config = self.env["ir.config_parameter"].sudo()
-        company_name = config.get_param("estate_kit.reg_company_name") or ""
-        email = config.get_param("estate_kit.reg_email") or ""
-        phone = config.get_param("estate_kit.reg_phone") or ""
-
-        client = EstateKitApiClient(self.env)
-        if not client.api_url or not company_name or not email:
-            return self._notify("Нет данных для повторной отправки", "danger")
-
-        payload: dict[str, str] = {"company_name": company_name, "email": email}
-        if phone:
-            payload["phone"] = phone
-        base_url = config.get_param("web.base.url") or ""
-        if base_url:
-            payload["webhook_url"] = f"{base_url}/estatekit/webhook"
-
-        resp = client.post_public("/tenants/register", payload)
-        if resp is None:
-            return self._notify("Ошибка соединения с API", "danger")
-        if resp.status_code not in (200, 201, 202):
-            return self._notify(f"Ошибка API: {resp.status_code} {resp.text[:200]}", "danger")
-
-        data = resp.json()
-        request_code = data.get("request_code", "")
-        status = data.get("status", "pending")
         config.set_param("estate_kit.reg_request_code", request_code)
         config.set_param("estate_kit.reg_status", status)
 
