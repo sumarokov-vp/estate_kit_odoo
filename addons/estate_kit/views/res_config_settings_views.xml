@@ -41,6 +41,7 @@
                                 </div>
                                 <div class="row mt16">
                                     <button name="action_check_registration_status" type="object" string="Проверить статус регистрации" class="btn-secondary"/>
+                                    <button name="action_resend_registration" type="object" string="Отправить данные повторно" class="btn-secondary ms-2"/>
                                 </div>
                             </div>
                         </setting>

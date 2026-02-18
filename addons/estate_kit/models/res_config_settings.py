@@ -69,19 +69,54 @@ class ResConfigSettings(models.TransientModel):
         resp = client.post_public("/tenants/register", payload)
         if resp is None:
             return self._notify("Ошибка соединения с API", "danger")
-        if resp.status_code not in (200, 201, 202, 409):
+        if resp.status_code not in (200, 201, 202):
             return self._notify(f"Ошибка API: {resp.status_code} {resp.text[:200]}", "danger")
 
         data = resp.json()
+        if resp.status_code == 200:
+            return self._notify("Данные совпадают, изменений нет", "info")
+
         request_code = data.get("request_code", "")
-        if resp.status_code == 409 and not request_code:
-            return self._notify("Этот email уже зарегистрирован", "warning")
         status = data.get("status", "pending")
 
         config.set_param("estate_kit.reg_request_code", request_code)
         config.set_param("estate_kit.reg_status", status)
 
         return self._reload_settings()
+
+    def action_resend_registration(self):
+        config = self.env["ir.config_parameter"].sudo()
+        company_name = config.get_param("estate_kit.reg_company_name") or ""
+        email = config.get_param("estate_kit.reg_email") or ""
+        phone = config.get_param("estate_kit.reg_phone") or ""
+
+        client = EstateKitApiClient(self.env)
+        if not client.api_url or not company_name or not email:
+            return self._notify("Нет данных для повторной отправки", "danger")
+
+        payload: dict[str, str] = {"company_name": company_name, "email": email}
+        if phone:
+            payload["phone"] = phone
+        base_url = config.get_param("web.base.url") or ""
+        if base_url:
+            payload["webhook_url"] = f"{base_url}/estatekit/webhook"
+
+        resp = client.post_public("/tenants/register", payload)
+        if resp is None:
+            return self._notify("Ошибка соединения с API", "danger")
+        if resp.status_code not in (200, 201, 202):
+            return self._notify(f"Ошибка API: {resp.status_code} {resp.text[:200]}", "danger")
+
+        data = resp.json()
+        if resp.status_code == 200:
+            return self._notify("Данные совпадают, изменений нет", "info")
+
+        request_code = data.get("request_code", "")
+        status = data.get("status", "pending")
+        config.set_param("estate_kit.reg_request_code", request_code)
+        config.set_param("estate_kit.reg_status", status)
+
+        return self._notify("Заявка отправлена повторно", "success")
 
     def action_check_registration_status(self):
         config = self.env["ir.config_parameter"].sudo()
