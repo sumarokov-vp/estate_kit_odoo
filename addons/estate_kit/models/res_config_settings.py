@@ -125,15 +125,20 @@ class ResConfigSettings(models.TransientModel):
         current_status = config.get_param("estate_kit.reg_status") or ""
 
         client = EstateKitApiClient(self.env)
-        if not client.api_url or not request_code or not email:
+        if not request_code:
             return self._notify("Нет данных для проверки", "danger")
 
         if current_status == "pending_update":
+            if not client.is_configured:
+                return self._notify("API не настроен (нет URL или API-ключа)", "danger")
             endpoint = f"/tenants/update/{request_code}"
+            resp = client.get_raw(endpoint)
         else:
+            if not client.api_url or not email:
+                return self._notify("Нет данных для проверки", "danger")
             endpoint = f"/tenants/register/{request_code}"
+            resp = client.get_public(endpoint, params={"email": email})
 
-        resp = client.get_public(endpoint, params={"email": email})
         if resp is None:
             return self._notify("Ошибка соединения с API", "danger")
         if resp.status_code == 404:
@@ -161,13 +166,12 @@ class ResConfigSettings(models.TransientModel):
     def action_update_tenant_data(self):
         self.set_values()
         config = self.env["ir.config_parameter"].sudo()
-        email = config.get_param("estate_kit.reg_email") or ""
 
         client = EstateKitApiClient(self.env)
-        if not client.api_url or not email:
-            return self._notify("Нет данных для обновления", "danger")
+        if not client.is_configured:
+            return self._notify("API не настроен (нет URL или API-ключа)", "danger")
 
-        payload: dict[str, str] = {"email": email}
+        payload: dict[str, str] = {}
         company_name = self.estate_kit_reg_company_name
         phone = self.estate_kit_reg_phone
         if company_name:
@@ -178,11 +182,13 @@ class ResConfigSettings(models.TransientModel):
         if base_url:
             payload["webhook_url"] = f"{base_url}/estatekit/webhook"
 
-        resp = client.post_public("/tenants/update", payload)
+        resp = client.post_raw("/tenants/update", payload)
         if resp is None:
             return self._notify("Ошибка соединения с API", "danger")
         if resp.status_code == 404:
             return self._notify("Активная подписка не найдена", "warning")
+        if resp.status_code == 422:
+            return self._notify("Нет полей для обновления", "warning")
         if resp.status_code == 200:
             return self._notify("Данные совпадают, изменений нет", "info")
         if resp.status_code == 202:

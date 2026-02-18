@@ -125,6 +125,24 @@ class EstateKitApiClient:
         url = self._build_url(endpoint)
         return self._request_with_retry("DELETE", url)
 
+    def post_raw(self, endpoint: str, data: dict[str, Any]) -> requests.Response | None:
+        if not self.is_configured:
+            _logger.warning("EstateKit API is not configured (api_url or api_key missing)")
+            return None
+        url = self._build_url(endpoint)
+        headers = self._build_headers()
+        headers["Content-Type"] = "application/json"
+        return self._retry_loop("POST", url, json=data, headers=headers)
+
+    def get_raw(
+        self, endpoint: str, params: dict[str, Any] | None = None,
+    ) -> requests.Response | None:
+        if not self.is_configured:
+            _logger.warning("EstateKit API is not configured (api_url or api_key missing)")
+            return None
+        url = self._build_url(endpoint)
+        return self._retry_loop("GET", url, headers=self._build_headers(), params=params)
+
     def post_public(self, endpoint: str, data: dict[str, Any]) -> requests.Response | None:
         if not self.api_url:
             _logger.warning("EstateKit API URL is not configured")
