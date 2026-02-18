@@ -73,7 +73,7 @@ class ResConfigSettings(models.TransientModel):
         payload: dict[str, str] = {"company_name": company_name, "email": email}
         if phone:
             payload["phone"] = phone
-        base_url = config.get_param("web.base.url") or ""
+        base_url = (config.get_param("web.base.url") or "").replace("http://", "https://")
         if base_url:
             payload["webhook_url"] = f"{base_url}/estatekit/webhook"
 
@@ -154,7 +154,7 @@ class ResConfigSettings(models.TransientModel):
             payload["company_name"] = company_name
         if phone:
             payload["phone"] = phone
-        base_url = config.get_param("web.base.url") or ""
+        base_url = (config.get_param("web.base.url") or "").replace("http://", "https://")
         if base_url:
             payload["webhook_url"] = f"{base_url}/estatekit/webhook"
 
