@@ -122,15 +122,18 @@ class ResConfigSettings(models.TransientModel):
         config = self.env["ir.config_parameter"].sudo()
         request_code = config.get_param("estate_kit.reg_request_code") or ""
         email = config.get_param("estate_kit.reg_email") or ""
+        current_status = config.get_param("estate_kit.reg_status") or ""
 
         client = EstateKitApiClient(self.env)
         if not client.api_url or not request_code or not email:
             return self._notify("Нет данных для проверки", "danger")
 
-        resp = client.get_public(
-            f"/tenants/register/{request_code}",
-            params={"email": email},
-        )
+        if current_status == "pending_update":
+            endpoint = f"/tenants/update/{request_code}"
+        else:
+            endpoint = f"/tenants/register/{request_code}"
+
+        resp = client.get_public(endpoint, params={"email": email})
         if resp is None:
             return self._notify("Ошибка соединения с API", "danger")
         if resp.status_code == 404:
@@ -140,15 +143,56 @@ class ResConfigSettings(models.TransientModel):
 
         data = resp.json()
         status = data.get("status", "unknown")
-        config.set_param("estate_kit.reg_status", status)
 
         if status == "approved":
-            if data.get("api_key"):
-                config.set_param("estate_kit.api_key", data["api_key"])
-            if data.get("webhook_secret"):
-                config.set_param("estate_kit.webhook_secret", data["webhook_secret"])
+            if current_status == "pending_update":
+                config.set_param("estate_kit.reg_status", "active")
+            else:
+                if data.get("api_key"):
+                    config.set_param("estate_kit.api_key", data["api_key"])
+                if data.get("webhook_secret"):
+                    config.set_param("estate_kit.webhook_secret", data["webhook_secret"])
+                config.set_param("estate_kit.reg_status", "active")
+        else:
+            config.set_param("estate_kit.reg_status", status)
 
         return self._reload_settings()
+
+    def action_update_tenant_data(self):
+        self.set_values()
+        config = self.env["ir.config_parameter"].sudo()
+        email = config.get_param("estate_kit.reg_email") or ""
+
+        client = EstateKitApiClient(self.env)
+        if not client.api_url or not email:
+            return self._notify("Нет данных для обновления", "danger")
+
+        payload: dict[str, str] = {"email": email}
+        company_name = self.estate_kit_reg_company_name
+        phone = self.estate_kit_reg_phone
+        if company_name:
+            payload["company_name"] = company_name
+        if phone:
+            payload["phone"] = phone
+        base_url = config.get_param("web.base.url") or ""
+        if base_url:
+            payload["webhook_url"] = f"{base_url}/estatekit/webhook"
+
+        resp = client.post_public("/tenants/update", payload)
+        if resp is None:
+            return self._notify("Ошибка соединения с API", "danger")
+        if resp.status_code == 404:
+            return self._notify("Активная подписка не найдена", "warning")
+        if resp.status_code == 200:
+            return self._notify("Данные совпадают, изменений нет", "info")
+        if resp.status_code == 202:
+            data = resp.json()
+            request_code = data.get("request_code", "")
+            config.set_param("estate_kit.reg_request_code", request_code)
+            config.set_param("estate_kit.reg_status", "pending_update")
+            return self._reload_settings()
+
+        return self._notify(f"Ошибка API: {resp.status_code} {resp.text[:200]}", "danger")
 
     def _notify(self, message, notification_type="info"):
         return {
@@ -166,4 +210,3 @@ class ResConfigSettings(models.TransientModel):
             "type": "ir.actions.client",
             "tag": "reload",
         }
-
