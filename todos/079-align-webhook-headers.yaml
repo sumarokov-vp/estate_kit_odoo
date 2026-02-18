@@ -1,0 +1,24 @@
+title: "Привести заголовки webhook в соответствие с документацией API"
+status: done
+created_at: 18.02.2026
+completed_at: 18.02.2026
+
+description: |
+  Документация API использует заголовки X-Event-Type и X-Delivery-Id,
+  а текущий код ожидает X-EstateKit-Event и X-EstateKit-Delivery-Id.
+  Также в payload тип события в поле "event", а дедупликация по "delivery_id",
+  а код использует "event_id". Нужно привести контроллер webhook
+  (controllers/webhook.py) в соответствие с актуальной документацией.
+
+recommendation: |
+  В controllers/webhook.py:
+  - Заменить X-EstateKit-Event на X-Event-Type
+  - Заменить X-EstateKit-Delivery-Id на X-Delivery-Id
+  - Убрать X-EstateKit-Signature (в новой документации нет подписи, но уточнить у пользователя)
+  - В estatekit_webhook_event.py поменять event_id на delivery_id из payload
+
+solution: |
+  Заменены заголовки в controllers/webhook.py: X-EstateKit-Event → X-Event-Type,
+  X-EstateKit-Delivery-Id → X-Delivery-Id. X-EstateKit-Signature оставлен (задача 086).
+  Поле event_id переименовано в delivery_id в модели estatekit.webhook.event и контроллере.
+  Дедупликация теперь по delivery_id из payload.

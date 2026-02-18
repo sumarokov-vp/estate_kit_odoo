@@ -12,19 +12,19 @@ class EstateKitWebhookEvent(models.Model):
     _name = "estatekit.webhook.event"
     _description = "Processed Webhook Events"
 
-    event_id = fields.Char(required=True, index=True)
+    delivery_id = fields.Char(required=True, index=True)
     event_type = fields.Char()
     processed_at = fields.Datetime(default=fields.Datetime.now)
 
-    @api.constrains("event_id")
-    def _check_event_id_unique(self):
+    @api.constrains("delivery_id")
+    def _check_delivery_id_unique(self):
         for record in self:
             duplicate = self.search([
-                ("event_id", "=", record.event_id),
+                ("delivery_id", "=", record.delivery_id),
                 ("id", "!=", record.id),
             ], limit=1)
             if duplicate:
-                raise ValidationError(f"Event already processed: {record.event_id}")
+                raise ValidationError(f"Delivery already processed: {record.delivery_id}")
 
     def _cron_cleanup_old_events(self):
         cutoff = fields.Datetime.subtract(fields.Datetime.now(), days=WEBHOOK_EVENT_RETENTION_DAYS)
@@ -36,14 +36,15 @@ class EstateKitWebhookEvent(models.Model):
 
         property_model = self.env["estate.property"].sudo()
 
-        if event_type in (
-            "property.created",
-            "property.approved",
-            "property.suspended",
-            "property.resumed",
-        ):
+        if event_type == "property.created":
             property_model._handle_webhook_property_transition(payload)
-        elif event_type == "contact_request.received":
+        elif event_type == "property.approved":
+            property_model._handle_webhook_property_approved(payload)
+        elif event_type == "property.rejected":
+            property_model._handle_webhook_property_rejected(payload)
+        elif event_type == "property.delisted":
+            property_model._handle_webhook_property_delisted(payload)
+        elif event_type == "contact.requested":
             property_model._handle_webhook_contact_request(payload)
         elif event_type == "mls.new_listing":
             property_model._handle_webhook_mls_new_listing(payload)

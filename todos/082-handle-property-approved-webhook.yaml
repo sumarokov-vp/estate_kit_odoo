@@ -1,0 +1,22 @@
+title: "Обработать webhook property.approved — установить статус published"
+status: done
+created_at: 18.02.2026
+completed_at: 18.02.2026
+
+description: |
+  При получении webhook property.approved нужно:
+  1. Найти объект по property_id (external_id)
+  2. Установить статус "published"
+  Payload: { property_id, status: "active" }
+  Текущий код обрабатывает property.approved через _handle_webhook_property_transition,
+  но ожидает status_id (integer), а документация отдаёт status (string "active").
+
+recommendation: |
+  Обновить обработчик property.approved:
+  - Маппить строковый status из payload ("active" → "published" в Odoo)
+  - Либо создать отдельный обработчик _handle_webhook_property_approved
+  - Установить state = "published" с force_state_change=True, skip_api_sync=True
+
+solution: |
+  Создан отдельный _handle_webhook_property_approved, устанавливает state=published.
+  Роутинг в dispatch_event обновлён — property.approved идёт в отдельный обработчик.

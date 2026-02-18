@@ -81,6 +81,9 @@ class ResConfigSettings(models.TransientModel):
         payload: dict[str, str] = {"company_name": company_name, "email": email}
         if phone:
             payload["phone"] = phone
+        webhook_url = self.estate_kit_webhook_url
+        if webhook_url:
+            payload["webhook_url"] = webhook_url
 
         resp = client.post_public("/tenants/register", payload)
         if resp is None:

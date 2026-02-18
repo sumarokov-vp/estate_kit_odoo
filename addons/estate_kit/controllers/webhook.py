@@ -16,8 +16,8 @@ class EstateKitWebhookController(http.Controller):
         body = request.httprequest.get_data()
 
         signature = request.httprequest.headers.get("X-EstateKit-Signature", "")
-        event_type = request.httprequest.headers.get("X-EstateKit-Event", "")
-        delivery_id = request.httprequest.headers.get("X-EstateKit-Delivery-Id", "")
+        event_type = request.httprequest.headers.get("X-Event-Type", "")
+        delivery_id = request.httprequest.headers.get("X-Delivery-Id", "")
 
         config = request.env["ir.config_parameter"].sudo()
         secret = config.get_param("estate_kit.webhook_secret") or ""
@@ -36,16 +36,16 @@ class EstateKitWebhookController(http.Controller):
             _logger.warning("Webhook received invalid JSON for delivery %s", delivery_id)
             return Response("Invalid JSON", status=400)
 
-        event_id = payload.get("event_id") or delivery_id
-        if not event_id:
-            return Response("Missing event_id", status=400)
+        delivery_id = payload.get("delivery_id") or delivery_id
+        if not delivery_id:
+            return Response("Missing delivery_id", status=400)
 
         webhook_event = request.env["estatekit.webhook.event"].sudo()
-        if webhook_event.search_count([("event_id", "=", event_id)], limit=1):
-            _logger.info("Webhook event %s already processed, skipping", event_id)
+        if webhook_event.search_count([("delivery_id", "=", delivery_id)], limit=1):
+            _logger.info("Webhook delivery %s already processed, skipping", delivery_id)
             return Response("OK", status=200)
 
-        webhook_event.create({"event_id": event_id, "event_type": event_type})
+        webhook_event.create({"delivery_id": delivery_id, "event_type": event_type})
 
         webhook_event.dispatch_event(event_type, payload)
 

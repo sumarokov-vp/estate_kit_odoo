@@ -1,0 +1,22 @@
+title: "Обработать webhook property.rejected — установить статус rejected"
+status: done
+created_at: 18.02.2026
+completed_at: 18.02.2026
+
+description: |
+  При получении webhook property.rejected нужно:
+  1. Найти объект по property_id (external_id)
+  2. Установить статус "rejected"
+  3. Сохранить причину отказа из поля data.reason
+  Payload: { property_id, status: "rejected", reason: "..." }
+
+recommendation: |
+  В estate_property_webhook_mixin.py добавить обработчик _handle_webhook_property_rejected:
+  - Найти property по external_id = data.property_id
+  - Записать state = "rejected" с force_state_change=True, skip_api_sync=True
+  - Сохранить reason в поле (добавить поле mls_rejection_reason если нет)
+  - Создать mail.activity для ответственного агента с текстом причины отказа
+
+solution: |
+  Расширен _handle_webhook_property_rejected: сохраняет reason в mls_rejection_reason,
+  создаёт mail.activity для ответственного. Добавлено поле mls_rejection_reason в модель.

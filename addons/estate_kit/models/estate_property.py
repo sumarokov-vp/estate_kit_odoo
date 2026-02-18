@@ -552,6 +552,7 @@ class EstateProperty(models.Model):
     external_id = fields.Integer(string="API ID", index=True, copy=False, readonly=True)
 
     # === MLS ===
+    mls_rejection_reason = fields.Text(string="Причина отклонения MLS", copy=False)
     is_locked_by_other_agency = fields.Boolean(
         string="Заблокирован другим агентством",
         default=False,

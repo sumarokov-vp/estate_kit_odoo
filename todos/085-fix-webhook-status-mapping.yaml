@@ -1,0 +1,20 @@
+title: "Исправить маппинг статусов в webhook — string вместо integer"
+status: done
+created_at: 18.02.2026
+completed_at: 18.02.2026
+
+description: |
+  Текущий код webhook обработчика (_handle_webhook_property_transition)
+  ожидает status_id (integer) и маппит через API_STATE_MAP.
+  Новая документация API отдаёт status как строку ("active", "rejected" и т.д.).
+  Нужно обновить маппинг на строковый.
+
+recommendation: |
+  В estate_property_webhook_mixin.py:
+  - Создать STRING_STATE_MAP = {"active": "published", "rejected": "rejected", ...}
+  - Обновить _handle_webhook_property_transition для работы со строковыми статусами
+  - Либо полностью заменить на отдельные обработчики per-event
+
+solution: |
+  Создан STRING_STATE_MAP в webhook_mixin. Заменён status_id на status (строка).
+  _handle_webhook_property_transition теперь использует STRING_STATE_MAP.

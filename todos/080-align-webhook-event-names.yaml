@@ -1,0 +1,25 @@
+title: "Привести имена событий webhook в соответствие с документацией"
+status: done
+created_at: 18.02.2026
+completed_at: 18.02.2026
+
+description: |
+  Расхождения в именах событий между документацией и кодом:
+  - Документация: contact.requested → Код: contact_request.received
+  - Документация: property.rejected → Код: не обрабатывается
+  - Документация: property.delisted → Код: не обрабатывается
+  - Код: property.resumed, property.suspended → нет в документации
+  Нужно обновить диспетчер событий в estatekit_webhook_event.py.
+
+recommendation: |
+  В models/estatekit_webhook_event.py обновить EVENT_HANDLERS:
+  - contact_request.received → contact.requested
+  - Добавить property.rejected
+  - Добавить property.delisted (→ unpublished?)
+  - Удалить property.resumed, property.suspended если их нет в API
+
+solution: |
+  В dispatch_event: contact_request.received → contact.requested, удалены property.suspended
+  и property.resumed, добавлены property.rejected и property.delisted. Добавлены хендлеры
+  _handle_webhook_property_rejected (→ state rejected) и _handle_webhook_property_delisted
+  (→ state unpublished) в estate_property_webhook_mixin.py. Логи обновлены.

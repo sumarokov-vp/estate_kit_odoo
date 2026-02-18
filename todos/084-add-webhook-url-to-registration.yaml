@@ -1,0 +1,24 @@
+title: "Добавить webhook_url в регистрацию API"
+status: done
+created_at: 18.02.2026
+completed_at: 18.02.2026
+
+description: |
+  По новой документации при регистрации (POST /tenants/register) можно
+  опционально передать webhook_url, на который будут приходить уведомления.
+  Нужно:
+  1. Добавить настройку webhook_url в конфигурацию модуля (ir.config_parameter)
+  2. Передавать webhook_url при регистрации
+  3. Создать endpoint для приёма webhook уведомлений (если ещё нет публичного URL)
+
+recommendation: |
+  В настройках модуля (res.config.settings) добавить поле webhook_url.
+  В сервисе регистрации/api_client передавать webhook_url в payload register.
+  Webhook endpoint уже есть (/estatekit/webhook), нужно убедиться что он
+  доступен извне и его URL используется при регистрации.
+
+solution: |
+  Поле webhook_url уже существовало в res.config.settings (estate_kit.webhook_url).
+  Добавлена передача webhook_url в payload метода action_register_mls при регистрации
+  через POST /tenants/register. Если webhook_url заполнен в настройках — он включается
+  в payload, иначе не передаётся (поле опционально по API).

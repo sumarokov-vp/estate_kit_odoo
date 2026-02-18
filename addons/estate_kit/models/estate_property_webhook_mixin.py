@@ -4,9 +4,17 @@ from odoo import api, models
 
 from ..services.api_client import EstateKitApiClient
 from ..services.api_mapper import import_from_api_data
-from ..services.api_mapper.importer import API_STATE_MAP
 
 _logger = logging.getLogger(__name__)
+
+STRING_STATE_MAP = {
+    "active": "published",
+    "rejected": "rejected",
+    "suspended": "unpublished",
+    "new": "moderation",
+    "moderation": "moderation",
+    "legal_review": "legal_review",
+}
 
 
 class EstatePropertyWebhookMixin(models.AbstractModel):
@@ -29,18 +37,18 @@ class EstatePropertyWebhookMixin(models.AbstractModel):
     @api.model
     def _handle_webhook_property_transition(self, payload):
         data = payload.get("data", {})
-        status_id = data.get("status_id")
+        status = data.get("status")
         property_id, existing = self._find_property_for_webhook(
             payload, "property.transition"
         )
         if not property_id:
             return
 
-        new_state = API_STATE_MAP.get(status_id)
+        new_state = STRING_STATE_MAP.get(status)
         if not new_state:
             _logger.warning(
-                "property.transition: unknown status_id=%s for property %d",
-                status_id,
+                "property.transition: unknown status=%s for property %s",
+                status,
                 property_id,
             )
             return
@@ -52,13 +60,79 @@ class EstatePropertyWebhookMixin(models.AbstractModel):
             skip_api_sync=True, force_state_change=True
         ).write({"state": new_state})
         _logger.info(
-            "property.transition: property %d state → %s", property_id, new_state
+            "property.transition: property %s state → %s", property_id, new_state
+        )
+
+    @api.model
+    def _handle_webhook_property_approved(self, payload):
+        property_id, existing = self._find_property_for_webhook(
+            payload, "property.approved"
+        )
+        if not property_id or not existing:
+            return
+
+        existing.with_context(
+            skip_api_sync=True, force_state_change=True
+        ).write({"state": "published"})
+        _logger.info(
+            "property.approved: property %s state → published", property_id
+        )
+
+    @api.model
+    def _handle_webhook_property_rejected(self, payload):
+        property_id, existing = self._find_property_for_webhook(
+            payload, "property.rejected"
+        )
+        if not property_id or not existing:
+            return
+
+        data = payload.get("data", {})
+        reason = data.get("reason", "")
+
+        vals = {"state": "rejected"}
+        if reason:
+            vals["mls_rejection_reason"] = reason
+
+        existing.with_context(
+            skip_api_sync=True, force_state_change=True
+        ).write(vals)
+
+        responsible_user = existing.user_id or existing.listing_agent_id
+        if responsible_user:
+            activity_type = self.env.ref("mail.mail_activity_data_todo")
+            note = f"Объект отклонён MLS: {reason}" if reason else "Объект отклонён MLS"
+            self.env["mail.activity"].create({
+                "activity_type_id": activity_type.id,
+                "summary": "Объект отклонён MLS",
+                "note": note,
+                "res_model_id": self.env["ir.model"]._get_id("estate.property"),
+                "res_id": existing.id,
+                "user_id": responsible_user.id,
+            })
+
+        _logger.info(
+            "property.rejected: property %s state → rejected, reason: %s",
+            property_id, reason
+        )
+
+    @api.model
+    def _handle_webhook_property_delisted(self, payload):
+        property_id, existing = self._find_property_for_webhook(
+            payload, "property.delisted"
+        )
+        if not property_id or not existing:
+            return
+        existing.with_context(
+            skip_api_sync=True, force_state_change=True
+        ).write({"state": "unpublished"})
+        _logger.info(
+            "property.delisted: property %s state → unpublished", property_id
         )
 
     @api.model
     def _handle_webhook_contact_request(self, payload):
         property_id, prop = self._find_property_for_webhook(
-            payload, "contact_request.received"
+            payload, "contact.requested"
         )
         if not property_id or not prop:
             return
@@ -66,7 +140,7 @@ class EstatePropertyWebhookMixin(models.AbstractModel):
         responsible_user = prop.user_id or prop.listing_agent_id
         if not responsible_user:
             _logger.warning(
-                "contact_request.received: no responsible user for property id=%s",
+                "contact.requested: no responsible user for property id=%s",
                 prop.id,
             )
             return
@@ -88,7 +162,7 @@ class EstatePropertyWebhookMixin(models.AbstractModel):
         })
 
         _logger.info(
-            "contact_request.received: created activity for property id=%s, user=%s",
+            "contact.requested: created activity for property id=%s, user=%s",
             prop.id,
             responsible_user.login,
         )

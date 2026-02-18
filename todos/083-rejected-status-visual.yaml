@@ -1,0 +1,22 @@
+title: "Визуальное выделение статуса rejected в списке и форме"
+status: done
+created_at: 18.02.2026
+completed_at: 18.02.2026
+
+description: |
+  Объекты со статусом "rejected" (Отклонён MLS) нужно визуально выделять:
+  1. В списке (tree view) — красный цвет строки
+  2. В форме — красный баннер сверху (аналогично баннеру "не отправлен в MLS")
+     с текстом об отклонении и причиной (из поля mls_rejection_reason)
+  Статус rejected НЕ добавлять в statusbar_visible.
+
+recommendation: |
+  В estate_property_views.xml:
+  - В tree view добавить decoration-danger="state == 'rejected'"
+  - В form view добавить div class="alert alert-danger" с attrs visible
+    при state == 'rejected', показать текст "Объект отклонён MLS" + причину
+  Добавить поле mls_rejection_reason (Text) в модель если ещё нет.
+
+solution: |
+  Tree view уже имел decoration-danger для rejected. Добавлен красный alert-danger
+  баннер в форме с причиной отклонения. Поле mls_rejection_reason добавлено в MLS таб.

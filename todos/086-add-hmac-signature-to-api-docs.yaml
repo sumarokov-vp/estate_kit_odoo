@@ -1,0 +1,27 @@
+title: "Обновить документацию API — добавить HMAC-подпись для webhook"
+status: done
+created_at: 18.02.2026
+completed_at: 18.02.2026
+
+description: |
+  В документации MLS API (/home/sumarokov/projects/estate_kit/mls_api_docs)
+  отсутствует описание HMAC-подписи для webhook. Нужно добавить:
+  1. В раздел webhooks (docs/webhooks/index.md) — заголовок X-Signature: sha256=...
+  2. В раздел регистрации (docs/api/registration/register.md) — поле webhook_secret
+     в ответе при одобрении заявки
+
+recommendation: |
+  В docs/webhooks/index.md:
+  - Добавить заголовок X-Signature в список заголовков
+  - Описать формат: sha256=<hex>, HMAC-SHA256 от тела запроса с ключом webhook_secret
+  - Описать алгоритм верификации на стороне получателя
+
+  В docs/api/registration/register.md (или status.md):
+  - В ответ при статусе approved добавить поле webhook_secret
+  - Описать что секрет выдаётся один раз при одобрении и используется для верификации подписи
+
+solution: |
+  1. docs/webhooks/index.md — добавлен заголовок X-Signature (sha256=<hex_digest>),
+     секция «Проверка подписи» с описанием HMAC-SHA256 и примером на Python.
+  2. docs/api/registration/status.md — добавлено поле webhook_secret в ответ
+     approved с описанием назначения.
