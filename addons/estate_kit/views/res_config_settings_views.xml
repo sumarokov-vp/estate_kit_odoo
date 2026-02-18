@@ -39,9 +39,9 @@
                                     <label for="estate_kit_reg_status" class="col-lg-3 o_light_label"/>
                                     <field name="estate_kit_reg_status" class="col-lg-6"/>
                                 </div>
-                                <div class="row mt16">
+                                <div class="mt16 d-flex gap-2">
                                     <button name="action_check_registration_status" type="object" string="Проверить статус регистрации" class="btn-secondary"/>
-                                    <button name="action_resend_registration" type="object" string="Отправить данные повторно" class="btn-secondary ms-2"/>
+                                    <button name="action_resend_registration" type="object" string="Отправить данные повторно" class="btn-secondary"/>
                                 </div>
                             </div>
                         </setting>
