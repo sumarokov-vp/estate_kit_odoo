@@ -111,7 +111,7 @@ ssh royal_estate_odoo "docker exec odoo-odoo-1 odoo \
 ### Перезапуск Odoo на сервере
 
 ```bash
-ssh royal_estate_odoo "cd /opt/odoo && docker compose restart odoo"
+ssh royal_estate_odoo "cd /opt/odoo && docker compose down odoo && docker compose up -d odoo"
 ```
 
 ### Просмотр логов

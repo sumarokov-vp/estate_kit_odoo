@@ -133,7 +133,7 @@ def main() -> None:
 
     # 6. Restart Odoo
     print("Restarting Odoo...")
-    ssh_cmd(ssh_opts, ssh_target, f"bash -c 'cd {remote_dir} && sudo docker compose restart odoo'")
+    ssh_cmd(ssh_opts, ssh_target, f"bash -c 'cd {remote_dir} && sudo docker compose down odoo && sudo docker compose up -d odoo'")
 
     # 7. Check logs
     print("Checking logs...")
