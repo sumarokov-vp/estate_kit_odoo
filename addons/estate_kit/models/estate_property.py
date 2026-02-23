@@ -585,10 +585,11 @@ class EstateProperty(models.Model):
     }.items()}
 
     @api.model
-    def search_unified(self, criteria, limit=50, offset=0):
+    def search_unified(self, criteria, limit=50, offset=0, count=False):
         """Search local + MLS properties, return unified list of dicts.
 
         Accessible via XML-RPC. Deduplicates by external_id / MLS id.
+        If count=True, returns total count instead of results.
         If MLS is unavailable, returns only local results.
         """
         criteria = criteria or {}
@@ -601,6 +602,9 @@ class EstateProperty(models.Model):
         for item in mls_results:
             if item.get("mls_id") and item["mls_id"] not in local_mls_ids:
                 merged.append(item)
+
+        if count:
+            return len(merged)
 
         return merged[:limit]
 
