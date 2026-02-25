@@ -57,14 +57,14 @@ export class ImageGalleryField extends Component {
             const images = await this.orm.searchRead(
                 "estate.property.image",
                 [["property_id", "=", propertyId]],
-                ["id", "name", "sequence", "is_main"],
+                ["id", "name", "sequence", "is_main", "image_url"],
                 { order: "sequence, id" }
             );
 
             this.state.images = images.map((img) => ({
                 ...img,
-                thumbnailUrl: `/web/image/estate.property.image/${img.id}/image?width=150&height=150`,
-                fullUrl: `/web/image/estate.property.image/${img.id}/image`,
+                thumbnailUrl: `/web/image/estate.property.image/${img.id}/thumbnail`,
+                fullUrl: img.image_url || `/web/image/estate.property.image/${img.id}/thumbnail`,
             }));
         } catch {
             this.state.images = [];
@@ -101,28 +101,23 @@ export class ImageGalleryField extends Component {
     }
 
     async uploadImage(file) {
-        const base64 = await this.fileToBase64(file);
         const propertyId = this.props.record.resId;
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("property_id", propertyId);
+        formData.append("sequence", (this.state.images.length + 1) * 10);
 
-        await this.orm.create("estate.property.image", [
-            {
-                property_id: propertyId,
-                name: file.name.replace(/\.[^/.]+$/, ""),
-                image: base64.split(",")[1],
-                sequence: (this.state.images.length + 1) * 10,
-            },
-        ]);
+        const response = await fetch("/estate_kit/upload_image", {
+            method: "POST",
+            body: formData,
+        });
+
+        if (!response.ok) {
+            this.notification.add("Ошибка загрузки фото", { type: "danger" });
+            return;
+        }
 
         this.notification.add("Фото добавлено", { type: "success" });
-    }
-
-    fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
     }
 
     async setMainImage(imageId) {

@@ -15,38 +15,35 @@ class ImageSyncService:
         self.env = env
         self.client = EstateKitApiClient(env)
 
-    def push_image(self, image_record):
-        if not image_record.image or not image_record.property_id.external_id:
-            return
+    def push_image_binary(self, image_b64, file_name, property_external_id):
+        """Upload full-size image binary to API. Returns {id, url} or None."""
+        if not image_b64 or not property_external_id:
+            return None
         if not self.client.is_configured:
-            return
+            return None
 
-        file_data = base64.b64decode(image_record.image)
-        file_name = image_record.name or f"image_{image_record.id}.jpg"
+        file_data = base64.b64decode(image_b64)
+        if not file_name.endswith((".jpg", ".jpeg", ".png", ".webp")):
+            file_name = f"{file_name}.jpg"
 
         response = self.client.upload(
             "/property-images/upload",
             file_field="file",
             file_name=file_name,
             file_data=file_data,
-            extra_data={"property_id": str(image_record.property_id.external_id)},
+            extra_data={"property_id": str(property_external_id)},
         )
 
         if response:
-            vals = {}
-            if response.get("id"):
-                vals["external_id"] = response["id"]
-            if response.get("url"):
-                vals["image_url"] = response["url"]
-            if vals:
-                image_record.with_context(skip_api_sync=True).write(vals)
-                _logger.info(
-                    "Pushed image %d to API (external_id=%s)",
-                    image_record.id,
-                    response.get("id"),
-                )
-        else:
-            _logger.warning("Failed to push image %d to API", image_record.id)
+            _logger.info(
+                "Pushed image to API (external_id=%s, url=%s)",
+                response.get("id"),
+                response.get("url"),
+            )
+            return response
+
+        _logger.warning("Failed to push image to API")
+        return None
 
     def delete_images(self, images_to_delete):
         if not images_to_delete or not self.client.is_configured:
@@ -98,12 +95,13 @@ class ImageSyncService:
                     )
                 continue
 
-            image_binary = self._download_image(image_url) if image_url else False
+            # Download and create thumbnail only (no full-size binary stored)
+            thumbnail_b64 = self._download_and_thumbnail(image_url) if image_url else False
 
             ImageModel.with_context(skip_api_sync=True).create({
                 "property_id": property_record.id,
                 "name": item.get("name", ""),
-                "image": image_binary,
+                "thumbnail": thumbnail_b64,
                 "external_id": api_image_id,
                 "image_url": image_url,
                 "sequence": item.get("sequence", 10),
@@ -118,11 +116,24 @@ class ImageSyncService:
         )
 
     @staticmethod
-    def _download_image(url):
+    def _download_and_thumbnail(url):
+        """Download image from URL and return base64-encoded 256x256 thumbnail."""
         if not url:
             return False
-        response = requests.get(url, timeout=IMAGE_DOWNLOAD_TIMEOUT)
-        if response.status_code == 200 and response.content:
+        try:
+            response = requests.get(url, timeout=IMAGE_DOWNLOAD_TIMEOUT)
+        except requests.RequestException:
+            _logger.warning("Failed to download image from %s", url)
+            return False
+
+        if response.status_code != 200 or not response.content:
+            _logger.warning("Failed to download image from %s (status=%d)", url, response.status_code)
+            return False
+
+        try:
+            from ..models.estate_property_image import _make_thumbnail
+            raw_b64 = base64.b64encode(response.content).decode("ascii")
+            return _make_thumbnail(raw_b64)
+        except Exception:
+            _logger.warning("Failed to create thumbnail from %s, storing full image", url)
             return base64.b64encode(response.content).decode("ascii")
-        _logger.warning("Failed to download image from %s (status=%d)", url, response.status_code)
-        return False
