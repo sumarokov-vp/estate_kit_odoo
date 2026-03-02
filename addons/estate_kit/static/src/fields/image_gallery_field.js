@@ -64,7 +64,7 @@ export class ImageGalleryField extends Component {
             this.state.images = images.map((img) => ({
                 ...img,
                 thumbnailUrl: `/web/image/estate.property.image/${img.id}/thumbnail`,
-                fullUrl: img.image_url || `/web/image/estate.property.image/${img.id}/thumbnail`,
+                fullUrl: img.image_url || `/web/image/estate.property.image/${img.id}/image`,
             }));
         } catch {
             this.state.images = [];
@@ -100,24 +100,35 @@ export class ImageGalleryField extends Component {
         await this.loadImages();
     }
 
+    fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const base64 = reader.result.split(",")[1];
+                resolve(base64);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
     async uploadImage(file) {
         const propertyId = this.props.record.resId;
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("property_id", propertyId);
-        formData.append("sequence", (this.state.images.length + 1) * 10);
+        const base64Data = await this.fileToBase64(file);
+        const dotIndex = file.name.lastIndexOf(".");
+        const fileName = dotIndex > 0 ? file.name.substring(0, dotIndex) : file.name;
 
-        const response = await fetch("/estate_kit/upload_image", {
-            method: "POST",
-            body: formData,
-        });
-
-        if (!response.ok) {
+        try {
+            await this.orm.create("estate.property.image", [{
+                property_id: propertyId,
+                name: fileName,
+                image: base64Data,
+                sequence: (this.state.images.length + 1) * 10,
+            }]);
+            this.notification.add("Фото добавлено", { type: "success" });
+        } catch {
             this.notification.add("Ошибка загрузки фото", { type: "danger" });
-            return;
         }
-
-        this.notification.add("Фото добавлено", { type: "success" });
     }
 
     async setMainImage(imageId) {

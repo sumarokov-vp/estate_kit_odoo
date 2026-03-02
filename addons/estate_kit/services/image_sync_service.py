@@ -45,6 +45,33 @@ class ImageSyncService:
         _logger.warning("Failed to push image to API")
         return None
 
+    def push_images_for_property(self, property_record):
+        if not property_record.external_id:
+            return
+        if not self.client.is_configured:
+            return
+
+        images_without_external = self.env["estate.property.image"].search([
+            ("property_id", "=", property_record.id),
+            ("image", "!=", False),
+            "|",
+            ("external_id", "=", False),
+            ("external_id", "=", 0),
+        ])
+
+        for img in images_without_external:
+            file_name = (img.name or f"image_{img.id}") + ".jpg"
+            result = self.push_image_binary(
+                img.image,
+                file_name,
+                property_record.external_id,
+            )
+            if result:
+                img.with_context(skip_api_sync=True).write({
+                    "external_id": result.get("id"),
+                    "image_url": result.get("url"),
+                })
+
     def delete_images(self, images_to_delete):
         if not images_to_delete or not self.client.is_configured:
             return

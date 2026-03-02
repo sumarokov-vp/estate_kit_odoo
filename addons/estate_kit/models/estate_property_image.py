@@ -12,7 +12,6 @@ THUMBNAIL_SIZE = (256, 256)
 
 
 def _make_thumbnail(image_b64):
-    """Generate a 256x256 thumbnail from base64-encoded image data."""
     try:
         from PIL import Image
     except ImportError:
@@ -43,6 +42,7 @@ class EstatePropertyImage(models.Model):
         index=True,
     )
     name = fields.Char()
+    image = fields.Binary(attachment=True)
     thumbnail = fields.Binary(attachment=True)
     sequence = fields.Integer(default=10)
     is_main = fields.Boolean(
@@ -54,33 +54,14 @@ class EstatePropertyImage(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        service = None
-        if not self.env.context.get("skip_api_sync"):
-            service = ImageSyncService(self.env)
-
         for vals in vals_list:
-            # Get the raw full-size binary: either from context (controller upload)
-            # or from legacy 'image' field in vals
             raw_b64 = self.env.context.get("upload_raw_binary") or vals.pop("image", None)
 
-            if raw_b64 and service and vals.get("property_id"):
-                # Push full-size to API, get back external_id and URL
-                prop = self.env["estate.property"].browse(vals["property_id"])
-                if prop.external_id:
-                    result = service.push_image_binary(
-                        raw_b64,
-                        vals.get("name") or "image",
-                        prop.external_id,
-                    )
-                    if result:
-                        vals["external_id"] = result.get("id", 0)
-                        vals["image_url"] = result.get("url", "")
-
             if raw_b64:
+                vals["image"] = raw_b64
                 vals["thumbnail"] = _make_thumbnail(raw_b64)
 
-        records = super().create(vals_list)
-        return records
+        return super().create(vals_list)
 
     def unlink(self):
         images_to_delete = [
