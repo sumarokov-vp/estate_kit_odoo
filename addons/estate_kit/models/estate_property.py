@@ -1,9 +1,10 @@
 import logging
 
 from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 from ..services.api_client import EstateKitApiClient
+from ..services.image_sync_service import ImageSyncService
 from ..services.property_sync_service import PropertySyncService
 
 _logger = logging.getLogger(__name__)
@@ -123,7 +124,37 @@ class EstateProperty(models.Model):
         store=True,
     )
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        if not self.env.context.get("skip_duplicate_check"):
+            from ..services.duplicate_checker import DuplicateChecker
+            checker = DuplicateChecker(self.env)
+            for vals in vals_list:
+                # RPC-вызовы обязаны передавать адрес
+                if not self.env.context.get("allow_empty_address"):
+                    self._require_address_fields(vals)
+                result = checker.check(vals)
+                if result:
+                    raise ValidationError(result.message)
+        return super().create(vals_list)
+
     def write(self, vals):
+        if not self.env.context.get("skip_duplicate_check"):
+            from ..services.duplicate_checker import ADDRESS_FIELDS, DuplicateChecker
+            if ADDRESS_FIELDS & set(vals):
+                checker = DuplicateChecker(self.env)
+                for record in self:
+                    merged = {
+                        "city_id": vals.get("city_id", record.city_id.id),
+                        "street_id": vals.get("street_id", record.street_id.id),
+                        "house_number": vals.get("house_number", record.house_number),
+                        "apartment_number": vals.get("apartment_number", record.apartment_number),
+                        "property_type": vals.get("property_type", record.property_type),
+                        "deal_type": vals.get("deal_type", record.deal_type),
+                    }
+                    result = checker.check(merged, exclude_id=record.id)
+                    if result:
+                        raise ValidationError(result.message)
         if "state" in vals:
             new_state = vals["state"]
             if not self.env.context.get("force_state_change"):
@@ -136,6 +167,23 @@ class EstateProperty(models.Model):
                         )
         result = super().write(vals)
         return result
+
+    @staticmethod
+    def _require_address_fields(vals):
+        """Проверяет наличие обязательных адресных полей (для RPC-вызовов)."""
+        missing = []
+        if not vals.get("city_id"):
+            missing.append("city_id")
+        if not vals.get("street_id"):
+            missing.append("street_id")
+        if not vals.get("house_number"):
+            missing.append("house_number")
+        if vals.get("property_type") == "apartment" and not vals.get("apartment_number"):
+            missing.append("apartment_number")
+        if missing:
+            raise ValidationError(
+                f"Для создания объекта обязательны адресные поля: {', '.join(missing)}"
+            )
 
     def _transition_state(self, from_states, to_state, error_msg):
         if isinstance(from_states, str):
@@ -573,6 +621,7 @@ class EstateProperty(models.Model):
     def _push_to_api(self):
         self.ensure_one()
         PropertySyncService(self.env).push_property(self)
+        ImageSyncService(self.env).push_images_for_property(self)
 
     # === Unified Search (XML-RPC) ===
 
