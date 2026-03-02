@@ -120,8 +120,9 @@ def main() -> None:
 
     # 4. Deploy on server
     print("Deploying on server...")
+    # Pull only images from registry (skip services with build: context like matching-service)
     ssh_cmd(ssh_opts, ssh_target,
-            f"bash -c 'cd {remote_dir} && sudo docker compose pull && sudo docker compose down && sudo docker compose up -d'")
+            f"bash -c 'cd {remote_dir} && sudo docker compose pull odoo caddy && sudo docker compose down && sudo docker compose up -d'")
 
     # 5. Update module
     print("Updating estate_kit module...")
