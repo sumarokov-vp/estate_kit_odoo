@@ -29,5 +29,9 @@
             <field name="key">estate_kit.webhook_subscription_id</field>
             <field name="value"></field>
         </record>
+        <record id="config_image_service_address" model="ir.config_parameter">
+            <field name="key">estate_kit.image_service_address</field>
+            <field name="value">localhost:50051</field>
+        </record>
     </data>
 </odoo>
