@@ -38,6 +38,20 @@ class ImageServiceClient:
             _logger.exception("Failed to upload image to Image Service at %s", self._address)
             return None
 
+    def download(self, key: str) -> tuple[bytes, str] | None:
+        """Download image by key, return (data, content_type) or None."""
+        try:
+            with grpc.insecure_channel(self._address) as channel:
+                stub = image_service_pb2_grpc.ImageServiceStub(channel)
+                response = stub.GetImage(
+                    image_service_pb2.GetImageRequest(key=key),
+                    timeout=GRPC_TIMEOUT,
+                )
+                return (response.data, response.content_type)
+        except grpc.RpcError:
+            _logger.exception("Failed to download image %s from Image Service", key)
+            return None
+
     def delete(self, key: str) -> bool:
         """Delete image by key."""
         try:

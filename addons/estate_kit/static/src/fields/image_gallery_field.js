@@ -57,14 +57,20 @@ export class ImageGalleryField extends Component {
             const images = await this.orm.searchRead(
                 "estate.property.image",
                 [["property_id", "=", propertyId]],
-                ["id", "name", "sequence", "is_main", "image_url", "thumbnail_url"],
+                ["id", "name", "sequence", "is_main", "image_key", "thumbnail_key"],
                 { order: "sequence, id" }
             );
 
             this.state.images = images.map((img) => ({
                 ...img,
-                thumbnailUrl: img.thumbnail_url || img.image_url || "",
-                fullUrl: img.image_url || "",
+                thumbnailUrl: img.thumbnail_key
+                    ? `/estate_kit/image/${img.thumbnail_key}`
+                    : img.image_key
+                        ? `/estate_kit/image/${img.image_key}`
+                        : "",
+                fullUrl: img.image_key
+                    ? `/estate_kit/image/${img.image_key}`
+                    : "",
             }));
         } catch {
             this.state.images = [];

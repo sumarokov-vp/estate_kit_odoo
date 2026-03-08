@@ -33,9 +33,5 @@
             <field name="key">estate_kit.image_service_address</field>
             <field name="value">image-service:50051</field>
         </record>
-        <record id="config_image_service_base_url" model="ir.config_parameter">
-            <field name="key">estate_kit.image_service_base_url</field>
-            <field name="value">https://estate-kit-images.fra1.cdn.digitaloceanspaces.com</field>
-        </record>
     </data>
 </odoo>

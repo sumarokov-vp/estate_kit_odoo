@@ -26,14 +26,12 @@ class ImageSyncService:
         ])
 
         for img in images_without_external:
-            if not img.image_url:
-                continue
             response = self.client.post(
                 "/property-images",
                 data={
                     "property_id": property_record.external_id,
-                    "url": img.image_url,
-                    "thumbnail_url": img.thumbnail_url or "",
+                    "image_key": img.image_key,
+                    "thumbnail_key": img.thumbnail_key or "",
                     "name": img.name or "",
                     "sequence": img.sequence,
                     "is_main": img.is_main,
