@@ -32,9 +32,7 @@ class ImageServiceClient:
                 )
                 return {
                     "key": response.key,
-                    "url": response.url,
                     "thumbnail_key": response.thumbnail_key,
-                    "thumbnail_url": response.thumbnail_url,
                 }
         except grpc.RpcError:
             _logger.exception("Failed to upload image to Image Service at %s", self._address)

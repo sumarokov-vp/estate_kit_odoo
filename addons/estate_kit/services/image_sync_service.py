@@ -19,7 +19,7 @@ class ImageSyncService:
 
         images_without_external = self.env["estate.property.image"].search([
             ("property_id", "=", property_record.id),
-            ("image_url", "!=", False),
+            ("image_key", "!=", False),
             "|",
             ("external_id", "=", False),
             ("external_id", "=", 0),
@@ -60,8 +60,23 @@ class ImageSyncService:
             else:
                 _logger.warning("Failed to delete image %d from API", image_external_id)
 
+    @staticmethod
+    def _extract_key_from_url(url):
+        """Extract the object key from a full CDN/S3 URL.
+
+        Example: 'https://cdn.example.com/a1b2c3.jpg' -> 'a1b2c3.jpg'
+                 'https://cdn.example.com/thumbs/a1b2c3.jpg' -> 'thumbs/a1b2c3.jpg'
+        """
+        if not url:
+            return ""
+        # Remove protocol + domain: everything after the third slash
+        parts = url.split("/", 3)
+        if len(parts) >= 4:
+            return parts[3]
+        return ""
+
     def pull_images_for_property(self, property_record):
-        """Pull image URLs from the central MLS API and create local records."""
+        """Pull images from the central MLS API and create local records."""
         if not property_record.external_id:
             return
         if not self.client.is_configured:
@@ -91,16 +106,16 @@ class ImageSyncService:
             if not api_image_id:
                 continue
 
-            image_url = item.get("url", "")
-            thumbnail_url = item.get("thumbnail_url", "")
+            image_key = self._extract_key_from_url(item.get("url", ""))
+            thumbnail_key = self._extract_key_from_url(item.get("thumbnail_url", ""))
 
             if api_image_id in existing_map:
                 existing_img = existing_map[api_image_id]
                 update_vals = {}
-                if existing_img.image_url != image_url and image_url:
-                    update_vals["image_url"] = image_url
-                if existing_img.thumbnail_url != thumbnail_url and thumbnail_url:
-                    update_vals["thumbnail_url"] = thumbnail_url
+                if existing_img.image_key != image_key and image_key:
+                    update_vals["image_key"] = image_key
+                if existing_img.thumbnail_key != thumbnail_key and thumbnail_key:
+                    update_vals["thumbnail_key"] = thumbnail_key
                 if update_vals:
                     existing_img.with_context(skip_api_sync=True).write(update_vals)
                 continue
@@ -108,8 +123,8 @@ class ImageSyncService:
             ImageModel.with_context(skip_api_sync=True).create({
                 "property_id": property_record.id,
                 "name": item.get("name", ""),
-                "image_url": image_url,
-                "thumbnail_url": thumbnail_url,
+                "image_key": image_key,
+                "thumbnail_key": thumbnail_key,
                 "external_id": api_image_id,
                 "sequence": item.get("sequence", 10),
                 "is_main": item.get("is_main", False),

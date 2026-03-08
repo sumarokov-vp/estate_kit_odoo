@@ -9,6 +9,8 @@ from ..services.image_sync_service import ImageSyncService
 
 _logger = logging.getLogger(__name__)
 
+IMAGE_SERVICE_BASE_URL_PARAM = "estate_kit.image_service_base_url"
+
 
 class EstatePropertyImage(models.Model):
     _name = "estate.property.image"
@@ -23,9 +25,9 @@ class EstatePropertyImage(models.Model):
     )
     name = fields.Char()
     image_key = fields.Char("Image Key", copy=False)
-    image_url = fields.Char("Image URL", copy=False)
+    image_url = fields.Char("Image URL", compute="_compute_image_url")
     thumbnail_key = fields.Char("Thumbnail Key", copy=False)
-    thumbnail_url = fields.Char("Thumbnail URL", copy=False)
+    thumbnail_url = fields.Char("Thumbnail URL", compute="_compute_thumbnail_url")
     sequence = fields.Integer(default=10)
     is_main = fields.Boolean(
         string="Main Image",
@@ -33,13 +35,49 @@ class EstatePropertyImage(models.Model):
     )
     external_id = fields.Integer("API Image ID", index=True, copy=False)
 
+    @api.depends("image_key")
+    def _compute_image_url(self):
+        base_url = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param(IMAGE_SERVICE_BASE_URL_PARAM, "")
+        )
+        for rec in self:
+            if rec.image_key and base_url:
+                rec.image_url = f"{base_url}/{rec.image_key}"
+            else:
+                rec.image_url = False
+
+    @api.depends("thumbnail_key")
+    def _compute_thumbnail_url(self):
+        base_url = (
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param(IMAGE_SERVICE_BASE_URL_PARAM, "")
+        )
+        for rec in self:
+            if rec.thumbnail_key and base_url:
+                rec.thumbnail_url = f"{base_url}/{rec.thumbnail_key}"
+            else:
+                rec.thumbnail_url = False
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            # Remove image_url / thumbnail_url if passed — they are computed now
+            vals.pop("image_url", None)
+            vals.pop("thumbnail_url", None)
+
             image_b64 = vals.pop("image", None)
-            if image_b64 and not vals.get("image_url"):
+            if image_b64 and not vals.get("image_key"):
                 self._upload_to_image_service(vals, image_b64)
         return super().create(vals_list)
+
+    def write(self, vals):
+        # Remove image_url / thumbnail_url if passed — they are computed now
+        vals.pop("image_url", None)
+        vals.pop("thumbnail_url", None)
+        return super().write(vals)
 
     def unlink(self):
         skip_sync = self.env.context.get("skip_api_sync")
@@ -63,7 +101,7 @@ class EstatePropertyImage(models.Model):
         return result
 
     def _upload_to_image_service(self, vals, image_b64):
-        """Upload image binary to Image Service via gRPC, populate vals with URLs."""
+        """Upload image binary to Image Service via gRPC, populate vals with keys."""
         try:
             file_data = base64.b64decode(image_b64)
         except Exception:
@@ -77,8 +115,6 @@ class EstatePropertyImage(models.Model):
         result = client.upload(file_data, content_type, generate_thumbnail=True)
         if result:
             vals["image_key"] = result["key"]
-            vals["image_url"] = result["url"]
             vals["thumbnail_key"] = result["thumbnail_key"]
-            vals["thumbnail_url"] = result["thumbnail_url"]
         else:
             _logger.warning("Image Service upload failed for %s", file_name)
