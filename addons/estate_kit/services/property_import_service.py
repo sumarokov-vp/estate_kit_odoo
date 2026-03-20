@@ -1,6 +1,5 @@
 import base64
 
-from .krisha_parser import KrishaParser
 
 MAX_IMPORT_PHOTOS = 10
 

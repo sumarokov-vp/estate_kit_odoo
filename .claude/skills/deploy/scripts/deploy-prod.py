@@ -82,7 +82,7 @@ def main() -> None:
         print(f"  2. Push image: docker push {image}")
         print(f"  3. SSH deploy on {ssh_target}: pull + down + up")
         print(f"  4. Update module: odoo -u estate_kit -d {db_name}")
-        print(f"  5. Restart Odoo and check logs")
+        print("  5. Restart Odoo and check logs")
         return
 
     # 1. Fetch DB credentials from server
