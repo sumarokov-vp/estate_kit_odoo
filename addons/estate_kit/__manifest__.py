@@ -34,8 +34,8 @@
         "views/crm_lead_views.xml",
         "views/res_users_views.xml",
         "views/res_config_settings_views.xml",
-        "views/estate_menus.xml",
         "wizards/krisha_parser_views.xml",
+        "views/estate_menus.xml",
     ],
     "demo": [],
     "assets": {
