@@ -777,7 +777,7 @@ class EstateProperty(models.Model):
             city_obj = item.get("city") or {}
             district_obj = item.get("district") or {}
 
-            from ..services.api_mapper.importer import API_PROPERTY_TYPE_MAP, API_DEAL_TYPE_MAP
+            from ..services.api_mapper.importer import API_DEAL_TYPE_MAP, API_PROPERTY_TYPE_MAP
 
             results.append({
                 "id": item.get("id", 0),

@@ -4,7 +4,8 @@ Usage: uv run click.py <path_or_url> <selector> [filename.png]
 """
 
 import sys
-from common import BrowserSession, SCREENSHOTS_DIR
+
+from common import SCREENSHOTS_DIR, BrowserSession
 
 path_or_url = sys.argv[1]
 selector = sys.argv[2]

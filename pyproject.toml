@@ -1,0 +1,72 @@
+[project]
+name = "estate-kit-odoo"
+version = "19.0.1.6.0"
+description = "Estate Kit — Odoo 19 module for real estate management"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4",
+    "grpcio>=1.70.0",
+    "protobuf>=5.29.0",
+    "python-slugify",
+    "packaging",
+    "requests",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["addons/estate_kit"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.9",
+    "pyright>=1.1",
+    "import-linter>=2.9",
+]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+extend-exclude = [".claude"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"addons/estate_kit/services/generated/*" = ["E", "F", "W", "I"]
+"addons/estate_kit/migrations/*" = ["F401"]
+
+[tool.pyright]
+pythonVersion = "3.12"
+include = ["addons/estate_kit"]
+exclude = [
+    "addons/estate_kit/services/generated",
+    "addons/estate_kit/migrations",
+]
+reportMissingImports = "none"
+reportMissingModuleSource = "none"
+reportAttributeAccessIssue = "warning"
+
+[tool.importlinter]
+root_packages = ["estate_kit"]
+
+[[tool.importlinter.contracts]]
+name = "Models should not import from controllers"
+type = "forbidden"
+source_modules = ["estate_kit.models"]
+forbidden_modules = ["estate_kit.controllers"]
+
+[[tool.importlinter.contracts]]
+name = "Controllers should not import from wizards"
+type = "forbidden"
+source_modules = ["estate_kit.controllers"]
+forbidden_modules = ["estate_kit.wizards"]
+
+[[tool.importlinter.contracts]]
+name = "Services should not import from models or controllers"
+type = "forbidden"
+source_modules = ["estate_kit.services"]
+forbidden_modules = ["estate_kit.models", "estate_kit.controllers", "estate_kit.wizards"]

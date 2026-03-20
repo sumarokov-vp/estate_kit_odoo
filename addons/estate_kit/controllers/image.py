@@ -1,7 +1,7 @@
 import logging
 
 from odoo import http
-from odoo.http import request, Response
+from odoo.http import Response, request
 
 from ..services.image_service_client import ImageServiceClient
 

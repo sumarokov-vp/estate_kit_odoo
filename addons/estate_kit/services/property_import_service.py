@@ -1,6 +1,5 @@
 import base64
 
-
 MAX_IMPORT_PHOTOS = 10
 
 

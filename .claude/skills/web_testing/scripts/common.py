@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 import yaml
-from playwright.sync_api import sync_playwright, Page, BrowserContext, Browser
+from playwright.sync_api import Browser, BrowserContext, Page, sync_playwright
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 CONFIG_FILE = PROJECT_ROOT / ".claude" / "devops.yaml"

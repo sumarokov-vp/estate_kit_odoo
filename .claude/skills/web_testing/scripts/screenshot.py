@@ -4,7 +4,8 @@ Usage: uv run screenshot.py <path_or_url> [filename.png]
 """
 
 import sys
-from common import BrowserSession, SCREENSHOTS_DIR
+
+from common import SCREENSHOTS_DIR, BrowserSession
 
 path_or_url = sys.argv[1]
 output = sys.argv[2] if len(sys.argv) > 2 else "screenshot.png"

@@ -1,2 +1,1 @@
-from . import image
-from . import webhook
+from . import image, webhook

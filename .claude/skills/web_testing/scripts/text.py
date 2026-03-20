@@ -4,6 +4,7 @@ Usage: uv run text.py <path_or_url> <selector>
 """
 
 import sys
+
 from common import BrowserSession
 
 path_or_url = sys.argv[1]
