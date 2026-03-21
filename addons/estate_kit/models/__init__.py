@@ -1,16 +1,14 @@
-from . import (
-    crm_lead,
-    estate_appliance,
-    estate_city,
-    estate_climate_equipment,
-    estate_district,
-    estate_property,
-    estate_property_image,
-    estate_property_webhook_mixin,
-    estate_source,
-    estate_street,
-    estatekit_webhook_event,
-    res_config_settings,
-    res_partner,
-    res_users,
-)
+from . import estate_city
+from . import estate_district
+from . import estate_street
+from . import estate_climate_equipment
+from . import estate_appliance
+from . import estate_property_webhook_mixin  # must be before estate_property (inherited)
+from . import estate_property
+from . import estate_source
+from . import estate_property_image
+from . import crm_lead
+from . import res_partner
+from . import res_users
+from . import res_config_settings
+from . import estatekit_webhook_event
