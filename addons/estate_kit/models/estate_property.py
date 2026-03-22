@@ -3,9 +3,10 @@ import logging
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+from ..services.anthropic_client import AnthropicClient
 from ..services.api_client import EstateKitApiClient
 from ..services.image_sync_service import ImageSyncService
-from ..services.pool_score_service import PoolScoreService
+from ..services.marketing_pool import Factory as MarketingPoolFactory
 from ..services.property_sync_service import PropertySyncService
 
 _logger = logging.getLogger(__name__)
@@ -259,7 +260,7 @@ class EstateProperty(models.Model):
     def action_score_property(self):
         self.ensure_one()
         self.env["estate.property.scoring"].score_property(self.id)
-        PoolScoreService(self.env).update_single(self)
+        MarketingPoolFactory.create(self.env, AnthropicClient(self.env)).update_single(self)
         return {
             "type": "ir.actions.act_window",
             "res_model": self._name,
@@ -292,7 +293,7 @@ class EstateProperty(models.Model):
         if street:
             parts.append(str(street.name))
         if self.house_number:
-            parts.append(self.house_number)
+            parts.append(str(self.house_number))
         return parts
 
     @api.depends("city_id", "district_id", "street_id", "house_number")
@@ -755,7 +756,7 @@ class EstateProperty(models.Model):
         def _run():
             with self.pool.cursor() as cr:
                 env = api.Environment(cr, uid, {})
-                PoolScoreService(env).calculate_all()
+                MarketingPoolFactory.create(env, AnthropicClient(env)).calculate_all()
 
         thread = threading.Thread(target=_run, daemon=True)
         thread.start()
@@ -773,7 +774,7 @@ class EstateProperty(models.Model):
     @api.model
     def _do_calculate_pool_score(self):
         """Calculate marketing_pool_score for all active properties."""
-        PoolScoreService(self.env).calculate_all()
+        MarketingPoolFactory.create(self.env, AnthropicClient(self.env)).calculate_all()
 
     # === Медиа ===
     image_ids = fields.One2many(
@@ -951,8 +952,12 @@ class EstateProperty(models.Model):
                 "id": item.get("id", 0),
                 "source": "mls",
                 "mls_id": item.get("id", 0),
-                "property_type": API_PROPERTY_TYPE_MAP.get(int(prop_type_obj["id"]) if prop_type_obj.get("id") else 0, ""),
-                "deal_type": API_DEAL_TYPE_MAP.get(int(deal_type_obj["id"]) if deal_type_obj.get("id") else 0, ""),
+                "property_type": API_PROPERTY_TYPE_MAP.get(
+                    int(prop_type_obj["id"]) if prop_type_obj.get("id") else 0, "",
+                ),
+                "deal_type": API_DEAL_TYPE_MAP.get(
+                    int(deal_type_obj["id"]) if deal_type_obj.get("id") else 0, "",
+                ),
                 "city": city_obj.get("name", ""),
                 "district": district_obj.get("name", ""),
                 "address": "",
@@ -1033,7 +1038,7 @@ class EstateProperty(models.Model):
         t_exclude = float(get_param("estate_kit.pool_exclusion_threshold", "4.0"))
         pool_max = int(get_param("estate_kit.pool_max_size", "100"))
 
-        service = PoolScoreService(self.env)
+        service = MarketingPoolFactory.create(self.env, AnthropicClient(self.env))
 
         # Recalculate MPS for all active properties
         service.calculate_all()
