@@ -54,6 +54,20 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="AI-скоринг" name="estate_kit_ai_scoring">
+                        <setting string="Anthropic Claude API" help="API-ключ для автоматической оценки объектов с помощью AI">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_anthropic_api_key" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_anthropic_api_key" class="col-lg-6" placeholder="sk-ant-..." password="True"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_anthropic_model" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_anthropic_model" class="col-lg-6" placeholder="claude-sonnet-4-5-20241022"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>

@@ -12,4 +12,48 @@
         <field name="active">True</field>
     </record>
 
+    <record id="cron_expire_placements" model="ir.cron">
+        <field name="name">Expire outdated placements</field>
+        <field name="model_id" ref="model_estate_property_placement"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_expire_placements()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_monthly_callback" model="ir.cron">
+        <field name="name">Monthly callback for marketing pool</field>
+        <field name="model_id" ref="model_estate_property"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_create_callback_activities()</field>
+        <field name="interval_number">30</field>
+        <field name="interval_type">days</field>
+
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_check_placement_notifications" model="ir.cron">
+        <field name="name">Check placement notifications</field>
+        <field name="model_id" ref="model_estate_property_placement"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_check_placement_notifications()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+
+        <field name="active">True</field>
+    </record>
+
+    <record id="cron_rotate_marketing_pool" model="ir.cron">
+        <field name="name">Weekly marketing pool rotation</field>
+        <field name="model_id" ref="model_estate_property"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_rotate_pool()</field>
+        <field name="interval_number">7</field>
+        <field name="interval_type">days</field>
+
+        <field name="active">True</field>
+    </record>
+
 </odoo>

@@ -56,6 +56,9 @@
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
+                    <group>
+                        <field name="tag_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                    </group>
                     <notebook>
                         <page string="Основное" name="main">
                             <group>
@@ -221,6 +224,39 @@
                             <group string="Внутренние заметки">
                                 <field name="internal_note" nolabel="1" colspan="2"/>
                             </group>
+                        </page>
+                        <page string="Маркетинг" name="marketing">
+                            <field name="placement_ids">
+                                <list editable="bottom">
+                                    <field name="channel"/>
+                                    <field name="state"
+                                           decoration-success="state == 'active'"
+                                           decoration-info="state == 'draft'"
+                                           decoration-warning="state == 'paused'"
+                                           decoration-muted="state in ('expired', 'removed')"
+                                           widget="badge"/>
+                                    <field name="date_start"/>
+                                    <field name="date_end"/>
+                                    <field name="cost"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="url" widget="url"/>
+                                </list>
+                            </field>
+                            <separator string="AI-скоринг"/>
+                            <button name="action_score_property" type="object"
+                                    string="Рассчитать скоринг" class="btn-primary mb-3"/>
+                            <field name="scoring_ids" readonly="1">
+                                <list>
+                                    <field name="price_score" widget="progressbar"
+                                           options="{'max_value': 10}"/>
+                                    <field name="quality_score" widget="progressbar"
+                                           options="{'max_value': 10}"/>
+                                    <field name="marketing_score" widget="progressbar"
+                                           options="{'max_value': 10}"/>
+                                    <field name="rationale"/>
+                                    <field name="scored_at"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="MLS" name="mls">
                             <group>
