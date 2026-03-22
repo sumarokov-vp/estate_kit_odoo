@@ -1,0 +1,32 @@
+site_name: EstateKit CRM — Документация
+site_url: https://royalestate.smartist.dev/docs/user/
+use_directory_urls: true
+theme:
+  name: material
+  language: ru
+  palette:
+    scheme: default
+    primary: teal
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - attr_list
+  - tables
+
+nav:
+  - Главная: index.md
+  - Маркетинг:
+    - Обзор: marketing/index.md
+    - Маркетинговый пул: marketing/pool.md
+    - Размещения: marketing/placements.md
+    - Тир-листы: marketing/tier-lists.md
+    - AI-скоринг: marketing/scoring.md
+    - Бюджетирование: marketing/budgeting.md
