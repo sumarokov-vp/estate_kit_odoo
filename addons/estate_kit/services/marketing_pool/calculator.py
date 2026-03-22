@@ -1,16 +1,8 @@
-from dataclasses import dataclass
-
 from odoo import fields
 
 from .config import PoolScoreConfig
+from .mps_result import MpsResult
 from .protocols import ITierBonusCalculator
-
-
-@dataclass
-class MpsResult:
-    score: float
-    indicator: str
-    display: str
 
 
 class MpsCalculator:

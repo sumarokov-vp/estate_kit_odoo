@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from ..calculator import MpsResult
+from ..mps_result import MpsResult
 
 
 class IMpsCalculator(Protocol):
