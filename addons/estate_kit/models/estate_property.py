@@ -639,6 +639,85 @@ class EstateProperty(models.Model):
         "property_id",
         string="AI-скоринг",
     )
+    tier_ids = fields.One2many(
+        "estate.property.tier",
+        "property_id",
+        string="Тир-лист",
+    )
+    in_my_tier_list = fields.Boolean(
+        string="В моём тир-листе",
+        compute="_compute_in_my_tier_list",
+    )
+
+    @api.depends("tier_ids", "tier_ids.user_id")
+    def _compute_in_my_tier_list(self):
+        uid = self.env.uid
+        for rec in self:
+            rec.in_my_tier_list = any(t.user_id.id == uid for t in rec.tier_ids)
+
+    def _get_tier_role(self):
+        """Определить роль текущего пользователя для тир-листа."""
+        user = self.env.user
+        if user.has_group("estate_kit.group_estate_team_lead"):
+            return "team_lead"
+        if user.has_group("estate_kit.group_estate_listing_agent"):
+            return "listing_agent"
+        return None
+
+    def action_add_to_tier_list(self):
+        """Добавить объект в тир-лист текущего пользователя."""
+        self.ensure_one()
+        role = self._get_tier_role()
+        if not role:
+            raise ValidationError("У вас нет роли для работы с тир-листом.")
+        Tier = self.env["estate.property.tier"]
+        existing = Tier.search([
+            ("property_id", "=", self.id),
+            ("user_id", "=", self.env.uid),
+            ("role", "=", role),
+        ], limit=1)
+        if existing:
+            raise ValidationError("Объект уже в вашем тир-листе.")
+        # max проверка сработает через constrains на модели tier
+        max_priority = Tier.search([
+            ("user_id", "=", self.env.uid),
+            ("role", "=", role),
+        ], order="priority desc", limit=1)
+        next_priority = (max_priority.priority + 1) if max_priority else 1
+        Tier.create({
+            "property_id": self.id,
+            "user_id": self.env.uid,
+            "role": role,
+            "priority": next_priority,
+        })
+
+    def action_remove_from_tier_list(self):
+        """Убрать объект из тир-листа текущего пользователя."""
+        self.ensure_one()
+        role = self._get_tier_role()
+        if not role:
+            raise ValidationError("У вас нет роли для работы с тир-листом.")
+        Tier = self.env["estate.property.tier"]
+        existing = Tier.search([
+            ("property_id", "=", self.id),
+            ("user_id", "=", self.env.uid),
+            ("role", "=", role),
+        ], limit=1)
+        if not existing:
+            raise ValidationError("Объект не в вашем тир-листе.")
+        # Проверка минимума
+        _min, _max = existing._get_role_limits(role)
+        count = Tier.search_count([
+            ("user_id", "=", self.env.uid),
+            ("role", "=", role),
+        ])
+        if count <= _min:
+            raise ValidationError(
+                f"Нельзя убрать — в тир-листе минимум {_min} объектов "
+                f"для роли «{dict(Tier._fields['role'].selection)[role]}». "
+                f"Сначала добавьте другой объект."
+            )
+        existing.unlink()
 
     # === Медиа ===
     image_ids = fields.One2many(

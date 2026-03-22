@@ -226,6 +226,15 @@
                             </group>
                         </page>
                         <page string="Маркетинг" name="marketing">
+                            <field name="in_my_tier_list" invisible="1"/>
+                            <div class="mb-3">
+                                <button name="action_add_to_tier_list" type="object"
+                                        string="Добавить в тир-лист" class="btn-primary"
+                                        invisible="in_my_tier_list"/>
+                                <button name="action_remove_from_tier_list" type="object"
+                                        string="Убрать из тир-листа" class="btn-secondary"
+                                        invisible="not in_my_tier_list"/>
+                            </div>
                             <field name="placement_ids">
                                 <list editable="bottom">
                                     <field name="channel"/>
@@ -312,6 +321,7 @@
                 <field name="user_id"/>
                 <separator/>
                 <filter name="my_properties" string="Мои объекты" domain="[('user_id', '=', uid)]"/>
+                <filter name="my_tier" string="Мой Тир-лист" domain="[('tier_ids.user_id', '=', uid)]"/>
                 <separator/>
                 <filter name="apartments" string="Квартиры" domain="[('property_type', '=', 'apartment')]"/>
                 <filter name="houses" string="Дома" domain="[('property_type', '=', 'house')]"/>
