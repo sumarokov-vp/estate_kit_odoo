@@ -236,7 +236,7 @@
                                         invisible="not in_my_tier_list"/>
                             </div>
                             <field name="placement_ids">
-                                <list editable="bottom">
+                                <list>
                                     <field name="channel"/>
                                     <field name="state"
                                            decoration-success="state == 'active'"

@@ -29,12 +29,26 @@
         <field name="model">estate.property.placement</field>
         <field name="arch" type="xml">
             <form>
+                <header>
+                    <button name="action_activate" type="object" string="Активировать"
+                            class="oe_highlight" invisible="state not in ('draft', 'paused')"
+                            groups="estate_kit.group_estate_marketing,estate_kit.group_estate_team_lead"/>
+                    <button name="action_pause" type="object" string="Приостановить"
+                            invisible="state != 'active'"
+                            groups="estate_kit.group_estate_marketing,estate_kit.group_estate_team_lead"/>
+                    <button name="action_remove" type="object" string="Снять"
+                            invisible="state not in ('active', 'paused')"
+                            groups="estate_kit.group_estate_marketing,estate_kit.group_estate_team_lead"/>
+                    <button name="action_return_draft" type="object" string="В черновик"
+                            invisible="state not in ('paused', 'removed')"
+                            groups="estate_kit.group_estate_marketing,estate_kit.group_estate_team_lead"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,expired,removed"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
                             <field name="property_id"/>
                             <field name="channel"/>
-                            <field name="state" widget="badge"/>
                         </group>
                         <group>
                             <field name="date_start"/>

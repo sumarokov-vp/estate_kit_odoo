@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
 
@@ -55,6 +56,32 @@ class EstatePropertyPlacement(models.Model):
     clicks = fields.Integer(string="Клики")
     leads_count = fields.Integer(string="Лиды")
     notes = fields.Text(string="Комментарий")
+
+    # === Переходы статусов ===
+
+    def action_activate(self):
+        for rec in self:
+            if rec.state not in ("draft", "paused"):
+                raise UserError("Активировать можно только черновик или приостановленное размещение.")
+            rec.state = "active"
+
+    def action_pause(self):
+        for rec in self:
+            if rec.state != "active":
+                raise UserError("Приостановить можно только активное размещение.")
+            rec.state = "paused"
+
+    def action_remove(self):
+        for rec in self:
+            if rec.state in ("removed",):
+                raise UserError("Размещение уже снято.")
+            rec.state = "removed"
+
+    def action_return_draft(self):
+        for rec in self:
+            if rec.state not in ("paused", "removed"):
+                raise UserError("Вернуть в черновик можно только приостановленное или снятое размещение.")
+            rec.state = "draft"
 
     @api.model
     def _cron_expire_placements(self):
