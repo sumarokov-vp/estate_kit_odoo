@@ -8,7 +8,7 @@
                 <header>
                     <button name="action_submit_review" type="object" string="На проверку"
                         class="oe_highlight" invisible="state != 'draft'"
-                        groups="estate_kit.group_estate_team_lead,estate_kit.group_estate_listing_coordinator"/>
+                        groups="estate_kit.group_estate_listing_coordinator"/>
                     <button name="action_return_draft" type="object" string="Вернуть в черновик"
                         invisible="state != 'internal_review'"
                         groups="estate_kit.group_estate_team_lead"/>
@@ -252,8 +252,11 @@
                                 </list>
                             </field>
                             <separator string="AI-скоринг"/>
-                            <button name="action_score_property" type="object"
-                                    string="Рассчитать скоринг" class="btn-primary mb-3"/>
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <button name="action_score_property" type="object"
+                                        string="Рассчитать скоринг" class="btn-primary"/>
+                                <field name="marketing_pool_score_display" nolabel="1" readonly="1"/>
+                            </div>
                             <field name="scoring_ids" readonly="1">
                                 <list>
                                     <field name="price_score_color"/>
@@ -298,6 +301,7 @@
                 <field name="floor" optional="show"/>
                 <field name="price"/>
                 <field name="district_id"/>
+                <field name="marketing_pool_score_display" optional="show"/>
                 <field name="condition" optional="hide"/>
                 <field name="user_id" optional="hide"/>
                 <field name="state"/>
@@ -319,6 +323,7 @@
                 <separator/>
                 <filter name="my_properties" string="Мои объекты" domain="[('user_id', '=', uid)]"/>
                 <filter name="my_tier" string="Мой Тир-лист" domain="[('tier_ids.user_id', '=', uid)]"/>
+                <filter name="marketing_pool" string="Маркетинг-пул" domain="[('tag_ids.name', '=', 'Marketing Pool')]"/>
                 <separator/>
                 <filter name="apartments" string="Квартиры" domain="[('property_type', '=', 'apartment')]"/>
                 <filter name="houses" string="Дома" domain="[('property_type', '=', 'house')]"/>
@@ -383,5 +388,12 @@
         <field name="res_model">estate.property</field>
         <field name="view_mode">list,kanban,form</field>
         <field name="context">{'allow_empty_address': True}</field>
+    </record>
+
+    <record id="action_calculate_pool_score" model="ir.actions.server">
+        <field name="name">Рассчитать пул</field>
+        <field name="model_id" ref="model_estate_property"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_calculate_pool_score_async()</field>
     </record>
 </odoo>

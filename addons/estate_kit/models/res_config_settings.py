@@ -1,6 +1,7 @@
 import logging
 
 from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 from ..services.api_client import EstateKitApiClient
 
@@ -49,6 +50,77 @@ class ResConfigSettings(models.TransientModel):
         string="Зарегистрирован",
         compute="_compute_is_registered",
     )
+
+    # === Маркетинговый пул ===
+    estate_kit_pool_max_size = fields.Integer(
+        string="Размер пула",
+        config_parameter="estate_kit.pool_max_size",
+        default=100,
+        help="Максимальное количество объектов в маркетинговом пуле. "
+             "Если подходящих объектов меньше — в пуле будет столько, сколько набралось.",
+    )
+    estate_kit_pool_min_price_score = fields.Integer(
+        string="Мин. Price Score",
+        config_parameter="estate_kit.pool_min_price_score",
+        default=3,
+        help="Минимальный балл конкурентности цены (1–10). "
+             "Объект ниже порога не попадает в пул.",
+    )
+    estate_kit_pool_min_quality_score = fields.Integer(
+        string="Мин. Quality Score",
+        config_parameter="estate_kit.pool_min_quality_score",
+        default=3,
+        help="Минимальный балл качества объекта (1–10). "
+             "Объект ниже порога не попадает в пул.",
+    )
+    estate_kit_pool_min_listing_score = fields.Integer(
+        string="Мин. Listing Score",
+        config_parameter="estate_kit.pool_min_listing_score",
+        default=3,
+        help="Минимальный балл качества карточки (1–10). "
+             "Объект ниже порога не попадает в пул.",
+    )
+    estate_kit_pool_inclusion_threshold = fields.Float(
+        string="Порог включения",
+        config_parameter="estate_kit.pool_inclusion_threshold",
+        default=7.0,
+        digits=(4, 1),
+        help="Минимальный Marketing Pool Score (MPS) для автоматического включения объекта в пул. "
+             "Должен быть выше порога исключения для создания зоны гистерезиса.",
+    )
+    estate_kit_pool_exclusion_threshold = fields.Float(
+        string="Порог исключения",
+        config_parameter="estate_kit.pool_exclusion_threshold",
+        default=4.0,
+        digits=(4, 1),
+        help="MPS ниже этого значения приводит к исключению объекта из пула. "
+             "Разница с порогом включения создаёт гистерезис — предотвращает частое включение/исключение.",
+    )
+    estate_kit_pool_scoring_weight = fields.Float(
+        string="Вес скоринга",
+        config_parameter="estate_kit.pool_scoring_weight",
+        default=0.6,
+        digits=(3, 2),
+        help="Вес AI-скоринга в формуле MPS. Сумма с весом тир-листов должна равняться 1.0.",
+    )
+    estate_kit_pool_tier_weight = fields.Float(
+        string="Вес тир-листов",
+        config_parameter="estate_kit.pool_tier_weight",
+        default=0.4,
+        digits=(3, 2),
+        help="Вес тир-листов в формуле MPS. Сумма с весом скоринга должна равняться 1.0.",
+    )
+
+    @api.constrains("estate_kit_pool_scoring_weight", "estate_kit_pool_tier_weight")
+    def _check_pool_weights_sum(self):
+        for rec in self:
+            w_scoring = rec.estate_kit_pool_scoring_weight or 0.0
+            w_tier = rec.estate_kit_pool_tier_weight or 0.0
+            if abs((w_scoring + w_tier) - 1.0) > 0.01:
+                raise ValidationError(
+                    "Сумма весов скоринга и тир-листов должна равняться 1.0 "
+                    "(сейчас: %.2f + %.2f = %.2f)" % (w_scoring, w_tier, w_scoring + w_tier)
+                )
 
     @api.depends("estate_kit_api_url")
     def _compute_is_registered(self):

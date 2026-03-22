@@ -68,6 +68,56 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Маркетинговый пул" name="estate_kit_marketing_pool">
+                        <setting string="Размер и пороги" help="Параметры формирования маркетингового пула">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_pool_max_size" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_pool_max_size" class="col-lg-3"/>
+                                    <span class="col-lg-6 text-muted small">Если подходящих объектов меньше — в пуле будет столько, сколько набралось</span>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_pool_min_price_score" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_pool_min_price_score" class="col-lg-2"/>
+                                    <span class="col-lg-7 text-muted small">Мин. балл конкурентности цены. Ниже порога → объект не попадает в пул</span>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_pool_min_quality_score" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_pool_min_quality_score" class="col-lg-2"/>
+                                    <span class="col-lg-7 text-muted small">Мин. балл качества объекта. Ниже порога → объект не попадает в пул</span>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_pool_min_listing_score" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_pool_min_listing_score" class="col-lg-2"/>
+                                    <span class="col-lg-7 text-muted small">Мин. балл качества карточки. Ниже порога → объект не попадает в пул</span>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_pool_inclusion_threshold" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_pool_inclusion_threshold" class="col-lg-3"/>
+                                    <span class="col-lg-6 text-muted small">Минимальный MPS для автоматического включения в пул</span>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_pool_exclusion_threshold" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_pool_exclusion_threshold" class="col-lg-3"/>
+                                    <span class="col-lg-6 text-muted small">MPS ниже этого значения → исключение из пула. Разница с порогом включения = гистерезис</span>
+                                </div>
+                            </div>
+                        </setting>
+                        <setting string="Веса формулы" help="MPS = AI-скоринг × вес скоринга + тир-бонус × вес тир-листов">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_pool_scoring_weight" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_pool_scoring_weight" class="col-lg-3"/>
+                                    <span class="col-lg-6 text-muted small">Сумма с весом тир-листов должна = 1.0</span>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_pool_tier_weight" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_pool_tier_weight" class="col-lg-3"/>
+                                    <span class="col-lg-6 text-muted small">Сумма с весом скоринга должна = 1.0</span>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                 </app>
             </xpath>
         </field>
