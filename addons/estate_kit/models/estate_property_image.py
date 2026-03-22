@@ -4,7 +4,7 @@ import mimetypes
 
 from odoo import api, fields, models
 
-from ..services.image_service_client import ImageServiceClient
+from ..services.image_service import Factory as ImageServiceFactory
 from ..services.image_sync_service import ImageSyncService
 
 _logger = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ class EstatePropertyImage(models.Model):
                     )
         result = super().unlink()
         if keys_to_delete:
-            ImageServiceClient(self.env).delete_many(keys_to_delete)
+            ImageServiceFactory.create(self.env).delete_many(keys_to_delete)
         if api_images_to_delete:
             ImageSyncService(self.env).delete_images(api_images_to_delete)
         return result
@@ -71,7 +71,7 @@ class EstatePropertyImage(models.Model):
         file_name = vals.get("name", "image")
         content_type = mimetypes.guess_type(file_name + ".jpg")[0] or "image/jpeg"
 
-        client = ImageServiceClient(self.env)
+        client = ImageServiceFactory.create(self.env)
         result = client.upload(file_data, content_type, generate_thumbnail=True)
         if result:
             vals["image_key"] = result["key"]

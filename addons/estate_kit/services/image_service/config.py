@@ -1,0 +1,2 @@
+DEFAULT_ADDRESS = "localhost:50051"
+GRPC_TIMEOUT = 30

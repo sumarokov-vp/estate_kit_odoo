@@ -3,7 +3,7 @@ import logging
 from odoo import http
 from odoo.http import Response, request
 
-from ..services.image_service_client import ImageServiceClient
+from ..services.image_service import Factory as ImageServiceFactory
 
 _logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class ImageController(http.Controller):
         methods=["GET"],
     )
     def get_image(self, key, **kwargs):
-        client = ImageServiceClient(request.env)
+        client = ImageServiceFactory.create(request.env)
         result = client.download(key)
         if not result:
             return request.not_found()
