@@ -7,6 +7,7 @@ from ..services.anthropic_client import AnthropicClient
 from ..services.api_client import EstateKitApiClient
 from ..services.image_sync_service import ImageSyncService
 from ..services.marketing_pool import Factory as MarketingPoolFactory
+from ..services.marketing_pool.config import PoolScoreConfig
 from ..services.property_sync_service import PropertySyncService
 
 _logger = logging.getLogger(__name__)
@@ -279,7 +280,27 @@ class EstateProperty(models.Model):
             "quality_score": scoring.quality_score_color,
             "listing_score": scoring.listing_score_color,
             "rationale": scoring.rationale,
+            "pool_status": self._build_pool_status(scoring),
         }
+
+    def _build_pool_status(self, scoring):
+        config = PoolScoreConfig.from_env(self.env)
+        failed = []
+        if scoring.price_score < config.min_price:
+            failed.append("цена")
+        if scoring.quality_score < config.min_quality:
+            failed.append("качество")
+        if scoring.listing_score < config.min_listing:
+            failed.append("карточка")
+
+        mps = self.marketing_pool_score
+        if failed:
+            return "🔴 Не проходит в пул (ниже порога: %s)" % ", ".join(failed)
+        if mps >= config.t_include:
+            return "🟢 Проходит в пул (MPS: %.1f)" % mps
+        if mps >= config.t_exclude:
+            return "🟡 Пограничная зона (MPS: %.1f)" % mps
+        return "🔴 Не проходит в пул (MPS: %.1f)" % mps
 
     def _build_address_parts(self, include_district: bool = True) -> list[str]:
         self.ensure_one()
