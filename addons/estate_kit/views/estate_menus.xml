@@ -8,8 +8,7 @@
 
     <menuitem id="estate_menu_property_list" name="Все объекты" parent="estate_menu_properties" action="estate_property_action" sequence="10"/>
 
-    <menuitem id="estate_menu_tier_list" name="Тир-лист" parent="estate_menu_properties" action="estate_property_tier_action" sequence="20"
-        groups="group_estate_team_lead,group_estate_listing_agent"/>
+    <menuitem id="estate_menu_placements" name="Маркетинг" parent="estate_menu_properties" action="estate_placement_action" sequence="15"/>
 
     <menuitem id="estate_menu_krisha_parser" name="Парсить Krisha.kz" parent="estate_menu_root" action="action_krisha_parser" sequence="50"
         groups="group_estate_team_lead,group_estate_listing_agent,group_estate_listing_coordinator"/>

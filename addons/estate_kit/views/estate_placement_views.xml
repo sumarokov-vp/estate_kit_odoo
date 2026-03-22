@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="estate_placement_list_view" model="ir.ui.view">
+        <field name="name">estate.property.placement.list</field>
+        <field name="model">estate.property.placement</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="property_id"/>
+                <field name="channel"/>
+                <field name="state"
+                       decoration-success="state == 'active'"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'paused'"
+                       decoration-muted="state in ('expired', 'removed')"
+                       widget="badge"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="url" widget="url"/>
+                <field name="cost"/>
+                <field name="impressions"/>
+                <field name="clicks"/>
+                <field name="leads_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="estate_placement_form_view" model="ir.ui.view">
+        <field name="name">estate.property.placement.form</field>
+        <field name="model">estate.property.placement</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="property_id"/>
+                            <field name="channel"/>
+                            <field name="state" widget="badge"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="url" widget="url"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Затраты">
+                            <field name="cost"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                        <group string="Метрики">
+                            <field name="impressions"/>
+                            <field name="clicks"/>
+                            <field name="leads_count"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="estate_placement_search_view" model="ir.ui.view">
+        <field name="name">estate.property.placement.search</field>
+        <field name="model">estate.property.placement</field>
+        <field name="arch" type="xml">
+            <search string="Поиск объявлений">
+                <field name="property_id"/>
+                <field name="channel"/>
+                <separator/>
+                <filter name="active_placements" string="Активные" domain="[('state', '=', 'active')]"/>
+                <filter name="draft_placements" string="Черновики" domain="[('state', '=', 'draft')]"/>
+                <separator/>
+                <filter name="group_channel" string="Канал" context="{'group_by': 'channel'}"/>
+                <filter name="group_state" string="Статус" context="{'group_by': 'state'}"/>
+                <filter name="group_property" string="Объект" context="{'group_by': 'property_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="estate_placement_action" model="ir.actions.act_window">
+        <field name="name">Маркетинговые объявления</field>
+        <field name="res_model">estate.property.placement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -32,6 +32,7 @@
         "views/estate_climate_equipment_views.xml",
         "views/estate_appliance_views.xml",
         "views/estate_property_views.xml",
+        "views/estate_placement_views.xml",
         "views/estate_property_tier_views.xml",
         "views/crm_lead_views.xml",
         "views/res_users_views.xml",
