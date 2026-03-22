@@ -1,0 +1,22 @@
+title: "Теги на estate.property (marketing_pool)"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Добавить систему тегов на estate.property (Many2many).
+  Создать модель тегов (estate.property.tag) с полем name.
+  Предзаполнить тег marketing_pool через data XML.
+  Объект в маркетинговом пуле помечается этим тегом.
+
+recommendation: |
+  Модель тегов + Many2many поле tag_ids на estate.property.
+  Data-файл с предзаполненным тегом marketing_pool.
+  Отображение тегов на карточке объекта (widget="many2many_tags").
+
+solution: |
+  Создана модель estate.property.tag (name: Char, color: Integer).
+  Добавлено поле tag_ids (Many2many) на estate.property.
+  Seed-данные: тег "Marketing Pool" (color=10) в data/estate_property_tag_data.xml.
+  Security: доступ для всех 6 ролей (team_lead — полный, остальные — только чтение).
+  Файлы: models/estate_property_tag.py, data/estate_property_tag_data.xml.

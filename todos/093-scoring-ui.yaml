@@ -1,0 +1,20 @@
+title: "Отображение скоринга на карточке объекта"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Показать результаты AI-скоринга на карточке estate.property.
+  Price Score, Quality Score, Marketing Score (1-10) + текстовое обоснование.
+  Можно на вкладке «Маркетинг» или отдельным блоком.
+
+recommendation: |
+  Добавить related-поля или One2one на estate.property → estate.property.scoring.
+  Виджет: progress bar или star rating для scores.
+  Зависит от: 089-scoring-model, 091-marketing-tab-ui.
+
+solution: |
+  Добавлено поле scoring_ids (One2many) в estate.property.
+  На вкладке «Маркетинг» после размещений добавлен блок «AI-скоринг»
+  с отображением price_score, quality_score, marketing_score через
+  progressbar (max 10), rationale и scored_at. Список readonly.

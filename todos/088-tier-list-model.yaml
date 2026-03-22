@@ -1,0 +1,25 @@
+title: "Модель estate.property.tier"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Создать модель тир-листов — персональных списков приоритетных объектов.
+  Поля: property_id (Many2one → estate.property), user_id (Many2one → res.users),
+  role (Selection: listing_agent/team_lead), priority (Integer, 1=высший),
+  date_added (Date), note (Text).
+  Два независимых уровня: тир-лист листинг-агента и тир-лист тим-лида.
+  Лимиты: агент 5-15, тим-лид 20-50 (настраиваемые).
+
+recommendation: |
+  Создать модель в addons/estate_kit/models/. Добавить security.
+  Валидация лимитов — constrains на модели.
+  Подробности: research/marketing_platform/tier_lists.typ
+
+solution: |
+  Создана модель estate.property.tier в models/estate_property_tier.py.
+  Поля: property_id, user_id, role (listing_agent/team_lead), priority, date_added, note.
+  SQL-ограничения: уникальность (property_id, user_id, role), положительный приоритет.
+  Constrains: проверка максимума через ir.config_parameter (estate_kit.tier_max_*).
+  Security: ACL для всех 6 ролей, record rules (team_lead — все, listing_agent — свои).
+  Лимиты настраиваемые через ir.config_parameter.

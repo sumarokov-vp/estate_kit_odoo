@@ -1,0 +1,23 @@
+title: "Модель estate.property.placement"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Создать модель размещений объектов на рекламных каналах.
+  Поля: property_id (Many2one), channel (Selection: krysha/instagram_organic/instagram_ads/telegram/email/whatsapp/other),
+  state (Selection: draft/active/paused/expired/removed), date_start, date_end, url, cost (Monetary),
+  impressions (Integer), clicks (Integer), leads_count (Integer), notes (Text).
+  Жизненный цикл: draft → active → paused/expired/removed.
+
+recommendation: |
+  Создать модель в addons/estate_kit/models/. Добавить security (ir.model.access.csv).
+  Selection для channel — не отдельная модель, достаточно для 5-7 каналов.
+  Подробности: research/marketing_platform/placements.typ
+
+solution: |
+  Создана модель estate.property.placement в models/estate_property_placement.py.
+  Поля: property_id (Many2one cascade), channel (Selection 7 каналов), state (Selection 5 статусов, default draft),
+  date_start, date_end, url, cost (Monetary), currency_id, impressions, clicks, leads_count, notes.
+  Добавлен импорт в models/__init__.py. Добавлены security rules в ir.model.access.csv
+  (team_lead — полный доступ, listing_agent/coordinator — CRUD без удаления, остальные — только чтение).

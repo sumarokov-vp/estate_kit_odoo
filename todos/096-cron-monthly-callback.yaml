@@ -1,0 +1,25 @@
+title: "Cron: ежемесячное формирование задач на обзвон"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Cron-задача (ежемесячно): для каждого объекта в маркетинговом пуле
+  создаёт activity на ответственного сотрудника с чек-листом:
+  - Объект ещё в продаже?
+  - Изменилась ли цена?
+  - Есть ли обновления?
+  Сотрудник фиксирует результат, система обрабатывает автоматически.
+
+recommendation: |
+  ir.cron + создание mail.activity на estate.property.
+  Результат обзвона — через activity completion или отдельные поля.
+  Зависит от: 090-property-tags.
+
+solution: |
+  Добавлен метод _cron_create_callback_activities в estate.property:
+  - Находит все объекты с тегом Marketing Pool
+  - Для каждого создаёт mail.activity (тип todo) с summary "Обзвон: проверка актуальности"
+  - В note — HTML-чеклист (в продаже? цена? обновления?)
+  - Назначает на user_id или listing_agent_id объекта
+  Cron-запись добавлена в data/estate_cron.xml: интервал 30 дней.

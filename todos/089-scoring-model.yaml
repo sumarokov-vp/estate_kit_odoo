@@ -1,0 +1,23 @@
+title: "Модель estate.property.scoring"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Создать модель для хранения результатов AI-скоринга объектов.
+  Поля: property_id (Many2one → estate.property), price_score (Integer 1-10),
+  quality_score (Integer 1-10), marketing_score (Integer 1-10),
+  rationale (Text — текстовое обоснование), scored_at (Datetime).
+  Скоринг вызывается при появлении/обновлении объекта в базе.
+
+recommendation: |
+  Создать модель в addons/estate_kit/models/. Добавить security.
+  На первом этапе скоринг можно заполнять вручную, интеграция с Claude API — отдельная задача.
+  Подробности: research/marketing_platform/ai_property_scoring.typ
+
+solution: |
+  Создана модель estate.property.scoring в models/estate_property_scoring.py.
+  Поля: property_id (Many2one, cascade), price_score, quality_score, marketing_score (Integer),
+  rationale (Text), scored_at (Datetime, default=now). Сортировка по scored_at desc.
+  Зарегистрирована в models/__init__.py. Добавлены security-правила для всех 6 ролей
+  (team_lead — полный доступ, остальные — только чтение).

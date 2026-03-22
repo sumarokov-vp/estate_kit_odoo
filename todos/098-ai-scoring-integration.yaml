@@ -1,0 +1,28 @@
+title: "AI Property Scoring — интеграция с Anthropic Claude API"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Интеграция модели estate.property.scoring с Anthropic Claude API.
+  При появлении/обновлении объекта в базе вызывается Claude API,
+  передаются данные объекта (характеристики, цена, локация, фото).
+  Ответ парсится в Price Score, Quality Score, Marketing Score (1-10) + обоснование.
+
+recommendation: |
+  HTTP-клиент для Anthropic API. Prompt engineering для оценки объектов.
+  Асинхронный вызов (queue job или cron), чтобы не блокировать UI.
+  Для объектов в пуле — дополнительно учитывать метрики (просмотры, лиды).
+  Зависит от: 089-scoring-model.
+  Подробности: research/marketing_platform/ai_property_scoring.typ
+
+solution: |
+  Реализована синхронная интеграция с Anthropic Claude API:
+  1. Создан сервис anthropic_client.py — HTTP-клиент для Anthropic Messages API
+     с промптом для оценки объектов по 3 критериям (1-10) + обоснование.
+  2. Метод score_property() на модели estate.property.scoring собирает данные объекта
+     (тип, цена, площадь, комнаты, этаж, состояние, локация, описание, кол-во фото),
+     вызывает Claude API, парсит JSON-ответ, создаёт запись scoring.
+  3. Кнопка «Рассчитать скоринг» на вкладке «Маркетинг» карточки объекта.
+  4. Настройки API-ключа и модели Anthropic в Settings → Estate Kit → AI-скоринг.
+  Модель по умолчанию: claude-sonnet-4-5-20241022, настраивается через ir.config_parameter.

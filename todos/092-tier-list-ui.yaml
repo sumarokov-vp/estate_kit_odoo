@@ -1,0 +1,21 @@
+title: "Интерфейс тир-листов"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Создать интерфейс для управления тир-листами.
+  Агент: видит и редактирует только свой тир-лист.
+  Тим-лид: видит свой тир-лист + тир-листы всех агентов (read-only).
+  Drag-and-drop или числовое поле для приоритета.
+
+recommendation: |
+  Menu item в разделе Estate Kit. Tree/form views для estate.property.tier.
+  Record rules для разграничения доступа (агент видит только свои).
+  Зависит от: 088-tier-list-model.
+
+solution: |
+  Создан файл views/estate_property_tier_views.xml с tree (editable, handle-виджет
+  для drag-and-drop приоритета), form (все поля модели) и action.
+  Добавлен пункт меню «Тир-лист» в раздел «Объекты» (для team_lead и listing_agent).
+  Файл добавлен в __manifest__.py.

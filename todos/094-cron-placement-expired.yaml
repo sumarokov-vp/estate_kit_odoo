@@ -1,0 +1,18 @@
+title: "Cron: автоматический expired для размещений"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Cron-задача: ежедневно проверяет placement-ы с заполненным date_end.
+  Если date_end < today и state = active, переводит в expired.
+  Отправляет уведомление менеджеру через Odoo Bot.
+
+recommendation: |
+  ir.cron запись в data XML. Метод на модели estate.property.placement.
+  Зависит от: 087-placement-model.
+
+solution: |
+  Добавлен метод _cron_expire_placements на модель estate.property.placement.
+  Метод ищет записи со state=active и date_end < today, переводит в expired.
+  Cron-запись добавлена в data/estate_cron.xml (interval: 1 день).

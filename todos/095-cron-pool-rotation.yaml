@@ -1,0 +1,26 @@
+title: "Cron: еженедельный пересчёт маркетингового пула"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Cron-задача (еженедельно): пересчитывает состав маркетингового пула.
+  На основе скоринга и тир-листов принимает решения:
+  - Скоринг ниже порога → вывод из пула, размещения в removed
+  - Объект продан/снят → вывод из пула
+  - Новый объект с высоким скорингом → уведомление менеджеру
+  Управляет тегом marketing_pool на estate.property.
+
+recommendation: |
+  ir.cron + метод с бизнес-логикой ротации.
+  Пороговые значения — в настройках модуля (ir.config_parameter).
+  Зависит от: 089-scoring-model, 088-tier-list-model, 090-property-tags.
+
+solution: |
+  Реализовано в estate.property:
+  - _cron_rotate_pool(): основной метод крон-задачи (еженедельно)
+  - _pool_remove(prop, pool_tag, reason): вывод из пула + снятие размещений + лог
+  - _pool_suggest_candidates(pool_tag, min_score): поиск кандидатов с высоким скорингом, создание activity
+  Порог: ir.config_parameter "estate_kit.pool_min_score" (default 5).
+  Кандидаты — объекты со средним скорингом >= порог * 1.5.
+  Cron-запись: data/estate_cron.xml (id=cron_rotate_marketing_pool, interval 7 days).

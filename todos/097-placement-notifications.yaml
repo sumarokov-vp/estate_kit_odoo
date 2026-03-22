@@ -1,0 +1,25 @@
+title: "Уведомления через Odoo Bot о размещениях"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Система уведомлений менеджеру через Odoo Bot (Telegram):
+  - Объект в пуле, но не размещён ни на одном канале
+  - Размещение истекает через N дней
+  - Объект снят с пула, но размещения ещё активны
+  - Давно не обновлялось объявление
+
+recommendation: |
+  Реализовать через mail.activity или прямые уведомления Odoo Bot.
+  Триггеры: cron (ежедневный) + события модели (write на state).
+  Зависит от: 087-placement-model, 090-property-tags.
+
+solution: |
+  Добавлен метод _cron_check_placement_notifications на estate.property.placement.
+  Ежедневный cron (cron_check_placement_notifications) вызывает метод и отправляет
+  message_post уведомления ответственному (user_id) на объекте:
+  1. Объект в marketing pool без активных размещений — напоминание опубликовать
+  2. Размещение истекает в ближайшие 3 дня — напоминание продлить
+  3. Объект вне пула с активными размещениями — напоминание снять объявления
+  Файлы: models/estate_property_placement.py, data/estate_cron.xml.
