@@ -1,4 +1,16 @@
 royalestate.smartist.dev {
+	handle /docs/user/* {
+		uri strip_prefix /docs/user
+		root * /srv/docs/user
+		file_server
+	}
+
+	handle /docs/tech/* {
+		uri strip_prefix /docs/tech
+		root * /srv/docs/tech
+		file_server
+	}
+
 	handle /websocket* {
 		reverse_proxy odoo:8072
 	}
