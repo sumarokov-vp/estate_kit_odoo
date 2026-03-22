@@ -273,6 +273,7 @@ class EstateProperty(models.Model):
         """RPC-ручка для скоринга, возвращает результат с цветными кружочками."""
         self.ensure_one()
         scoring = self.env["estate.property.scoring"].score_property(self.id)
+        MarketingPoolFactory.create(self.env, AnthropicClient(self.env)).update_single(self)
         return {
             "price_score": scoring.price_score_color,
             "quality_score": scoring.quality_score_color,
