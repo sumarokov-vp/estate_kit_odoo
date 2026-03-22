@@ -58,11 +58,11 @@ class ResConfigSettings(models.TransientModel):
 
 
     @api.model
-    def get_twogis_api_key(self):
+    def get_yandex_maps_api_key(self):
         return (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("estate_kit.twogis_api_key", "")
+            .get_param("estate_kit.yandex_geocoder_api_key", "")
         )
 
     def action_register_mls(self):

@@ -4,7 +4,7 @@
     .o_location_map_wrapper {
         position: relative;
         width: 100%;
-        height: 400px;
+        height: 500px;
     }
 
     .o_location_map_container {
@@ -37,4 +37,11 @@
         flex-wrap: wrap;
         gap: 0.5rem;
     }
+}
+
+// Make location map field full width in form view
+.o_form_view .o_field_location_map {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 0 0 100% !important;
 }

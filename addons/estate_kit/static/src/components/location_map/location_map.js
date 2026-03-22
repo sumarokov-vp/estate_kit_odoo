@@ -2,10 +2,11 @@
 
 import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl";
 
-const MAPGL_API_URL = "https://mapgl.2gis.com/api/js/v1";
-const GEOCODER_API_URL = "https://catalog.api.2gis.com/3.0/items/geocode";
-const DEFAULT_CENTER = [76.9453, 43.2385]; // Алматы
+const YMAPS_PROXY_URL = "/estate_kit/ymaps.js";
+const DEFAULT_CENTER = [43.2385, 76.9453]; // Алматы [lat, lng]
 const DEFAULT_ZOOM = 12;
+
+let ymapsLoadPromise = null;
 
 export class LocationMap extends Component {
     static template = "estate_kit.LocationMap";
@@ -35,8 +36,8 @@ export class LocationMap extends Component {
 
     async initMap() {
         try {
-            await this.loadMapGLScript();
-            this.createMap();
+            await this.loadYmapsScript();
+            await this.createMap();
             this.state.isLoading = false;
         } catch (error) {
             this.state.error = "Не удалось загрузить карту";
@@ -45,58 +46,82 @@ export class LocationMap extends Component {
         }
     }
 
-    loadMapGLScript() {
-        return new Promise((resolve, reject) => {
-            if (window.mapgl) {
+    loadYmapsScript() {
+        if (ymapsLoadPromise) {
+            return ymapsLoadPromise;
+        }
+
+        ymapsLoadPromise = new Promise((resolve, reject) => {
+            if (window.ymaps3) {
                 resolve();
                 return;
             }
 
             const script = document.createElement("script");
-            script.src = MAPGL_API_URL;
-            script.async = true;
-            script.onload = () => {
-                if (window.mapgl) {
-                    resolve();
+            script.type = "text/javascript";
+            script.src = YMAPS_PROXY_URL;
+            script.onload = async () => {
+                if (window.ymaps3) {
+                    try {
+                        await ymaps3.ready;
+                        resolve();
+                    } catch (e) {
+                        ymapsLoadPromise = null;
+                        reject(e);
+                    }
                 } else {
-                    reject(new Error("MapGL not loaded"));
+                    ymapsLoadPromise = null;
+                    reject(new Error("ymaps3 not available"));
                 }
             };
-            script.onerror = () => reject(new Error("Script load failed"));
+            script.onerror = () => {
+                ymapsLoadPromise = null;
+                reject(new Error("Yandex Maps script load failed"));
+            };
             document.head.appendChild(script);
         });
+
+        return ymapsLoadPromise;
     }
 
-    createMap() {
+    async createMap() {
         if (!this.mapContainer.el) {
             throw new Error("Map container not ready");
         }
 
         const center = this.getCenter();
 
-        this.map = new window.mapgl.Map(this.mapContainer.el, {
-            center: center,
-            zoom: this.hasCoordinates() ? 16 : DEFAULT_ZOOM,
-            key: this.props.apiKey,
+        this.map = new ymaps3.YMap(this.mapContainer.el, {
+            location: {
+                center: [center[1], center[0]], // v3 uses [lng, lat]
+                zoom: this.hasCoordinates() ? 16 : DEFAULT_ZOOM,
+            },
         });
+
+        this.map.addChild(new ymaps3.YMapDefaultSchemeLayer());
+        this.map.addChild(new ymaps3.YMapDefaultFeaturesLayer());
 
         if (this.hasCoordinates()) {
             this.addMarker(center);
         }
 
         if (!this.props.readonly) {
-            this.map.on("click", (ev) => this.onMapClick(ev));
+            const clickHandler = new ymaps3.YMapListener({
+                layer: "any",
+                onClick: (_, event) => {
+                    const coords = event.coordinates; // [lng, lat]
+                    this.onMapClick([coords[1], coords[0]]);
+                },
+            });
+            this.map.addChild(clickHandler);
         }
     }
 
     destroyMap() {
-        if (this.marker) {
-            this.marker.destroy();
-            this.marker = null;
-        }
         if (this.map) {
             this.map.destroy();
             this.map = null;
+            this.marker = null;
         }
     }
 
@@ -106,73 +131,97 @@ export class LocationMap extends Component {
 
     getCenter() {
         if (this.hasCoordinates()) {
-            return [this.props.longitude, this.props.latitude];
+            return [this.props.latitude, this.props.longitude]; // [lat, lng]
         }
         return DEFAULT_CENTER;
     }
 
     addMarker(coords) {
+        // coords = [lat, lng]
         if (this.marker) {
-            this.marker.destroy();
+            this.map.removeChild(this.marker);
         }
 
-        this.marker = new window.mapgl.Marker(this.map, {
-            coordinates: coords,
-        });
+        const el = document.createElement("div");
+        el.style.cssText =
+            "width:24px;height:24px;background:#f00;border-radius:50%;border:3px solid #fff;" +
+            "box-shadow:0 2px 6px rgba(0,0,0,.3);transform:translate(-50%,-50%)";
+
+        this.marker = new ymaps3.YMapMarker(
+            { coordinates: [coords[1], coords[0]] }, // [lng, lat]
+            el
+        );
+        this.map.addChild(this.marker);
     }
 
-    onMapClick(ev) {
+    onMapClick(coords) {
+        // coords = [lat, lng]
         if (this.props.readonly) return;
 
-        const coords = ev.lngLat;
         this.addMarker(coords);
-        this.map.setCenter(coords);
+        this.map.setLocation({
+            center: [coords[1], coords[0]],
+            duration: 300,
+        });
 
         if (this.props.onLocationChange) {
             this.props.onLocationChange({
-                latitude: coords[1],
-                longitude: coords[0],
+                latitude: coords[0],
+                longitude: coords[1],
             });
         }
     }
 
     async onGeocodeClick() {
-        if (!this.props.geoAddress || !this.props.apiKey) return;
+        if (!this.props.geoAddress) return;
 
         this.state.isGeocoding = true;
 
         try {
-            const response = await fetch(
-                `${GEOCODER_API_URL}?q=${encodeURIComponent(this.props.geoAddress)}&key=${this.props.apiKey}&fields=items.point`
-            );
-            const data = await response.json();
+            const resp = await fetch("/estate_kit/geocode", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    method: "call",
+                    params: { address: this.props.geoAddress },
+                }),
+            });
+            const json = await resp.json();
+            const data = json.result;
 
-            if (data.result && data.result.items && data.result.items.length > 0) {
-                const point = data.result.items[0].point;
-                const coords = [point.lon, point.lat];
+            if (data.error) {
+                this.state.error = data.error;
+                setTimeout(() => { this.state.error = null; }, 3000);
+                this.state.isGeocoding = false;
+                return;
+            }
 
-                this.addMarker(coords);
-                this.map.setCenter(coords);
-                this.map.setZoom(16);
+            const featureMember =
+                data.response?.GeoObjectCollection?.featureMember;
+            if (featureMember && featureMember.length > 0) {
+                const pos = featureMember[0].GeoObject.Point.pos.split(" ");
+                const lng = parseFloat(pos[0]);
+                const lat = parseFloat(pos[1]);
+
+                this.addMarker([lat, lng]);
+                this.map.setLocation({
+                    center: [lng, lat],
+                    zoom: 16,
+                    duration: 300,
+                });
 
                 if (this.props.onLocationChange) {
-                    this.props.onLocationChange({
-                        latitude: point.lat,
-                        longitude: point.lon,
-                    });
+                    this.props.onLocationChange({ latitude: lat, longitude: lng });
                 }
             } else {
                 this.state.error = "Адрес не найден";
-                setTimeout(() => {
-                    this.state.error = null;
-                }, 3000);
+                setTimeout(() => { this.state.error = null; }, 3000);
             }
         } catch (error) {
             console.error("Geocoding error:", error);
             this.state.error = "Ошибка геокодирования";
-            setTimeout(() => {
-                this.state.error = null;
-            }, 3000);
+            setTimeout(() => { this.state.error = null; }, 3000);
         }
 
         this.state.isGeocoding = false;
@@ -182,10 +231,12 @@ export class LocationMap extends Component {
         if (!this.map) return;
 
         if (latitude && longitude) {
-            const coords = [longitude, latitude];
-            this.addMarker(coords);
-            this.map.setCenter(coords);
-            this.map.setZoom(16);
+            this.addMarker([latitude, longitude]);
+            this.map.setLocation({
+                center: [longitude, latitude],
+                zoom: 16,
+                duration: 300,
+            });
         }
     }
 }
