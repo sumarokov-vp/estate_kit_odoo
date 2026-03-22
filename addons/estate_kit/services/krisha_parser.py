@@ -162,7 +162,7 @@ class KrishaParser:
             price = self._parse_price(price_text)
 
             items.append({
-                "krisha_id": int(krisha_id),
+                "krisha_id": int(krisha_id if isinstance(krisha_id, str) else krisha_id[0]),
                 "url": f"{BASE_URL}{href}" if href else f"{BASE_URL}/a/show/{krisha_id}",
                 "title": title,
                 "rooms": self._extract_rooms(title),

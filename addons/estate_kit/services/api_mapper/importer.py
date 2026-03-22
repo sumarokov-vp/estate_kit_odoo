@@ -49,15 +49,15 @@ def find_or_create_owner(env, owner_data: dict[str, Any]) -> int | None:
 def import_from_api_data(env, data: dict[str, Any]) -> dict[str, Any]:
     vals: dict[str, Any] = {}
 
-    property_type = API_PROPERTY_TYPE_MAP.get(data.get("property_type_id"))
+    property_type = API_PROPERTY_TYPE_MAP.get(int(data["property_type_id"]) if data.get("property_type_id") else 0)
     if property_type:
         vals["property_type"] = property_type
 
-    deal_type = API_DEAL_TYPE_MAP.get(data.get("deal_type_id"))
+    deal_type = API_DEAL_TYPE_MAP.get(int(data["deal_type_id"]) if data.get("deal_type_id") else 0)
     if deal_type:
         vals["deal_type"] = deal_type
 
-    state = API_STATE_MAP.get(data.get("status_id"))
+    state = API_STATE_MAP.get(int(data["status_id"]) if data.get("status_id") else 0)
     if state:
         vals["state"] = state
 
@@ -142,7 +142,7 @@ def import_location(env, vals: dict[str, Any], location: dict[str, Any]) -> None
 
 def _generate_name(vals: dict[str, Any]) -> str:
     parts = []
-    label = PROPERTY_TYPE_LABELS.get(vals.get("property_type"), "Объект")
+    label = PROPERTY_TYPE_LABELS.get(str(vals.get("property_type") or ""), "Объект")
     parts.append(label)
 
     if vals.get("area_total"):

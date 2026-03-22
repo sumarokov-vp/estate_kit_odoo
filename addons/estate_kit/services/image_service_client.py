@@ -2,7 +2,7 @@ import logging
 
 import grpc
 
-from .generated import image_service_pb2, image_service_pb2_grpc
+from .generated import image_service_pb2, image_service_pb2_grpc  # type: ignore[attr-defined]
 
 _logger = logging.getLogger(__name__)
 
