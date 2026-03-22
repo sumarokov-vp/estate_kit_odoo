@@ -10,6 +10,8 @@ from pathlib import Path
 
 import yaml
 
+IMAGE_TAG = "estate_kit:latest"
+
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
     print(f"→ {' '.join(cmd)}")
@@ -63,29 +65,51 @@ def main() -> None:
 
     deploy, server = load_config()
 
-    image = deploy["image"]
     container = deploy["container"]
     db_name = deploy["db_name"]
-    dockerfile = deploy.get("dockerfile", "build/Dockerfile")
 
     host = server["host"]
     user = server["user"]
     key = os.path.expanduser(server["ssh_key"])
     remote_dir = server["path"]
+    src_dir = f"{remote_dir}/src"
 
     ssh_opts = ["-i", key, "-o", "IdentitiesOnly=yes", "-o", "StrictHostKeyChecking=no"]
     ssh_target = f"{user}@{host}"
 
     if dry_run:
         print("[DRY RUN] Would execute the following steps:")
-        print(f"  1. Build image: docker build --platform linux/amd64 -t {image} -f {dockerfile} .")
-        print(f"  2. Push image: docker push {image}")
-        print(f"  3. SSH deploy on {ssh_target}: pull + down + up")
-        print(f"  4. Update module: odoo -u estate_kit -d {db_name}")
-        print("  5. Restart Odoo and check logs")
+        print(f"  1. rsync sources to {ssh_target}:{src_dir}/")
+        print(f"  2. rsync docker configs to {ssh_target}:{remote_dir}/")
+        print(f"  3. Build image on server: docker build -t {IMAGE_TAG}")
+        print(f"  4. Deploy: docker compose down + up")
+        print(f"  5. Update module: odoo -u estate_kit -d {db_name}")
+        print("  6. Restart Odoo and check logs")
         return
 
-    # 1. Fetch DB credentials from server
+    # 1. Create src directory on server
+    print(f"Creating {src_dir} on server...")
+    ssh_cmd(ssh_opts, ssh_target, f"sudo mkdir -p {src_dir} && sudo chown {user}:{user} {src_dir}")
+
+    # 2. Rsync sources (addons + Dockerfile)
+    print("Syncing sources to server...")
+    run([
+        "rsync", "-az", "--delete",
+        "--filter=:- .rsyncignore",
+        "./", f"{ssh_target}:{src_dir}/",
+        "-e", f"ssh {' '.join(ssh_opts)}",
+    ])
+
+    # 3. Rsync docker configs (compose.yaml, Caddyfile)
+    print("Syncing docker configs...")
+    run([
+        "rsync", "-az",
+        "docker/compose.yaml", "docker/Caddyfile",
+        f"{ssh_target}:{remote_dir}/",
+        "-e", f"ssh {' '.join(ssh_opts)}",
+    ])
+
+    # 4. Fetch DB credentials from server
     print("Fetching DB credentials from server...")
     env_content = ssh_output(ssh_opts, ssh_target, f"sudo cat {remote_dir}/.env")
     env_vars = {}
@@ -105,26 +129,17 @@ def main() -> None:
 
     print(f"DB connection: {db_user}@{db_host}:{db_port}/{db_name}")
 
-    # 2. Build image
-    print("Building Docker image (AMD64)...")
-    run([
-        "docker", "build", "--no-cache", "--platform", "linux/amd64",
-        "-t", image,
-        "-f", dockerfile,
-        ".",
-    ])
-
-    # 3. Push image
-    print("Pushing image to registry...")
-    run(["docker", "push", image])
-
-    # 4. Deploy on server
-    print("Deploying on server...")
-    # Pull only images from registry (skip services with build: context like matching-service)
+    # 5. Build image on server
+    print("Building Docker image on server...")
     ssh_cmd(ssh_opts, ssh_target,
-            f"bash -c 'cd {remote_dir} && sudo docker compose pull odoo caddy && sudo docker compose down && sudo docker compose up -d'")
+            f"sudo docker build -t {IMAGE_TAG} -f {src_dir}/build/Dockerfile {src_dir}")
 
-    # 5. Update module
+    # 6. Deploy
+    print("Deploying...")
+    ssh_cmd(ssh_opts, ssh_target,
+            f"bash -c 'cd {remote_dir} && sudo docker compose down && sudo docker compose up -d'")
+
+    # 7. Update module
     print("Updating estate_kit module...")
     ssh_cmd(ssh_opts, ssh_target,
             f"sudo docker exec {container} odoo "
@@ -132,11 +147,12 @@ def main() -> None:
             f"--db_user={db_user} --db_password={db_password} "
             f"-d {db_name} -u estate_kit --stop-after-init")
 
-    # 6. Restart Odoo
+    # 8. Restart Odoo
     print("Restarting Odoo...")
-    ssh_cmd(ssh_opts, ssh_target, f"bash -c 'cd {remote_dir} && sudo docker compose down odoo && sudo docker compose up -d odoo'")
+    ssh_cmd(ssh_opts, ssh_target,
+            f"bash -c 'cd {remote_dir} && sudo docker compose down odoo && sudo docker compose up -d odoo'")
 
-    # 7. Check logs
+    # 9. Check logs
     print("Checking logs...")
     ssh_cmd(ssh_opts, ssh_target, f"sudo docker logs --tail 20 {container}")
 

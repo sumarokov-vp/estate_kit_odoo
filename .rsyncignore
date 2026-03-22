@@ -1,0 +1,52 @@
+# Secrets and credentials
+.env
+*.env.local
+.claude/devops.yaml
+.claude/settings.local.json
+.ssh/
+.todoist.yaml
+
+# Git
+.git/
+
+# Claude internals
+.claude/
+
+# Python dev
+__pycache__/
+*.py[cod]
+*.pyc
+.venv/
+venv/
+
+# Dev environments
+podman/
+
+# Type stubs (dev only)
+stubs/
+
+# Tests
+hurl/
+
+# Tasks
+todos/
+
+# Documentation (deployed separately)
+docs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build artifacts
+filestore/
+odoo-data/
+
+# Dev files
+.agent-branch
+pyproject.toml
+uv.lock
+CLAUDE.md
+README.md

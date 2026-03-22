@@ -16,7 +16,7 @@ services:
         condition: service_healthy
 
   odoo:
-    image: docker.io/sumarokovvp/simplelogic:estate_kit_amd64
+    image: estate_kit:latest
     restart: unless-stopped
     command:
       - "odoo"
