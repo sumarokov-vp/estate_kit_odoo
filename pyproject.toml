@@ -59,7 +59,12 @@ ignore_missing_imports = false
 [tool.pyright]
 pythonVersion = "3.12"
 include = ["addons/estate_kit"]
+venvPath = "."
+venv = ".venv"
 exclude = [
+    ".venv",
+    ".claude",
+    "addons/estate_kit/__manifest__.py",
     "addons/estate_kit/services/generated",
     "addons/estate_kit/migrations",
 ]
