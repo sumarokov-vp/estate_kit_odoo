@@ -4,6 +4,13 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError
 
 from ..services.anthropic_client import AnthropicClient
+from ..services.marketing_pool import (
+    _COMMON_FIELDS,
+    PROPERTY_TYPE_FIELDS,
+)
+from ..services.marketing_pool import (
+    Factory as MarketingPoolFactory,
+)
 
 _logger = logging.getLogger(__name__)
 
@@ -78,8 +85,8 @@ class EstatePropertyScoring(models.Model):
         if not prop.exists():
             raise UserError("Объект не найден.")
 
-        client = AnthropicClient(self.env)
-        if not client.is_configured:
+        service = MarketingPoolFactory.create(self.env, AnthropicClient(self.env))
+        if not service.is_configured:
             raise UserError(
                 "API-ключ Anthropic не настроен. "
                 "Перейдите в Настройки → Estate Kit → AI-скоринг."
@@ -91,10 +98,9 @@ class EstatePropertyScoring(models.Model):
         property_data = self._collect_property_data(prop)
         # Build details from the actual user message sent to AI
         detail_parts = [
-            "model=%s" % client.model,
+            "model=%s" % service.model,
             "промпт=%s" % prop.property_type,
         ]
-        from ..services.anthropic_client import _COMMON_FIELDS, PROPERTY_TYPE_FIELDS
         all_fields = _COMMON_FIELDS + PROPERTY_TYPE_FIELDS.get(prop.property_type, [])
         for key, label, _optional in all_fields:
             value = property_data.get(key)
@@ -108,7 +114,7 @@ class EstatePropertyScoring(models.Model):
         )
         self.env.cr.commit()
 
-        result = client.score_property(property_data)
+        result = service.score_property(property_data)
         if result is None:
             Log.log(
                 CAT,
