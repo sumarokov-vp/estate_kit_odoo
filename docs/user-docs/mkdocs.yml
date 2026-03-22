@@ -30,3 +30,5 @@ nav:
     - Тир-листы: marketing/tier-lists.md
     - AI-скоринг: marketing/scoring.md
     - Бюджетирование: marketing/budgeting.md
+  - Система:
+    - Логи: system/logs.md
