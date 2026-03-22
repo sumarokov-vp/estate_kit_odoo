@@ -24,6 +24,8 @@ __pycache__/
 .Python
 *.egg-info/
 .eggs/
+.venv/
+venv/
 
 # Odoo
 *.pyc
@@ -41,3 +43,7 @@ odoo-data/
 
 # Todoist
 .todoist.yaml
+
+# MkDocs
+docs/*/site/
+docs/*/.venv/
