@@ -1,0 +1,14 @@
+title: "Вывод marketing_pool_score на вкладке Маркетинг"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  На вкладке «Маркетинг» рядом с кнопкой «Рассчитать скоринг» вывести MPS.
+
+recommendation: |
+  Добавить field marketing_pool_score_display рядом с кнопкой.
+
+solution: |
+  Кнопка «Рассчитать скоринг» и поле marketing_pool_score_display обёрнуты в
+  div.d-flex для горизонтального расположения на вкладке «Маркетинг» формы объекта.

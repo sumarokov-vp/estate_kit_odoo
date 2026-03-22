@@ -1,0 +1,19 @@
+title: "Обновить cron ротации пула под новую формулу"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Обновить _cron_rotate_pool() для использования marketing_pool_score.
+
+recommendation: |
+  Рефакторинг существующего метода.
+
+solution: |
+  Переписан _cron_rotate_pool():
+  - Вызывает action_calculate_pool_score() для пересчёта MPS
+  - Исключение: по неактивному статусу, avg_ai < min, MPS < T_exclude
+  - Защита: _is_pool_protected() — тим-лид priority<=5 или лиды на размещениях
+  - Включение: кандидаты с MPS >= T_include и avg_ai >= min, отсортированные по MPS
+  - Автоматическое добавление тега + message_post
+  Удалён метод _pool_suggest_candidates() — логика включена в _cron_rotate_pool().

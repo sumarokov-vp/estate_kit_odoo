@@ -1,0 +1,17 @@
+title: "Метод расчёта Marketing Pool Score"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Реализовать двухфазный расчёт marketing_pool_score.
+
+recommendation: |
+  Метод action_calculate_pool_score() на estate.property.
+
+solution: |
+  Реализовано в estate_property.py:
+  - action_calculate_pool_score(): двухфазный расчёт MPS для всех активных объектов
+  - _ensure_fresh_scoring(properties): фаза 1 — AI-скоринг для объектов без свежего скоринга (14 дней)
+  - _calc_tier_bonus(prop): расчёт tier_bonus с учётом роли и приоритета
+  Веса и пороги берутся из ir.config_parameter.

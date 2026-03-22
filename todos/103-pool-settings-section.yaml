@@ -1,0 +1,18 @@
+title: "Секция настроек маркетингового пула в Settings"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Добавить блок «Маркетинговый пул» в Settings → Estate Kit.
+
+recommendation: |
+  Добавить поля в res_config_settings.py, блок в view, валидацию весов.
+
+solution: |
+  Добавлено в res_config_settings.py:
+  - 6 полей с config_parameter (pool_max_size, pool_min_avg_scoring,
+    pool_inclusion_threshold, pool_exclusion_threshold, pool_scoring_weight, pool_tier_weight)
+  - Constrains _check_pool_weights_sum: сумма весов = 1.0
+  Добавлено в res_config_settings_views.xml:
+  - Блок «Маркетинговый пул» с двумя setting: «Размер и пороги» и «Веса формулы»

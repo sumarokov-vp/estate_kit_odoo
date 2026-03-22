@@ -1,0 +1,20 @@
+title: "Поля marketing_pool_score на estate.property"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Добавить два поля на модель estate.property:
+  - marketing_pool_score (Float) — числовое значение для расчётов и сортировки
+  - marketing_pool_score_display (Char) — строка для отображения:
+    🟢 7.4 (22.03.2026 14:30) / 🟡 5.2 (...) / 🔴 3.1 (...)
+  Цвета: 🟢 >= порога включения, 🟡 зона гистерезиса, 🔴 < порога исключения.
+
+recommendation: |
+  marketing_pool_score — обычный Float, не computed (записывается при расчёте).
+  marketing_pool_score_display — обычный Char, не computed (записывается при расчёте).
+
+solution: |
+  Добавлены поля в estate_property.py в секции "Маркетинг":
+  - marketing_pool_score: Float(digits=(4,1), copy=False)
+  - marketing_pool_score_display: Char(copy=False)

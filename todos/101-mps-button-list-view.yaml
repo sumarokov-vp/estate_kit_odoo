@@ -1,0 +1,15 @@
+title: "Кнопка «Рассчитать пул» в списке объектов"
+status: done
+created_at: 22.03.2026
+completed_at: 22.03.2026
+
+description: |
+  Заменить пункт меню «Парсить Krisha.kz» на кнопку «Рассчитать пул» в list view.
+
+recommendation: |
+  Удалить menuitem estate_menu_krisha_parser, добавить header button в list view.
+
+solution: |
+  - Удалён menuitem estate_menu_krisha_parser из estate_menus.xml
+  - Добавлена header button "Рассчитать пул" в list view (groups: marketing_manager)
+  - Добавлена колонка marketing_pool_score_display (optional="show") в list view

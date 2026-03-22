@@ -1,0 +1,11 @@
+id: 105
+title: "Исправить права на Caddyfile при деплое документации"
+status: todo
+priority: low
+created: 22.03.2026
+context: |
+  При деплое документации скрипт deploy-docs.py пытается скопировать Caddyfile
+  напрямую через rsync в /opt/odoo/Caddyfile, но файл принадлежит root.
+  Обходной путь — копировать во /tmp/, затем sudo mv.
+  Нужно либо: обновить скрипт деплоя (использовать /tmp/ + sudo mv),
+  либо настроить права на сервере (chown sumarokov /opt/odoo/Caddyfile).
