@@ -43,7 +43,7 @@ def load_config() -> dict:
 def build_site(site_dir: str) -> Path:
     site_path = Path(site_dir)
     print(f"\nBuilding {site_path}...")
-    run(["uv", "run", "--directory", site_dir, "mkdocs", "build"])
+    run(["uv", "run", "mkdocs", "build", "-f", f"{site_dir}/mkdocs.yml"])
     return site_path / "site"
 
 
