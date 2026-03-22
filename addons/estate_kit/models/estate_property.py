@@ -252,6 +252,23 @@ class EstateProperty(models.Model):
     def action_fix_rejected(self):
         self._transition_state("rejected", "internal_review", "Исправить можно только отклонённый объект.")
 
+    def action_score_property(self):
+        self.ensure_one()
+        scoring = self.env["estate.property.scoring"].score_property(self.id)
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "message": (
+                    f"AI-скоринг рассчитан: цена {scoring.price_score}/10, "
+                    f"качество {scoring.quality_score}/10, "
+                    f"маркетинг {scoring.marketing_score}/10"
+                ),
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
     def _build_address_parts(self, include_district=True):
         self.ensure_one()
         parts = []
@@ -491,6 +508,10 @@ class EstateProperty(models.Model):
         "estate.appliance",
         string="Бытовая техника",
     )
+    tag_ids = fields.Many2many(
+        "estate.property.tag",
+        string="Теги",
+    )
     not_corner = fields.Boolean(string="Не угловая")
     isolated_rooms = fields.Boolean(string="Изолированные комнаты")
     storage = fields.Boolean(string="Кладовка")
@@ -605,6 +626,18 @@ class EstateProperty(models.Model):
         string="Заблокирован другим агентством",
         default=False,
         copy=False,
+    )
+
+    # === Маркетинг ===
+    placement_ids = fields.One2many(
+        "estate.property.placement",
+        "property_id",
+        string="Размещения",
+    )
+    scoring_ids = fields.One2many(
+        "estate.property.scoring",
+        "property_id",
+        string="AI-скоринг",
     )
 
     # === Медиа ===
@@ -800,4 +833,142 @@ class EstateProperty(models.Model):
             })
 
         return results
+
+    @api.model
+    def _cron_create_callback_activities(self):
+        """Create monthly callback activities for properties in marketing pool."""
+        marketing_tag = self.env.ref(
+            "estate_kit.property_tag_marketing_pool", raise_if_not_found=False
+        )
+        if not marketing_tag:
+            _logger.warning("Marketing Pool tag not found, skipping callback cron")
+            return
+
+        properties = self.search([("tag_ids", "in", marketing_tag.ids)])
+        if not properties:
+            return
+
+        activity_type = self.env.ref("mail.mail_activity_data_todo")
+        model_id = self.env["ir.model"]._get_id("estate.property")
+        note = (
+            "<ul>"
+            "<li>Объект ещё в продаже?</li>"
+            "<li>Изменилась ли цена?</li>"
+            "<li>Есть ли обновления по объекту?</li>"
+            "</ul>"
+        )
+
+        for prop in properties:
+            responsible_user = prop.user_id or prop.listing_agent_id
+            if not responsible_user:
+                continue
+            self.env["mail.activity"].create({
+                "activity_type_id": activity_type.id,
+                "summary": "Обзвон: проверка актуальности",
+                "note": note,
+                "res_model_id": model_id,
+                "res_id": prop.id,
+                "user_id": responsible_user.id,
+            })
+
+        _logger.info(
+            "Callback activities created for %d properties in marketing pool",
+            len(properties),
+        )
+
+    # === Cron: ротация маркетингового пула ===
+
+    POOL_INACTIVE_STATES = ("sold", "unpublished", "archived", "mls_sold", "mls_removed")
+
+    @api.model
+    def _cron_rotate_pool(self):
+        """Weekly rotation of the marketing pool based on scoring and property state."""
+        pool_tag = self.env.ref(
+            "estate_kit.property_tag_marketing_pool", raise_if_not_found=False
+        )
+        if not pool_tag:
+            _logger.warning("Marketing pool tag not found, skipping rotation.")
+            return
+
+        min_score = int(
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("estate_kit.pool_min_score", "5")
+        )
+
+        pool_properties = self.search([("tag_ids", "in", pool_tag.id)])
+
+        for prop in pool_properties:
+            if prop.state in self.POOL_INACTIVE_STATES:
+                self._pool_remove(prop, pool_tag, "Объект в статусе «%s»" % prop.state)
+                continue
+
+            latest_scoring = prop.scoring_ids[:1]
+            if latest_scoring:
+                avg_score = (
+                    latest_scoring.price_score
+                    + latest_scoring.quality_score
+                    + latest_scoring.marketing_score
+                ) / 3.0
+                if avg_score < min_score:
+                    self._pool_remove(
+                        prop,
+                        pool_tag,
+                        "Средний скоринг %.1f ниже порога %d" % (avg_score, min_score),
+                    )
+
+        self._pool_suggest_candidates(pool_tag, min_score)
+
+    def _pool_remove(self, prop, pool_tag, reason):
+        """Remove property from marketing pool and set active placements to removed."""
+        prop.tag_ids -= pool_tag
+        active_placements = prop.placement_ids.filtered(
+            lambda p: p.state in ("draft", "active", "paused")
+        )
+        if active_placements:
+            active_placements.write({"state": "removed"})
+        prop.message_post(
+            body="Выведен из маркетингового пула: %s" % reason,
+            message_type="comment",
+            subtype_xmlid="mail.mt_note",
+        )
+        _logger.info("Property %s removed from pool: %s", prop.id, reason)
+
+    @api.model
+    def _pool_suggest_candidates(self, pool_tag, min_score):
+        """Find high-scoring properties not in pool and notify via activity."""
+        Scoring = self.env["estate.property.scoring"]
+        recent_scorings = Scoring.search([], order="scored_at desc")
+
+        seen_property_ids = set()
+        candidates = self.env["estate.property"]
+        for scoring in recent_scorings:
+            pid = scoring.property_id.id
+            if pid in seen_property_ids:
+                continue
+            seen_property_ids.add(pid)
+            avg = (
+                scoring.price_score + scoring.quality_score + scoring.marketing_score
+            ) / 3.0
+            if avg >= min_score * 1.5:
+                prop = scoring.property_id
+                if (
+                    pool_tag not in prop.tag_ids
+                    and prop.state not in self.POOL_INACTIVE_STATES
+                ):
+                    candidates |= prop
+
+        for prop in candidates:
+            latest = prop.scoring_ids[:1]
+            avg = (
+                latest.price_score + latest.quality_score + latest.marketing_score
+            ) / 3.0
+            prop.activity_schedule(
+                act_type_xmlid="mail.mail_activity_data_todo",
+                summary="Кандидат в маркетинговый пул",
+                note="Средний скоринг: %.1f. Рассмотрите включение в пул." % avg,
+            )
+            _logger.info(
+                "Property %s suggested for pool (avg score: %.1f)", prop.id, avg
+            )
 

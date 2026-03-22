@@ -1,4 +1,5 @@
 from . import (
+    anthropic_client,
     api_client,
     api_mapper,
     duplicate_checker,

@@ -160,4 +160,31 @@
         <field name="perm_create" eval="False"/>
         <field name="perm_unlink" eval="False"/>
     </record>
+
+    <!-- ============================================================ -->
+    <!-- Record Rules для estate.property.tier                       -->
+    <!-- ============================================================ -->
+
+    <record id="rule_tier_team_lead" model="ir.rule">
+        <field name="name">Team Lead: все тир-листы</field>
+        <field name="model_id" ref="model_estate_property_tier"/>
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4, ref('group_estate_team_lead'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
+    <record id="rule_tier_listing_agent" model="ir.rule">
+        <field name="name">Listing Agent: только свой тир-лист</field>
+        <field name="model_id" ref="model_estate_property_tier"/>
+        <field name="domain_force">[('user_id','=',user.id)]</field>
+        <field name="groups" eval="[(4, ref('group_estate_listing_agent'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+
 </odoo>

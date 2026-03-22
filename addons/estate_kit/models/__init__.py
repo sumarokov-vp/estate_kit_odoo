@@ -7,8 +7,12 @@ from . import estate_property_webhook_mixin  # must be before estate_property (i
 from . import estate_property
 from . import estate_source
 from . import estate_property_image
+from . import estate_property_placement
 from . import crm_lead
 from . import res_partner
 from . import res_users
 from . import res_config_settings
+from . import estate_property_scoring
+from . import estate_property_tag
+from . import estate_property_tier
 from . import estatekit_webhook_event

@@ -37,6 +37,14 @@ class ResConfigSettings(models.TransientModel):
         string="URL API",
         config_parameter="estate_kit.api_url",
     )
+    estate_kit_anthropic_api_key = fields.Char(
+        string="API-ключ Anthropic",
+        config_parameter="estate_kit.anthropic_api_key",
+    )
+    estate_kit_anthropic_model = fields.Char(
+        string="Модель Anthropic",
+        config_parameter="estate_kit.anthropic_model",
+    )
     estate_kit_is_registered = fields.Boolean(
         string="Зарегистрирован",
         compute="_compute_is_registered",

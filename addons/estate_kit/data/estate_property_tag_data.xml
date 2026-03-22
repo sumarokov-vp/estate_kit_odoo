@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="property_tag_marketing_pool" model="estate.property.tag">
+        <field name="name">Marketing Pool</field>
+        <field name="color">10</field>
+    </record>
+</odoo>
