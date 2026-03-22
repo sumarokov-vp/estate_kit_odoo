@@ -85,9 +85,40 @@ class EstatePropertyScoring(models.Model):
                 "Перейдите в Настройки → Estate Kit → AI-скоринг."
             )
 
+        Log = self.env["estate.kit.log"]
+        CAT = "ai_scoring"
+
         property_data = self._collect_property_data(prop)
+        Log.log(
+            CAT,
+            "Запрос AI-скоринга: %s" % prop.name,
+            details="model=%s, тип=%s, сделка=%s, цена=%s, площадь=%s м², "
+                    "комнат=%s, этаж=%s, город=%s, район=%s, фото=%s"
+                    % (
+                        client.model,
+                        property_data.get("property_type", "—"),
+                        property_data.get("deal_type", "—"),
+                        property_data.get("price", "—"),
+                        property_data.get("area_total", "—"),
+                        property_data.get("rooms", "—"),
+                        property_data.get("floor", "—"),
+                        property_data.get("city", "—"),
+                        property_data.get("district", "—"),
+                        property_data.get("photo_count", "—"),
+                    ),
+            property_id=prop.id,
+        )
+        self.env.cr.commit()
+
         result = client.score_property(property_data)
         if result is None:
+            Log.log(
+                CAT,
+                "Ошибка AI-скоринга: %s" % prop.name,
+                level="error",
+                property_id=prop.id,
+            )
+            self.env.cr.commit()
             raise UserError(
                 "Не удалось получить оценку от AI. Проверьте логи сервера."
             )
@@ -99,6 +130,15 @@ class EstatePropertyScoring(models.Model):
             "listing_score": result["listing_score"],
             "rationale": result["rationale"],
         })
+        Log.log(
+            CAT,
+            "Ответ AI-скоринга: %s → price=%d, quality=%d, listing=%d"
+            % (prop.name, scoring.price_score, scoring.quality_score, scoring.listing_score),
+            details=result.get("rationale", ""),
+            property_id=prop.id,
+        )
+        self.env.cr.commit()
+
         _logger.info(
             "AI scoring created for property %s: price=%s quality=%s listing=%s",
             prop.id,

@@ -5,6 +5,7 @@ from odoo.exceptions import UserError, ValidationError
 
 from ..services.api_client import EstateKitApiClient
 from ..services.image_sync_service import ImageSyncService
+from ..services.pool_score_service import PoolScoreService
 from ..services.property_sync_service import PropertySyncService
 
 _logger = logging.getLogger(__name__)
@@ -94,18 +95,21 @@ class EstateProperty(models.Model):
     area_total = fields.Float(string="Общая площадь (м²)")
 
     # === Адрес ===
+    city_id: fields.Many2one
     city_id = fields.Many2one(
         "estate.city",
         string="Город",
         default=lambda self: self._default_city(),
         tracking=True,
     )
+    district_id: fields.Many2one
     district_id = fields.Many2one(
         "estate.district",
         string="Район",
         domain="[('city_id', '=', city_id)]",
         tracking=True,
     )
+    street_id: fields.Many2one
     street_id = fields.Many2one(
         "estate.street",
         string="Улица",
@@ -254,7 +258,8 @@ class EstateProperty(models.Model):
 
     def action_score_property(self):
         self.ensure_one()
-        scoring = self.env["estate.property.scoring"].score_property(self.id)
+        self.env["estate.property.scoring"].score_property(self.id)
+        PoolScoreService(self.env).update_single(self)
         return {
             "type": "ir.actions.act_window",
             "res_model": self._name,
@@ -263,15 +268,29 @@ class EstateProperty(models.Model):
             "target": "current",
         }
 
-    def _build_address_parts(self, include_district=True):
+    def rpc_score_property(self):
+        """RPC-ручка для скоринга, возвращает результат с цветными кружочками."""
         self.ensure_one()
-        parts = []
-        if self.city_id:
-            parts.append(self.city_id.name)
-        if include_district and self.district_id:
-            parts.append(self.district_id.name)
-        if self.street_id:
-            parts.append(self.street_id.name)
+        scoring = self.env["estate.property.scoring"].score_property(self.id)
+        return {
+            "price_score": scoring.price_score_color,
+            "quality_score": scoring.quality_score_color,
+            "listing_score": scoring.listing_score_color,
+            "rationale": scoring.rationale,
+        }
+
+    def _build_address_parts(self, include_district: bool = True) -> list[str]:
+        self.ensure_one()
+        parts: list[str] = []
+        city = self.city_id  # type: ignore[assignment]
+        if city:
+            parts.append(str(city.name))
+        district = self.district_id  # type: ignore[assignment]
+        if include_district and district:
+            parts.append(str(district.name))
+        street = self.street_id  # type: ignore[assignment]
+        if street:
+            parts.append(str(street.name))
         if self.house_number:
             parts.append(self.house_number)
         return parts
@@ -293,10 +312,12 @@ class EstateProperty(models.Model):
 
     @api.onchange("city_id")
     def _onchange_city_id(self):
-        if self.district_id and self.district_id.city_id != self.city_id:
-            self.district_id = False
-        if self.street_id and self.street_id.city_id != self.city_id:
-            self.street_id = False
+        district = self.district_id  # type: ignore[assignment]
+        if district and district.city_id != self.city_id:
+            self.district_id = False  # type: ignore[assignment]
+        street = self.street_id  # type: ignore[assignment]
+        if street and street.city_id != self.city_id:
+            self.street_id = False  # type: ignore[assignment]
 
     def action_detect_district(self):
         from ..services.geocoder import YandexGeocoder
@@ -642,6 +663,15 @@ class EstateProperty(models.Model):
         string="В моём тир-листе",
         compute="_compute_in_my_tier_list",
     )
+    marketing_pool_score = fields.Float(
+        string="Marketing Pool Score",
+        digits=(4, 1),
+        copy=False,
+    )
+    marketing_pool_score_display = fields.Char(
+        string="MPS",
+        copy=False,
+    )
 
     @api.depends("tier_ids", "tier_ids.user_id")
     def _compute_in_my_tier_list(self):
@@ -712,6 +742,38 @@ class EstateProperty(models.Model):
                 f"Сначала добавьте другой объект."
             )
         existing.unlink()
+
+    # === Marketing Pool Score ===
+
+    @api.model
+    def action_calculate_pool_score_async(self):
+        """Launch pool score calculation asynchronously in a separate thread."""
+        import threading
+
+        uid = self.env.uid
+
+        def _run():
+            with self.pool.cursor() as cr:
+                env = api.Environment(cr, uid, {})
+                PoolScoreService(env).calculate_all()
+
+        thread = threading.Thread(target=_run, daemon=True)
+        thread.start()
+        _logger.info("Pool score calculation started in background thread")
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "message": "Расчёт пула запущен в фоне",
+                "type": "info",
+                "sticky": False,
+            },
+        }
+
+    @api.model
+    def _do_calculate_pool_score(self):
+        """Calculate marketing_pool_score for all active properties."""
+        PoolScoreService(self.env).calculate_all()
 
     # === Медиа ===
     image_ids = fields.One2many(
@@ -889,8 +951,8 @@ class EstateProperty(models.Model):
                 "id": item.get("id", 0),
                 "source": "mls",
                 "mls_id": item.get("id", 0),
-                "property_type": API_PROPERTY_TYPE_MAP.get(prop_type_obj.get("id"), ""),
-                "deal_type": API_DEAL_TYPE_MAP.get(deal_type_obj.get("id"), ""),
+                "property_type": API_PROPERTY_TYPE_MAP.get(int(prop_type_obj["id"]) if prop_type_obj.get("id") else 0, ""),
+                "deal_type": API_DEAL_TYPE_MAP.get(int(deal_type_obj["id"]) if deal_type_obj.get("id") else 0, ""),
                 "city": city_obj.get("name", ""),
                 "district": district_obj.get("name", ""),
                 "address": "",
@@ -955,7 +1017,7 @@ class EstateProperty(models.Model):
 
     @api.model
     def _cron_rotate_pool(self):
-        """Weekly rotation of the marketing pool based on scoring and property state."""
+        """Weekly rotation of the marketing pool based on MPS and property state."""
         pool_tag = self.env.ref(
             "estate_kit.property_tag_marketing_pool", raise_if_not_found=False
         )
@@ -963,34 +1025,95 @@ class EstateProperty(models.Model):
             _logger.warning("Marketing pool tag not found, skipping rotation.")
             return
 
-        min_score = int(
-            self.env["ir.config_parameter"]
-            .sudo()
-            .get_param("estate_kit.pool_min_score", "5")
-        )
+        get_param = self.env["ir.config_parameter"].sudo().get_param
+        min_price = int(get_param("estate_kit.pool_min_price_score", "3"))
+        min_quality = int(get_param("estate_kit.pool_min_quality_score", "3"))
+        min_listing = int(get_param("estate_kit.pool_min_listing_score", "3"))
+        t_include = float(get_param("estate_kit.pool_inclusion_threshold", "7.0"))
+        t_exclude = float(get_param("estate_kit.pool_exclusion_threshold", "4.0"))
+        pool_max = int(get_param("estate_kit.pool_max_size", "100"))
 
+        service = PoolScoreService(self.env)
+
+        # Recalculate MPS for all active properties
+        service.calculate_all()
+
+        # Phase: exclude from pool
         pool_properties = self.search([("tag_ids", "in", pool_tag.id)])
-
         for prop in pool_properties:
             if prop.state in self.POOL_INACTIVE_STATES:
                 self._pool_remove(prop, pool_tag, "Объект в статусе «%s»" % prop.state)
                 continue
 
-            latest_scoring = prop.scoring_ids[:1]
-            if latest_scoring:
-                avg_score = (
-                    latest_scoring.price_score
-                    + latest_scoring.quality_score
-                    + latest_scoring.listing_score
-                ) / 3.0
-                if avg_score < min_score:
+            latest = prop.scoring_ids[:1]
+            if latest and service.scores_below_threshold(latest, min_price, min_quality, min_listing):
+                self._pool_remove(
+                    prop, pool_tag,
+                    "AI-скоринг ниже порога: price=%d quality=%d listing=%d"
+                    % (latest.price_score, latest.quality_score, latest.listing_score),
+                )
+                continue
+
+            mps = prop.marketing_pool_score
+            if mps < t_exclude:
+                if self._is_pool_protected(prop):
+                    prop.activity_schedule(
+                        act_type_xmlid="mail.mail_activity_data_todo",
+                        summary="MPS ниже порога — проверьте",
+                        note="Marketing Pool Score: %.1f (порог: %.1f). "
+                             "Объект защищён от исключения." % (mps, t_exclude),
+                    )
+                else:
                     self._pool_remove(
-                        prop,
-                        pool_tag,
-                        "Средний скоринг %.1f ниже порога %d" % (avg_score, min_score),
+                        prop, pool_tag,
+                        "MPS %.1f ниже порога %.1f" % (mps, t_exclude),
                     )
 
-        self._pool_suggest_candidates(pool_tag, min_score)
+        # Phase: include candidates
+        pool_count = self.search_count([("tag_ids", "in", pool_tag.id)])
+        free_slots = pool_max - pool_count
+        if free_slots <= 0:
+            return
+
+        candidates = self.search([
+            ("tag_ids", "not in", pool_tag.ids),
+            ("state", "not in", list(self.POOL_INACTIVE_STATES)),
+            ("marketing_pool_score", ">=", t_include),
+        ], order="marketing_pool_score desc", limit=free_slots)
+
+        for prop in candidates:
+            latest = prop.scoring_ids[:1]
+            if not latest:
+                continue
+            if service.scores_below_threshold(latest, min_price, min_quality, min_listing):
+                continue
+
+            prop.tag_ids += pool_tag
+            prop.message_post(
+                body="Включён в маркетинговый пул (MPS: %.1f)" % prop.marketing_pool_score,
+                message_type="comment",
+                subtype_xmlid="mail.mt_note",
+            )
+            _logger.info("Property %s added to pool (MPS: %.1f)", prop.id, prop.marketing_pool_score)
+
+    def _is_pool_protected(self, prop):
+        """Check if property is protected from pool exclusion."""
+        get_param = self.env["ir.config_parameter"].sudo().get_param
+        protect_priority = int(get_param("estate_kit.tier_lead_protection_priority", "5"))
+
+        # Team lead with high priority
+        lead_tiers = prop.tier_ids.filtered(lambda t: t.role == "team_lead")
+        if lead_tiers and min(t.priority for t in lead_tiers) <= protect_priority:
+            return True
+
+        # Active placements with leads
+        active_with_leads = prop.placement_ids.filtered(
+            lambda p: p.state == "active" and p.leads_count > 0
+        )
+        if active_with_leads:
+            return True
+
+        return False
 
     def _pool_remove(self, prop, pool_tag, reason):
         """Remove property from marketing pool and set active placements to removed."""
@@ -1007,41 +1130,4 @@ class EstateProperty(models.Model):
         )
         _logger.info("Property %s removed from pool: %s", prop.id, reason)
 
-    @api.model
-    def _pool_suggest_candidates(self, pool_tag, min_score):
-        """Find high-scoring properties not in pool and notify via activity."""
-        Scoring = self.env["estate.property.scoring"]
-        recent_scorings = Scoring.search([], order="scored_at desc")
-
-        seen_property_ids = set()
-        candidates = self.env["estate.property"]
-        for scoring in recent_scorings:
-            pid = scoring.property_id.id
-            if pid in seen_property_ids:
-                continue
-            seen_property_ids.add(pid)
-            avg = (
-                scoring.price_score + scoring.quality_score + scoring.listing_score
-            ) / 3.0
-            if avg >= min_score * 1.5:
-                prop = scoring.property_id
-                if (
-                    pool_tag not in prop.tag_ids
-                    and prop.state not in self.POOL_INACTIVE_STATES
-                ):
-                    candidates |= prop
-
-        for prop in candidates:
-            latest = prop.scoring_ids[:1]
-            avg = (
-                latest.price_score + latest.quality_score + latest.listing_score
-            ) / 3.0
-            prop.activity_schedule(
-                act_type_xmlid="mail.mail_activity_data_todo",
-                summary="Кандидат в маркетинговый пул",
-                note="Средний скоринг: %.1f. Рассмотрите включение в пул." % avg,
-            )
-            _logger.info(
-                "Property %s suggested for pool (avg score: %.1f)", prop.id, avg
-            )
 
