@@ -256,12 +256,9 @@
                                     string="Рассчитать скоринг" class="btn-primary mb-3"/>
                             <field name="scoring_ids" readonly="1">
                                 <list>
-                                    <field name="price_score" widget="progressbar"
-                                           options="{'max_value': 10}"/>
-                                    <field name="quality_score" widget="progressbar"
-                                           options="{'max_value': 10}"/>
-                                    <field name="marketing_score" widget="progressbar"
-                                           options="{'max_value': 10}"/>
+                                    <field name="price_score_color"/>
+                                    <field name="quality_score_color"/>
+                                    <field name="listing_score_color"/>
                                     <field name="rationale"/>
                                     <field name="scored_at"/>
                                 </list>

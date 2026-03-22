@@ -256,17 +256,11 @@ class EstateProperty(models.Model):
         self.ensure_one()
         scoring = self.env["estate.property.scoring"].score_property(self.id)
         return {
-            "type": "ir.actions.client",
-            "tag": "display_notification",
-            "params": {
-                "message": (
-                    f"AI-скоринг рассчитан: цена {scoring.price_score}/10, "
-                    f"качество {scoring.quality_score}/10, "
-                    f"маркетинг {scoring.marketing_score}/10"
-                ),
-                "type": "success",
-                "sticky": False,
-            },
+            "type": "ir.actions.act_window",
+            "res_model": self._name,
+            "res_id": self.id,
+            "views": [[False, "form"]],
+            "target": "current",
         }
 
     def _build_address_parts(self, include_district=True):
@@ -987,7 +981,7 @@ class EstateProperty(models.Model):
                 avg_score = (
                     latest_scoring.price_score
                     + latest_scoring.quality_score
-                    + latest_scoring.marketing_score
+                    + latest_scoring.listing_score
                 ) / 3.0
                 if avg_score < min_score:
                     self._pool_remove(
@@ -1027,7 +1021,7 @@ class EstateProperty(models.Model):
                 continue
             seen_property_ids.add(pid)
             avg = (
-                scoring.price_score + scoring.quality_score + scoring.marketing_score
+                scoring.price_score + scoring.quality_score + scoring.listing_score
             ) / 3.0
             if avg >= min_score * 1.5:
                 prop = scoring.property_id
@@ -1040,7 +1034,7 @@ class EstateProperty(models.Model):
         for prop in candidates:
             latest = prop.scoring_ids[:1]
             avg = (
-                latest.price_score + latest.quality_score + latest.marketing_score
+                latest.price_score + latest.quality_score + latest.listing_score
             ) / 3.0
             prop.activity_schedule(
                 act_type_xmlid="mail.mail_activity_data_todo",

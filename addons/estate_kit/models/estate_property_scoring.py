@@ -41,11 +41,36 @@ class EstatePropertyScoring(models.Model):
         ondelete="cascade",
         index=True,
     )
-    price_score = fields.Integer(string="Оценка цены (1-10)")
-    quality_score = fields.Integer(string="Оценка качества (1-10)")
-    marketing_score = fields.Integer(string="Маркетинговый балл (1-10)")
+    price_score = fields.Integer(string="Цена (балл)")
+    quality_score = fields.Integer(string="Качество (балл)")
+    listing_score = fields.Integer(string="Карточка (балл)")
+    price_score_color = fields.Char(
+        string="Цена", compute="_compute_score_color",
+    )
+    quality_score_color = fields.Char(
+        string="Качество", compute="_compute_score_color",
+    )
+    listing_score_color = fields.Char(
+        string="Карточка", compute="_compute_score_color",
+    )
     rationale = fields.Text(string="Обоснование")
     scored_at = fields.Datetime(string="Дата оценки", default=fields.Datetime.now)
+
+    @api.depends("price_score", "quality_score", "listing_score")
+    def _compute_score_color(self):
+        for rec in self:
+            rec.price_score_color = self._score_to_color(rec.price_score)
+            rec.quality_score_color = self._score_to_color(rec.quality_score)
+            rec.listing_score_color = self._score_to_color(rec.listing_score)
+
+    @staticmethod
+    def _score_to_color(score):
+        """Return score with color emoji: red (1-3), yellow (4-6), green (7-10)."""
+        if score <= 3:
+            return f"🔴 {score}/10"
+        if score <= 6:
+            return f"🟡 {score}/10"
+        return f"🟢 {score}/10"
 
     @api.model
     def score_property(self, property_id):
@@ -71,23 +96,27 @@ class EstatePropertyScoring(models.Model):
             "property_id": prop.id,
             "price_score": result["price_score"],
             "quality_score": result["quality_score"],
-            "marketing_score": result["marketing_score"],
+            "listing_score": result["listing_score"],
             "rationale": result["rationale"],
         })
         _logger.info(
-            "AI scoring created for property %s: price=%s quality=%s marketing=%s",
+            "AI scoring created for property %s: price=%s quality=%s listing=%s",
             prop.id,
             scoring.price_score,
             scoring.quality_score,
-            scoring.marketing_score,
+            scoring.listing_score,
         )
         return scoring
 
     def _collect_property_data(self, prop):
+        price_per_sqm = 0
+        if prop.price and prop.area_total:
+            price_per_sqm = round(prop.price / prop.area_total)
         return {
             "property_type": PROPERTY_TYPE_LABELS.get(prop.property_type, prop.property_type),
             "deal_type": DEAL_TYPE_LABELS.get(prop.deal_type, prop.deal_type),
             "price": prop.price,
+            "price_per_sqm": price_per_sqm,
             "currency": prop.currency_id.name if prop.currency_id else "",
             "area_total": prop.area_total,
             "rooms": prop.rooms,
