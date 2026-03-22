@@ -27,6 +27,9 @@ dev = [
     "import-linter>=2.9",
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.7.1",
+    "mypy>=1.19.1",
+    "types-requests>=2.32.4.20260107",
+    "types-grpcio>=1.0.0.20251009",
 ]
 
 [tool.ruff]
@@ -41,6 +44,17 @@ select = ["E", "F", "W", "I"]
 "__init__.py" = ["F401", "I001"]
 "addons/estate_kit/services/generated/*" = ["E", "F", "W", "I"]
 "addons/estate_kit/migrations/*" = ["F401"]
+
+[tool.mypy]
+python_version = "3.12"
+mypy_path = "stubs"
+files = ["addons/estate_kit"]
+exclude = [
+    "addons/estate_kit/services/generated",
+    "addons/estate_kit/services/image_service_client\\.py",
+    "addons/estate_kit/migrations",
+]
+ignore_missing_imports = false
 
 [tool.pyright]
 pythonVersion = "3.12"
