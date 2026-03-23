@@ -71,6 +71,9 @@ def rsync_addons(ssh_alias: str, remote_dir: str) -> None:
         "rsync", "-az", "--delete",
         "--exclude=__pycache__",
         "--exclude=*.pyc",
+        "--exclude=*.pyi",
+        "--exclude=*.md",
+        "--exclude=docs/",
         "-e", "ssh",
         "addons/", f"{ssh_alias}:{remote_dir}/addons/",
     ])
