@@ -23,22 +23,19 @@ class YmapsProxyController(http.Controller):
                 headers=[("Content-Type", "application/javascript")],
             )
 
-        try:
-            resp = requests.get(
-                YMAPS_API_URL,
-                params={"apikey": api_key, "lang": "ru_RU"},
-                timeout=10,
-            )
-            resp.raise_for_status()
-        except Exception:
-            _logger.exception("Failed to fetch Yandex Maps script")
-            return http.request.make_response(
-                "// Failed to load Yandex Maps",
-                headers=[("Content-Type", "application/javascript")],
-            )
+        # Return a loader that injects the real Yandex script from CDN.
+        # Proxying the script body breaks v3 because its loader fetches
+        # additional modules via relative URLs from api-maps.yandex.ru.
+        loader = (
+            "(function(){"
+            'var s=document.createElement("script");'
+            's.src="%s?apikey=%s&lang=ru_RU";'
+            "document.head.appendChild(s);"
+            "}());"
+        ) % (YMAPS_API_URL, api_key)
 
         return http.request.make_response(
-            resp.text,
+            loader,
             headers=[
                 ("Content-Type", "application/javascript; charset=utf-8"),
                 ("Cache-Control", "no-store"),

@@ -57,11 +57,24 @@ export class LocationMap extends Component {
                 return;
             }
 
+            // The proxy endpoint returns a small loader that injects the real
+            // Yandex CDN script. We need to wait for ymaps3 to appear on window.
             const script = document.createElement("script");
             script.type = "text/javascript";
             script.src = YMAPS_PROXY_URL;
-            script.onload = async () => {
+            script.onerror = () => {
+                ymapsLoadPromise = null;
+                reject(new Error("Yandex Maps loader fetch failed"));
+            };
+            document.head.appendChild(script);
+
+            const timeout = 15000;
+            const interval = 100;
+            let elapsed = 0;
+            const poll = setInterval(async () => {
+                elapsed += interval;
                 if (window.ymaps3) {
+                    clearInterval(poll);
                     try {
                         await ymaps3.ready;
                         resolve();
@@ -69,16 +82,12 @@ export class LocationMap extends Component {
                         ymapsLoadPromise = null;
                         reject(e);
                     }
-                } else {
+                } else if (elapsed >= timeout) {
+                    clearInterval(poll);
                     ymapsLoadPromise = null;
-                    reject(new Error("ymaps3 not available"));
+                    reject(new Error("Yandex Maps load timeout"));
                 }
-            };
-            script.onerror = () => {
-                ymapsLoadPromise = null;
-                reject(new Error("Yandex Maps script load failed"));
-            };
-            document.head.appendChild(script);
+            }, interval);
         });
 
         return ymapsLoadPromise;
