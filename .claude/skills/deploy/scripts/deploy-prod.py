@@ -6,19 +6,31 @@
 import os
 import subprocess
 import sys
+import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from pathlib import Path
 
 import yaml
 
 GREEN = "\033[0;32m"
 YELLOW = "\033[1;33m"
+DIM = "\033[2m"
 RED = "\033[0;31m"
 NC = "\033[0m"
 
 
 def log(color: str, message: str) -> None:
     print(f"{color}{message}{NC}", flush=True)
+
+
+@contextmanager
+def timed(label: str):
+    log(YELLOW, f"{label}...")
+    start = time.monotonic()
+    yield
+    elapsed = time.monotonic() - start
+    log(DIM, f"  ✓ {elapsed:.1f}s")
 
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
@@ -98,35 +110,38 @@ def main() -> None:
         print(f"  4. docker compose start odoo")
         return
 
+    total_start = time.monotonic()
+
     # 1. Rsync addons and configs in parallel (containers still running, no downtime)
-    log(YELLOW, "Syncing addons and configs (parallel)...")
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        f1 = pool.submit(rsync_addons, ssh_alias, remote_dir)
-        f2 = pool.submit(rsync_configs, ssh_alias, remote_dir)
-        f1.result()
-        f2.result()
+    with timed("Syncing addons and configs (parallel)"):
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            f1 = pool.submit(rsync_addons, ssh_alias, remote_dir)
+            f2 = pool.submit(rsync_configs, ssh_alias, remote_dir)
+            f1.result()
+            f2.result()
 
     # 2. Stop only Odoo (keep network and other containers)
-    log(YELLOW, "Stopping Odoo...")
-    ssh_cmd(ssh_alias,
-            f"bash -c 'cd {remote_dir} && sudo docker compose stop odoo'")
+    with timed("Stopping Odoo"):
+        ssh_cmd(ssh_alias,
+                f"bash -c 'cd {remote_dir} && sudo docker compose stop odoo'")
 
     # 3. Update module (temporary container, credentials from .env via compose)
-    log(YELLOW, "Updating estate_kit module...")
-    ssh_cmd(ssh_alias,
-            f"bash -c 'cd {remote_dir} && sudo docker compose run --rm odoo odoo "
-            f"-u estate_kit -d {db_name} --stop-after-init'")
+    with timed("Updating estate_kit module"):
+        ssh_cmd(ssh_alias,
+                f"bash -c 'cd {remote_dir} && sudo docker compose run --rm odoo odoo "
+                f"-u estate_kit -d {db_name} --stop-after-init'")
 
     # 4. Start Odoo back
-    log(YELLOW, "Starting Odoo...")
-    ssh_cmd(ssh_alias,
-            f"bash -c 'cd {remote_dir} && sudo docker compose start odoo'")
+    with timed("Starting Odoo"):
+        ssh_cmd(ssh_alias,
+                f"bash -c 'cd {remote_dir} && sudo docker compose start odoo'")
 
     # 5. Check logs
     log(YELLOW, "Checking logs...")
     ssh_cmd(ssh_alias, f"sudo docker logs --tail 20 {container}")
 
-    log(GREEN, "\nDeploy complete! Site: https://royalestate.smartist.dev/")
+    total = time.monotonic() - total_start
+    log(GREEN, f"\nDeploy complete in {total:.1f}s! Site: https://royalestate.smartist.dev/")
 
 
 if __name__ == "__main__":
