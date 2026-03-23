@@ -26,7 +26,7 @@ services:
       - "10.114.0.3:8069:8069"
     volumes:
       - odoo-data:/var/lib/odoo
-      - odoo-addons:/mnt/extra-addons
+      - ./addons:/mnt/extra-addons:ro
     environment:
       - HOST=${DB_HOST}
       - PORT=${DB_PORT:-5432}
@@ -41,6 +41,5 @@ services:
 
 volumes:
   odoo-data:
-  odoo-addons:
   caddy-data:
   caddy-config:

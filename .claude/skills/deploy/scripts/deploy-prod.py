@@ -10,8 +10,6 @@ from pathlib import Path
 
 import yaml
 
-IMAGE_TAG = "estate_kit:latest"
-
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
     print(f"→ {' '.join(cmd)}")
@@ -70,32 +68,27 @@ def main() -> None:
 
     ssh_alias = server.get("ssh", deploy["server"])
     remote_dir = server["path"]
-    src_dir = f"{remote_dir}/src"
 
     if dry_run:
         print("[DRY RUN] Would execute the following steps:")
-        print(f"  1. rsync sources to {ssh_alias}:{src_dir}/")
-        print(f"  2. rsync docker configs to {ssh_alias}:{remote_dir}/")
-        print(f"  3. Build image on server: docker build -t {IMAGE_TAG}")
-        print(f"  4. Deploy: docker compose down + up")
-        print(f"  5. Update module: odoo -u estate_kit -d {db_name}")
-        print("  6. Restart Odoo and check logs")
+        print(f"  1. docker compose down")
+        print(f"  2. rsync addons to {ssh_alias}:{remote_dir}/addons/")
+        print(f"  3. rsync docker configs to {ssh_alias}:{remote_dir}/")
+        print(f"  4. Update module: odoo -u estate_kit -d {db_name}")
+        print(f"  5. docker compose up -d")
         return
 
-    # 1. Create src directory on server
-    print(f"Creating {src_dir} on server...")
-    ssh_cmd(ssh_alias, f"sudo mkdir -p {src_dir} && sudo chown $(whoami):$(whoami) {src_dir}")
-
-    # 2. Rsync sources (addons + Dockerfile)
-    print("Syncing sources to server...")
+    # 1. Rsync addons
+    print("Syncing addons to server...")
     run([
         "rsync", "-az", "--delete",
-        "--filter=:- .rsyncignore",
+        "--exclude=__pycache__",
+        "--exclude=*.pyc",
         "-e", "ssh",
-        "./", f"{ssh_alias}:{src_dir}/",
+        "addons/", f"{ssh_alias}:{remote_dir}/addons/",
     ])
 
-    # 3. Rsync docker configs (compose.yaml, Caddyfile)
+    # 2. Rsync docker configs (compose.yaml, Caddyfile)
     print("Syncing docker configs...")
     run([
         "rsync", "-az",
@@ -104,7 +97,7 @@ def main() -> None:
         f"{ssh_alias}:{remote_dir}/",
     ])
 
-    # 4. Fetch DB credentials from server
+    # 3. Fetch DB credentials from server
     print("Fetching DB credentials from server...")
     env_content = ssh_output(ssh_alias, f"sudo cat {remote_dir}/.env")
     env_vars = {}
@@ -124,30 +117,23 @@ def main() -> None:
 
     print(f"DB connection: {db_user}@{db_host}:{db_port}/{db_name}")
 
-    # 5. Build image on server
-    print("Building Docker image on server...")
+    # 4. Stop containers
+    print("Stopping containers...")
     ssh_cmd(ssh_alias,
-            f"sudo docker build -t {IMAGE_TAG} -f {src_dir}/build/Dockerfile {src_dir}")
+            f"bash -c 'cd {remote_dir} && sudo docker compose down'")
 
-    # 6. Deploy
-    print("Deploying...")
-    ssh_cmd(ssh_alias,
-            f"bash -c 'cd {remote_dir} && sudo docker compose down && sudo docker compose up -d'")
-
-    # 7. Update module
+    # 5. Update module (run temporary container with new addons mounted)
     print("Updating estate_kit module...")
     ssh_cmd(ssh_alias,
-            f"sudo docker exec {container} odoo "
-            f"--db_host={db_host} --db_port={db_port} "
-            f"--db_user={db_user} --db_password={db_password} "
-            f"-d {db_name} -u estate_kit --stop-after-init")
+            f"bash -c 'cd {remote_dir} && sudo docker compose run --rm odoo odoo "
+            f"-u estate_kit -d {db_name} --stop-after-init'")
 
-    # 8. Restart Odoo
-    print("Restarting Odoo...")
+    # 6. Start containers
+    print("Starting containers...")
     ssh_cmd(ssh_alias,
-            f"bash -c 'cd {remote_dir} && sudo docker compose down odoo && sudo docker compose up -d odoo'")
+            f"bash -c 'cd {remote_dir} && sudo docker compose up -d'")
 
-    # 9. Check logs
+    # 7. Check logs
     print("Checking logs...")
     ssh_cmd(ssh_alias, f"sudo docker logs --tail 20 {container}")
 
