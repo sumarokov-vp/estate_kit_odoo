@@ -120,7 +120,7 @@ def main() -> None:
     # 4. Stop containers
     print("Stopping containers...")
     ssh_cmd(ssh_alias,
-            f"bash -c 'cd {remote_dir} && sudo docker compose down'")
+            f"bash -c 'cd {remote_dir} && sudo docker compose down --remove-orphans'")
 
     # 5. Update module (run temporary container with new addons mounted)
     print("Updating estate_kit module...")
