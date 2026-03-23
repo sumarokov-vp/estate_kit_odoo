@@ -25,17 +25,17 @@ def _load_config():
         config = yaml.safe_load(f)
     wt = config.get("web_testing", {})
 
-    # Support both old flat format and new env-based format
     if ENV in wt and isinstance(wt[ENV], dict):
         env_config = wt[ENV]
     else:
         env_config = wt
 
-    return (
-        env_config.get("url", ""),
-        env_config.get("email", ""),
-        env_config.get("password", ""),
-    )
+    url = env_config.get("url", "")
+    # Credentials from env vars (set via: set -x ODOO_EMAIL (pass ... | grep ...))
+    email = os.environ.get("ODOO_EMAIL", "")
+    password = os.environ.get("ODOO_PASSWORD", "")
+
+    return url, email, password
 
 
 BASE_URL, AUTH_EMAIL, AUTH_PASSWORD = _load_config()
