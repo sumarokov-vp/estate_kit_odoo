@@ -24,7 +24,7 @@ uv run python .claude/skills/deploy/scripts/deploy_dev.py
 
 > `uv run python .claude/skills/deploy/scripts/deploy-prod.py`
 >
-> Конфиг деплоя в `.claude/devops.yaml` (секция `deploy`), сервер резолвится из `servers` по имени.
+> Структура деплоя в `.claude/devops.yaml`, credentials в `pass agent_fleet/projects/estate-kit/odoo`
 >
 > Для проверки без реального деплоя: `uv run python .claude/skills/deploy/scripts/deploy-prod.py --dry-run`
 

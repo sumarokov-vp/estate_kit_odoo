@@ -4,7 +4,6 @@
 # ///
 # ruff: noqa: T201 S603 S607
 
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -22,7 +21,7 @@ def run(cmd: list[str]) -> None:
     subprocess.run(cmd, check=True)
 
 
-def load_config() -> dict:
+def load_config() -> tuple[str, str]:
     config_path = Path(".claude/devops.yaml")
     if not config_path.exists():
         print(f"Config not found: {config_path}")
@@ -37,7 +36,9 @@ def load_config() -> dict:
         print(f"Server '{server_name}' not found")
         sys.exit(1)
 
-    return server
+    ssh_alias = server.get("ssh", server_name)
+    remote_path = server.get("path", "/opt/odoo")
+    return ssh_alias, remote_path
 
 
 def build_site(site_dir: str) -> Path:
@@ -47,51 +48,36 @@ def build_site(site_dir: str) -> Path:
     return site_path / "site"
 
 
-def deploy_site(built_dir: Path, server: dict, remote_subdir: str, dry_run: bool) -> None:
-    host = server["host"]
-    user = server["user"]
-    key = os.path.expanduser(server["ssh_key"])
-    remote_path = server["path"]
+def deploy_site(built_dir: Path, ssh_alias: str, remote_path: str, remote_subdir: str, dry_run: bool) -> None:
     remote_dest = f"{remote_path}/{remote_subdir}/"
-    ssh_target = f"{user}@{host}"
 
     if dry_run:
-        print(f"  [DRY RUN] rsync {built_dir}/ → {ssh_target}:{remote_dest}")
+        print(f"  [DRY RUN] rsync {built_dir}/ → {ssh_alias}:{remote_dest}")
         return
 
-    # Ensure remote dir exists
-    run(["ssh", "-i", key, ssh_target, f"sudo mkdir -p {remote_dest}"])
+    run(["ssh", ssh_alias, f"sudo mkdir -p {remote_dest}"])
 
-    # Rsync built site
     run([
         "rsync", "-avz", "--delete",
-        "-e", f"ssh -i {key}",
+        "-e", "ssh",
         f"{built_dir}/",
-        f"{ssh_target}:{remote_dest}",
+        f"{ssh_alias}:{remote_dest}",
     ])
 
 
-def reload_caddy(server: dict, dry_run: bool) -> None:
-    host = server["host"]
-    user = server["user"]
-    key = os.path.expanduser(server["ssh_key"])
-    remote_path = server["path"]
-    ssh_target = f"{user}@{host}"
-
+def reload_caddy(ssh_alias: str, remote_path: str, dry_run: bool) -> None:
     if dry_run:
         print("  [DRY RUN] Reload Caddy config")
         return
 
-    # Copy updated Caddyfile
     run([
         "rsync", "-avz",
-        "-e", f"ssh -i {key}",
+        "-e", "ssh",
         "docker/Caddyfile",
-        f"{ssh_target}:{remote_path}/Caddyfile",
+        f"{ssh_alias}:{remote_path}/Caddyfile",
     ])
 
-    # Reload Caddy
-    run(["ssh", "-i", key, ssh_target, f"cd {remote_path} && sudo docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile"])
+    run(["ssh", ssh_alias, f"cd {remote_path} && sudo docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile"])
 
 
 def main() -> None:
@@ -106,9 +92,10 @@ def main() -> None:
         ["git", "rev-parse", "--show-toplevel"],
         capture_output=True, text=True, check=True,
     ).stdout.strip()
+    import os
     os.chdir(repo_root)
 
-    server = load_config()
+    ssh_alias, remote_path = load_config()
 
     sites_to_deploy = SITES
     if site_filter:
@@ -123,9 +110,9 @@ def main() -> None:
         print(f"{'='*40}")
 
         built_dir = build_site(site_cfg["dir"])
-        deploy_site(built_dir, server, site_cfg["remote_subdir"], dry_run)
+        deploy_site(built_dir, ssh_alias, remote_path, site_cfg["remote_subdir"], dry_run)
 
-    reload_caddy(server, dry_run)
+    reload_caddy(ssh_alias, remote_path, dry_run)
 
     print("\nDocs deployed!")
     for name, site_cfg in sites_to_deploy.items():
