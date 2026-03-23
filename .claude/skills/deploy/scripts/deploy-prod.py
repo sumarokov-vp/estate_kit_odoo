@@ -6,13 +6,23 @@
 import os
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import yaml
 
+GREEN = "\033[0;32m"
+YELLOW = "\033[1;33m"
+RED = "\033[0;31m"
+NC = "\033[0m"
+
+
+def log(color: str, message: str) -> None:
+    print(f"{color}{message}{NC}", flush=True)
+
 
 def run(cmd: list[str], **kwargs) -> subprocess.CompletedProcess:
-    print(f"→ {' '.join(cmd)}")
+    print(f"→ {' '.join(cmd)}", flush=True)
     return subprocess.run(cmd, check=True, **kwargs)
 
 
@@ -20,18 +30,10 @@ def ssh_cmd(ssh_alias: str, command: str) -> subprocess.CompletedProcess:
     return run(["ssh", ssh_alias, command])
 
 
-def ssh_output(ssh_alias: str, command: str) -> str:
-    result = subprocess.run(
-        ["ssh", ssh_alias, command],
-        capture_output=True, text=True, check=True,
-    )
-    return result.stdout.strip()
-
-
 def load_config() -> tuple[dict, dict]:
     config_path = Path(".claude/devops.yaml")
     if not config_path.exists():
-        print(f"Config not found: {config_path}")
+        log(RED, f"Config not found: {config_path}")
         sys.exit(1)
 
     with open(config_path) as f:
@@ -39,17 +41,36 @@ def load_config() -> tuple[dict, dict]:
 
     deploy = config.get("deploy")
     if not deploy:
-        print("Missing 'deploy' section in devops.yaml")
+        log(RED, "Missing 'deploy' section in devops.yaml")
         sys.exit(1)
 
     server_name = deploy["server"]
     servers = config.get("servers", {})
     server = servers.get(server_name)
     if not server:
-        print(f"Server '{server_name}' not found in servers")
+        log(RED, f"Server '{server_name}' not found in servers")
         sys.exit(1)
 
     return deploy, server
+
+
+def rsync_addons(ssh_alias: str, remote_dir: str) -> None:
+    run([
+        "rsync", "-az", "--delete",
+        "--exclude=__pycache__",
+        "--exclude=*.pyc",
+        "-e", "ssh",
+        "addons/", f"{ssh_alias}:{remote_dir}/addons/",
+    ])
+
+
+def rsync_configs(ssh_alias: str, remote_dir: str) -> None:
+    run([
+        "rsync", "-az",
+        "-e", "ssh",
+        "docker/compose.yaml", "docker/Caddyfile",
+        f"{ssh_alias}:{remote_dir}/",
+    ])
 
 
 def main() -> None:
@@ -71,74 +92,46 @@ def main() -> None:
 
     if dry_run:
         print("[DRY RUN] Would execute the following steps:")
-        print(f"  1. docker compose down")
-        print(f"  2. rsync addons to {ssh_alias}:{remote_dir}/addons/")
-        print(f"  3. rsync docker configs to {ssh_alias}:{remote_dir}/")
-        print(f"  4. Update module: odoo -u estate_kit -d {db_name}")
-        print(f"  5. docker compose up -d")
+        print(f"  1. rsync addons + configs (parallel, containers still running)")
+        print(f"  2. docker compose stop odoo")
+        print(f"  3. docker compose run --rm odoo -u estate_kit -d {db_name}")
+        print(f"  4. docker compose start odoo")
         return
 
-    # 1. Rsync addons
-    print("Syncing addons to server...")
-    run([
-        "rsync", "-az", "--delete",
-        "--exclude=__pycache__",
-        "--exclude=*.pyc",
-        "-e", "ssh",
-        "addons/", f"{ssh_alias}:{remote_dir}/addons/",
-    ])
+    # 1. Rsync addons and configs in parallel (containers still running, no downtime)
+    log(YELLOW, "Syncing addons and configs (parallel)...")
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        f1 = pool.submit(rsync_addons, ssh_alias, remote_dir)
+        f2 = pool.submit(rsync_configs, ssh_alias, remote_dir)
+        f1.result()
+        f2.result()
 
-    # 2. Rsync docker configs (compose.yaml, Caddyfile)
-    print("Syncing docker configs...")
-    run([
-        "rsync", "-az",
-        "-e", "ssh",
-        "docker/compose.yaml", "docker/Caddyfile",
-        f"{ssh_alias}:{remote_dir}/",
-    ])
-
-    # 3. Fetch DB credentials from server
-    print("Fetching DB credentials from server...")
-    env_content = ssh_output(ssh_alias, f"sudo cat {remote_dir}/.env")
-    env_vars = {}
-    for line in env_content.splitlines():
-        if "=" in line and not line.startswith("#"):
-            k, v = line.split("=", 1)
-            env_vars[k.strip()] = v.strip()
-
-    db_host = env_vars.get("DB_HOST", "")
-    db_port = env_vars.get("DB_PORT", "5432")
-    db_user = env_vars.get("DB_USER", "")
-    db_password = env_vars.get("DB_PASSWORD", "")
-
-    if not db_password:
-        print("ERROR: Could not fetch DB_PASSWORD from server")
-        sys.exit(1)
-
-    print(f"DB connection: {db_user}@{db_host}:{db_port}/{db_name}")
-
-    # 4. Stop containers
-    print("Stopping containers...")
+    # 2. Stop only Odoo (keep network and other containers)
+    log(YELLOW, "Stopping Odoo...")
     ssh_cmd(ssh_alias,
-            f"bash -c 'cd {remote_dir} && sudo docker compose down --remove-orphans'")
+            f"bash -c 'cd {remote_dir} && sudo docker compose stop odoo'")
 
-    # 5. Update module (run temporary container with new addons mounted)
-    print("Updating estate_kit module...")
+    # 3. Update module (temporary container, credentials from .env via compose)
+    log(YELLOW, "Updating estate_kit module...")
     ssh_cmd(ssh_alias,
             f"bash -c 'cd {remote_dir} && sudo docker compose run --rm odoo odoo "
             f"-u estate_kit -d {db_name} --stop-after-init'")
 
-    # 6. Start containers
-    print("Starting containers...")
+    # 4. Start Odoo back
+    log(YELLOW, "Starting Odoo...")
     ssh_cmd(ssh_alias,
-            f"bash -c 'cd {remote_dir} && sudo docker compose up -d'")
+            f"bash -c 'cd {remote_dir} && sudo docker compose start odoo'")
 
-    # 7. Check logs
-    print("Checking logs...")
+    # 5. Check logs
+    log(YELLOW, "Checking logs...")
     ssh_cmd(ssh_alias, f"sudo docker logs --tail 20 {container}")
 
-    print("\nDeploy complete! Site: https://royalestate.smartist.dev/")
+    log(GREEN, "\nDeploy complete! Site: https://royalestate.smartist.dev/")
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except subprocess.CalledProcessError as e:
+        log(RED, f"Command failed with exit code {e.returncode}")
+        sys.exit(e.returncode)
