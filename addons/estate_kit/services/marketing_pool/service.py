@@ -7,6 +7,7 @@ from .protocols import (
     IBatchPropertyScorer,
     IFreshnessChecker,
     IMessageBuilder,
+    IPoolStatusBuilder,
     IPoolSummaryLogger,
     IPromptResolver,
     IResponseParser,
@@ -30,6 +31,7 @@ class MarketingPoolService:
         prompt_resolver: IPromptResolver,
         message_builder: IMessageBuilder,
         response_parser: IResponseParser,
+        pool_status_builder: IPoolStatusBuilder,
     ):
         self._env = env
         self._config = config
@@ -43,6 +45,7 @@ class MarketingPoolService:
         self._prompt_resolver = prompt_resolver
         self._message_builder = message_builder
         self._response_parser = response_parser
+        self._pool_status_builder = pool_status_builder
 
     # --- Pool ---
 
@@ -87,6 +90,9 @@ class MarketingPoolService:
         return self._threshold_checker.scores_below_threshold(
             scoring, min_price, min_quality, min_listing,
         )
+
+    def build_pool_status(self, prop, scoring) -> str:
+        return self._pool_status_builder.build(prop, scoring)
 
     # --- AI Scoring ---
 

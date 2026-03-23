@@ -7,7 +7,6 @@ from ..services.anthropic_client import AnthropicClient
 from ..services.api_client import EstateKitApiClient
 from ..services.image_sync_service import ImageSyncService
 from ..services.marketing_pool import Factory as MarketingPoolFactory
-from ..services.marketing_pool.config import PoolScoreConfig
 from ..services.property_sync_service import PropertySyncService
 
 _logger = logging.getLogger(__name__)
@@ -274,33 +273,15 @@ class EstateProperty(models.Model):
         """RPC-ручка для скоринга, возвращает результат с цветными кружочками."""
         self.ensure_one()
         scoring = self.env["estate.property.scoring"].score_property(self.id)
-        MarketingPoolFactory.create(self.env, AnthropicClient(self.env)).update_single(self)
+        service = MarketingPoolFactory.create(self.env, AnthropicClient(self.env))
+        service.update_single(self)
         return {
             "price_score": scoring.price_score_color,
             "quality_score": scoring.quality_score_color,
             "listing_score": scoring.listing_score_color,
             "rationale": scoring.rationale,
-            "pool_status": self._build_pool_status(scoring),
+            "pool_status": service.build_pool_status(self, scoring),
         }
-
-    def _build_pool_status(self, scoring):
-        config = PoolScoreConfig.from_env(self.env)
-        failed = []
-        if scoring.price_score < config.min_price:
-            failed.append("цена")
-        if scoring.quality_score < config.min_quality:
-            failed.append("качество")
-        if scoring.listing_score < config.min_listing:
-            failed.append("карточка")
-
-        mps = self.marketing_pool_score
-        if failed:
-            return "🔴 Не проходит в пул (ниже порога: %s)" % ", ".join(failed)
-        if mps >= config.t_include:
-            return "🟢 Проходит в пул (MPS: %.1f)" % mps
-        if mps >= config.t_exclude:
-            return "🟡 Пограничная зона (MPS: %.1f)" % mps
-        return "🔴 Не проходит в пул (MPS: %.1f)" % mps
 
     def _build_address_parts(self, include_district: bool = True) -> list[str]:
         self.ensure_one()
@@ -1040,7 +1021,7 @@ class EstateProperty(models.Model):
 
     # === Cron: ротация маркетингового пула ===
 
-    POOL_INACTIVE_STATES = ("sold", "unpublished", "archived", "mls_sold", "mls_removed")
+    POOL_ELIGIBLE_STATES = ("active", "published")
 
     @api.model
     def _cron_rotate_pool(self):
@@ -1068,7 +1049,7 @@ class EstateProperty(models.Model):
         # Phase: exclude from pool
         pool_properties = self.search([("tag_ids", "in", pool_tag.id)])
         for prop in pool_properties:
-            if prop.state in self.POOL_INACTIVE_STATES:
+            if prop.state not in self.POOL_ELIGIBLE_STATES:
                 self._pool_remove(prop, pool_tag, "Объект в статусе «%s»" % prop.state)
                 continue
 
@@ -1104,7 +1085,7 @@ class EstateProperty(models.Model):
 
         candidates = self.search([
             ("tag_ids", "not in", pool_tag.ids),
-            ("state", "not in", list(self.POOL_INACTIVE_STATES)),
+            ("state", "in", list(self.POOL_ELIGIBLE_STATES)),
             ("marketing_pool_score", ">=", t_include),
         ], order="marketing_pool_score desc", limit=free_slots)
 

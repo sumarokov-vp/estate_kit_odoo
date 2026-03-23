@@ -1,4 +1,5 @@
 from .active_properties_loader import IActivePropertiesLoader
+from .pool_status_builder import IPoolStatusBuilder
 from .ai_client import IAiClient
 from .batch_property_scorer import IBatchPropertyScorer
 from .freshness_checker import IFreshnessChecker

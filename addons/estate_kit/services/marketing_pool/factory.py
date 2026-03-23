@@ -3,6 +3,7 @@ from .batch_property_scorer import BatchPropertyScorer
 from .calculator import MpsCalculator
 from .config import PoolScoreConfig
 from .freshness import ScoringFreshnessService
+from .pool_status_builder import PoolStatusBuilder
 from .pool_summary_logger import PoolSummaryLogger
 from .protocols import IAiClient
 from .scoring_message_builder import ScoringMessageBuilder
@@ -12,6 +13,8 @@ from .service import MarketingPoolService
 from .single_property_scorer import SinglePropertyScorer
 from .threshold_checker import ThresholdChecker
 from .tier_bonus import TierBonusCalculator
+
+_POOL_ELIGIBLE_STATES = frozenset(("active", "published"))
 
 
 class Factory:
@@ -33,4 +36,5 @@ class Factory:
             prompt_resolver=ScoringPromptResolver(),
             message_builder=ScoringMessageBuilder(),
             response_parser=ScoringResponseParser(),
+            pool_status_builder=PoolStatusBuilder(config, _POOL_ELIGIBLE_STATES),
         )
