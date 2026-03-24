@@ -5,6 +5,7 @@ description = "Estate Kit — Odoo 19 module for real estate management"
 requires-python = ">=3.12"
 dependencies = [
     "beautifulsoup4",
+    "erp-core[postgres]",
     "grpcio>=1.70.0",
     "protobuf>=5.29.0",
     "python-slugify",
@@ -16,6 +17,9 @@ dependencies = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.uv.sources]
+erp-core = { path = "../../erp_core", editable = true }
 
 [tool.hatch.build.targets.wheel]
 packages = ["addons/estate_kit"]

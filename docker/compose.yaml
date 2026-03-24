@@ -1,4 +1,19 @@
 services:
+  erp-core-db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: estate_kit_erp
+      POSTGRES_USER: erp_core
+      POSTGRES_PASSWORD: ${ERP_CORE_DB_PASSWORD}
+    volumes:
+      - erp-core-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "erp_core", "-d", "estate_kit_erp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
@@ -43,3 +58,4 @@ volumes:
   odoo-data:
   caddy-data:
   caddy-config:
+  erp-core-db-data:
