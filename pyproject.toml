@@ -51,7 +51,7 @@ select = ["E", "F", "W", "I"]
 
 [tool.mypy]
 python_version = "3.12"
-mypy_path = "stubs"
+mypy_path = ["stubs", "../../erp_core"]
 files = ["addons/estate_kit"]
 exclude = [
     "addons/estate_kit/services/generated",
