@@ -1,0 +1,12 @@
+id: 124
+title: "erp_core: добавить стаб для yoyo чтобы убрать import-untyped"
+priority: low
+context: |
+  При запуске mypy в проекте odoo (с mypy_path = ["stubs", "../../erp_core"])
+  возникает ошибка:
+    /home/sumarokov/projects/erp_core/erp_core/infra/migrations/runner.py:3:
+    error: Skipping analyzing "yoyo": module is installed, but missing library stubs or py.typed marker [import-untyped]
+
+  Библиотека yoyo-migrations не имеет type stubs. Нужно добавить stub-файл
+  в erp_core/stubs/yoyo/__init__.pyi с минимальными сигнатурами get_backend и read_migrations,
+  и добавить путь stubs/ в mypy_path в pyproject.toml erp_core.
