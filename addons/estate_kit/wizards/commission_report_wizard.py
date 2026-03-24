@@ -3,7 +3,6 @@ from datetime import date
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
-from ..services.erp_core_client import Factory as ErpCoreClientFactory
 
 
 class CommissionReportWizard(models.TransientModel):
@@ -57,6 +56,8 @@ class CommissionReportWizard(models.TransientModel):
 
         if not self.employee_id and not self.partner_id:
             raise UserError(_("Укажите сотрудника или контрагента."))
+
+        from ..services.erp_core_client.factory import Factory as ErpCoreClientFactory
 
         service = ErpCoreClientFactory.create()
         lines_data = []
