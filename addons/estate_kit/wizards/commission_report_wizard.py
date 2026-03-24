@@ -4,7 +4,6 @@ from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 
-
 class CommissionReportWizard(models.TransientModel):
     _name = "estate.commission.report.wizard"
     _description = "Отчёт по комиссиям ERP Core"
