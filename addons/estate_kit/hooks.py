@@ -7,6 +7,21 @@ def post_init_hook(env):
     _init_cities(env)
     _init_districts(env)
     _init_sources(env)
+    _init_erp_core(env)
+
+
+def _init_erp_core(env):
+    try:
+        from .services.erp_core_client.config import get_database_url
+        from erp_core.infra.migrations import apply_migrations
+        from .services.erp_core_client.seed import seed_initial_data
+        url = get_database_url()
+        applied = apply_migrations(url)
+        _logger.info("ERP Core: applied %d migrations", applied)
+        seed_initial_data(url)
+        _logger.info("ERP Core: seed data loaded")
+    except Exception as e:
+        _logger.warning("ERP Core init skipped: %s", e)
 
 
 def _init_cities(env):

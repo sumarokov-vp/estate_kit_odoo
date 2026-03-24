@@ -17,3 +17,7 @@ from . import estate_property_tag
 from . import estate_property_tier
 from . import estatekit_webhook_event
 from . import estate_kit_log
+from . import crm_lead_matching
+from . import estate_lead_match
+from . import estate_deal
+from . import estate_deal_participant
