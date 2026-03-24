@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from .protocols import IInvoiceCreator, IPaymentRecorder, IBalanceProvider, IEmployeeSyncer
+from .protocols import IBalanceProvider, IEmployeeSyncer, IInvoiceCreator, IPaymentRecorder
 
 
 class ErpCoreClientService:

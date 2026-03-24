@@ -2,15 +2,15 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
+from erp_core.core.entities.employee_invoice import EmployeeInvoice
 from erp_core.core.entities.invoice import Invoice
 from erp_core.core.entities.invoice_status import InvoiceStatusEnum
 from erp_core.core.entities.item_invoice import ItemInvoice
-from erp_core.core.entities.employee_invoice import EmployeeInvoice
 from erp_core.infra.postgres.interfaces import (
+    IEmployeeInvoiceRepository,
     IInvoiceRepository,
     IInvoiceStatusRepository,
     IItemInvoiceRepository,
-    IEmployeeInvoiceRepository,
 )
 
 

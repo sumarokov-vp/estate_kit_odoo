@@ -12,8 +12,9 @@ def post_init_hook(env):
 
 def _init_erp_core(env):
     try:
-        from .services.erp_core_client.config import get_database_url
         from erp_core.infra.migrations import apply_migrations
+
+        from .services.erp_core_client.config import get_database_url
         from .services.erp_core_client.seed import seed_initial_data
         url = get_database_url()
         applied = apply_migrations(url)

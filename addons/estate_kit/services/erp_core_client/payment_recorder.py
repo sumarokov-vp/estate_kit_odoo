@@ -1,6 +1,5 @@
 from decimal import Decimal
 
-from erp_core.core.entities.invoice import Invoice
 from erp_core.core.entities.money import Money, MoneyDirection, SubmittingType
 from erp_core.infra.postgres.interfaces import (
     IInvoiceRepository,
