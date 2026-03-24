@@ -1,5 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Quick create form for CRM Kanban (incoming call from buyer) -->
+    <record id="crm_lead_view_form_quick_create_estate" model="ir.ui.view">
+        <field name="name">crm.lead.form.quick_create.estate</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.quick_create_opportunity_form"/>
+        <field name="arch" type="xml">
+            <!-- Hide fields not needed during incoming buyer call -->
+            <xpath expr="//div[field[@name='commercial_partner_id']]" position="replace"/>
+            <xpath expr="//div[field[@name='partner_id']]" position="replace"/>
+            <xpath expr="//div[field[@name='name']]" position="replace"/>
+            <xpath expr="//div[field[@name='email_from']]" position="replace"/>
+            <xpath expr="//div[div/field[@name='expected_revenue']]" position="replace"/>
+
+            <!-- Add estate-specific fields -->
+            <xpath expr="//group" position="inside">
+                <div colspan="2" class="d-flex align-items-center">
+                    <i class="fa fa-user" title="Имя клиента"/>
+                    <field name="contact_name" nolabel="1" placeholder="Имя клиента" class="o_field_highlight w-100 mb-0" required="1"/>
+                </div>
+                <div colspan="2" class="d-flex align-items-center">
+                    <i class="fa fa-handshake-o" title="Тип сделки"/>
+                    <field name="search_deal_type" nolabel="1" placeholder="Тип сделки" class="o_field_highlight w-100 mb-0"/>
+                </div>
+                <div colspan="2" class="d-flex align-items-center">
+                    <i class="fa fa-home" title="Тип объекта"/>
+                    <field name="search_property_type" nolabel="1" placeholder="Тип объекта" class="o_field_highlight w-100 mb-0"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
     <record id="crm_lead_view_form_inherit_estate" model="ir.ui.view">
         <field name="name">crm.lead.form.inherit.estate</field>
         <field name="model">crm.lead</field>

@@ -120,6 +120,15 @@ class CrmLead(models.Model):
             else:
                 rec.deeplink_url = False
 
+    # === Auto-fill name from contact_name ===
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get("name") and vals.get("contact_name"):
+                vals["name"] = vals["contact_name"]
+        return super().create(vals_list)
+
     # === Автосоздание сделки ===
 
     def action_set_won(self):
