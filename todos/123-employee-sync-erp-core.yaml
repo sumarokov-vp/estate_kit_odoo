@@ -1,0 +1,41 @@
+title: Синхронизация сотрудников Odoo ↔ ERP Core Employee
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  При назначении участника сделки (estate.deal.participant) нужно знать
+  его erp_employee_id для создания EmployeeInvoice в ERP Core.
+  Задача 108 (seed) создаёт Employee для текущих сотрудников, но нужен
+  механизм для новых сотрудников и маппинга Odoo user ↔ ERP Core Employee.
+
+recommendation: |
+  Варианты:
+
+  A. Lazy sync (рекомендуется на старте):
+     При создании estate.deal.participant, если erp_employee_id пустой —
+     erp_core_client проверяет, есть ли Employee с external_id = odoo_user_id.
+     Если нет — создаёт Employee + Party в ERP Core, записывает erp_employee_id
+     в participant. Логика в erp_core_client.service.ensure_employee(user_id).
+
+  B. Eager sync (для будущего):
+     При создании/изменении res.users с ролью агента — автоматически
+     создавать/обновлять Employee в ERP Core через post-write hook.
+
+  Для внешних участников (partner_id, другое агентство):
+  Аналогично, но создаётся Party (type=company) в ERP Core.
+
+  Поле external_id в erp_core Employee уже существует — использовать его
+  для хранения Odoo user ID.
+
+solution: |
+  Реализован Lazy sync (вариант A):
+  - services/erp_core_client/employee_syncer.py — EmployeeSyncer:
+    * ensure_employee(odoo_user_id, name) — ищет Employee по external_id=str(user_id),
+      если нет — создаёт Party(employee) + Employee в ERP Core, возвращает party_id
+    * ensure_party(odoo_partner_id, name, party_type) — ищет Party по tax_id=ODOO_PARTNER_{id},
+      если нет — создаёт Party с этим tax_id, возвращает party_id
+  - protocols/i_employee_syncer.py — IEmployeeSyncer Protocol
+  - service.py обновлён: методы ensure_employee() и ensure_party() делегируют EmployeeSyncer
+  - factory.py обновлён: создаёт EmployeeRepository, PartyRepository и EmployeeSyncer
+  __manifest__.py НЕ модифицировался.

@@ -1,0 +1,31 @@
+title: "Расширить crm.lead: deeplink и Telegram"
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Добавить поля для связи лида с Telegram-ботом клиента.
+  lead_code — уникальный код для deeplink (t.me/bot?start=lead_<CODE>).
+  telegram_user_id — заполняется когда клиент переходит по ссылке.
+
+recommendation: |
+  В models/crm_lead.py добавить:
+  - lead_code (Char, default=lambda: short_uuid(), unique)
+  - telegram_user_id (BigInteger)
+  - bot_connected (Boolean, computed: bool(telegram_user_id))
+  - last_bot_activity (Datetime)
+  В view — показать deeplink URL (computed) и статус подключения бота.
+  Smart button «Telegram Bot» если клиент подключён.
+
+solution: |
+  Добавлены поля в models/crm_lead.py:
+  - lead_code: Char, default=_short_uuid() (uuid4().hex[:12]), readonly, copy=False
+    SQL constraint UNIQUE(lead_code)
+  - telegram_user_id: Char (BigInteger в Odoo не существует; Char безопасен для хранения
+    больших Telegram ID без потери точности)
+  - bot_connected: Boolean, computed из bool(telegram_user_id), store=True
+  - last_bot_activity: Datetime, readonly, copy=False
+  - deeplink_url: Char, computed — читает ir.config_parameter estate_kit.customer_bot_username,
+    формирует https://t.me/<username>?start=lead_<lead_code>
+  Имя бота хранится в системных параметрах (estate_kit.customer_bot_username),
+  что позволяет менять его без изменения кода.

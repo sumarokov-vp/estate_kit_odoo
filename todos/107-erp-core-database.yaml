@@ -1,0 +1,46 @@
+title: Настроить отдельную БД для ERP Core с автоматическими миграциями
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  ERP Core требует собственную PostgreSQL базу данных, отдельную от Odoo.
+  Библиотека предоставляет функцию apply_migrations(database_url) в
+  erp_core.infra.migrations, которая через yoyo-migrations накатывает SQL
+  из erp_core/infra/migrations/sql/. При editable install Path(__file__)
+  указывает на исходники — SQL-файлы доступны.
+
+recommendation: |
+  1. Docker-compose (docker/docker-compose.yml) — создание БД:
+     Добавить сервис erp-core-db (PostgreSQL 17) с переменными
+     POSTGRES_DB=estate_kit_erp, POSTGRES_USER, POSTGRES_PASSWORD.
+     БД создаётся автоматически при первом запуске контейнера.
+
+  2. Миграции при старте Odoo — в estate_kit/__init__.py или в
+     post_init_hook модуля вызывать:
+       from erp_core.infra.migrations import apply_migrations
+       apply_migrations(database_url)
+     database_url собирается из переменных окружения ERP_CORE_DB_*.
+     apply_migrations идемпотентен (yoyo отслеживает применённые миграции
+     в таблице _yoyo_migration), повторный вызов безопасен.
+
+  3. Переменные окружения (.env):
+     ERP_CORE_DB_HOST, ERP_CORE_DB_PORT, ERP_CORE_DB_USER,
+     ERP_CORE_DB_PASSWORD, ERP_CORE_DB_NAME
+     Не использовать ir.config_parameter — это Odoo-база, а нужен доступ
+     до полной инициализации Odoo. Переменные окружения доступны сразу.
+
+  4. erp_core_client/config.py — читает переменные окружения, формирует
+     database_url. Используется и для миграций, и для создания psycopg
+     connection в factory.py.
+
+  5. Порядок запуска:
+     docker-compose up erp-core-db → Odoo стартует →
+     post_init_hook: apply_migrations() → модуль готов к работе.
+
+solution: |
+  Добавлен сервис erp-core-db в docker/compose.yaml (PostgreSQL 17-alpine).
+  Переменная ERP_CORE_DB_PASSWORD читается из .env.
+  Создан config.py в services/erp_core_client/ — читает переменные окружения
+  ERP_CORE_DB_HOST, ERP_CORE_DB_PORT, ERP_CORE_DB_USER, ERP_CORE_DB_PASSWORD,
+  ERP_CORE_DB_NAME и формирует database_url.

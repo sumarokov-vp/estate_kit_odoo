@@ -1,0 +1,20 @@
+title: Подключить erp_core как editable dependency
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Подключить библиотеку erp_core как editable зависимость через uv.
+  ERP Core используется для финансового учёта комиссий и взаиморасчётов.
+  В будущем библиотека будет опубликована на PyPI, но сейчас подключаем локально.
+
+recommendation: |
+  Добавить в pyproject.toml:
+  - erp-core в dependencies с extras=["postgres"]
+  - erp-core в [tool.uv.sources] с path="../../erp_core" и editable=true
+  Проверить что import erp_core работает в окружении Odoo.
+
+solution: |
+  Добавлен "erp-core[postgres]" в dependencies и секция [tool.uv.sources]
+  с erp-core = { path = "../../erp_core", editable = true } в pyproject.toml.
+  Библиотека находится в /home/sumarokov/projects/erp_core/.

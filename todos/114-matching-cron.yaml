@@ -1,0 +1,27 @@
+title: Cron пересчёта матчинга для активных лидов
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Периодический (раз в сутки) пересчёт матчинга для всех активных лидов
+  с заполненными критериями поиска. При появлении новых объектов —
+  триггер уведомления клиента через Customer Bot.
+
+recommendation: |
+  Добавить в crm.lead метод _cron_update_matching():
+  1. Выбрать лиды со status не в (won, lost) и заполненными search_* полями
+  2. Для каждого вызвать matching_client.search()
+  3. Сравнить результаты с текущими estate.lead.match (diff)
+  4. Обновить записи, зафиксировать last_matching_date
+  5. Если есть новые объекты и telegram_user_id заполнен — отправить уведомление
+     через Customer Bot notify endpoint
+  Создать ir.cron запись в data/cron.xml. Частота — настраиваемая через ir.config_parameter.
+
+solution: |
+  Создан data/matching_cron.xml с ir.cron записью "Update lead matching".
+  Cron вызывает estate.lead.match._cron_update_matching() раз в сутки.
+  Метод _cron_update_matching реализован в models/estate_lead_match.py:
+  выбирает активные лиды с search_property_type != False, вызывает
+  MatchingClientService.search(), делает diff с текущими estate.lead.match,
+  создаёт/обновляет/удаляет записи, фиксирует last_matching_date на лиде.

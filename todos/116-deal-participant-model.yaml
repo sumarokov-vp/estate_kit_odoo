@@ -1,0 +1,28 @@
+title: Модель estate.deal.participant — участник сделки
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Участник конкретной сделки с ролью и процентом комиссии.
+  Связывает Odoo-пользователя/партнёра с ролью в сделке и Employee/Party в ERP Core.
+
+recommendation: |
+  Создать models/estate_deal_participant.py:
+  - deal_id (Many2one → estate.deal, required, ondelete='cascade')
+  - role (Selection: listing_agent/buyer_agent/team_lead/isa/coordinator/legal/referral/mls_fee)
+  - user_id (Many2one → res.users) — внутренний сотрудник
+  - partner_id (Many2one → res.partner) — внешний участник
+  - tenant_id (Char) — тенант MLS если внешний
+  - commission_percent (Float)
+  - commission_amount (Monetary, computed из ERP Core)
+  - erp_employee_id (Char) — UUID Employee/Party в ERP Core
+  View: inline tree на форме estate.deal.
+
+solution: |
+  Создан models/estate_deal_participant.py с полями: deal_id (required, cascade),
+  role (listing_agent/buyer_agent/team_lead/isa/coordinator/legal/referral/mls_fee),
+  user_id, partner_id, tenant_id, commission_percent, commission_amount (computed из
+  deal_id.total_commission * commission_percent / 100), currency_id (related),
+  erp_employee_id.
+  models/__init__.py и __manifest__.py не модифицировались (по заданию).

@@ -1,0 +1,43 @@
+title: Security для новых моделей сделок
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Добавить права доступа для estate.deal, estate.deal.participant, estate.lead.match.
+  Использовать существующие группы из estate_security.xml.
+
+recommendation: |
+  В security/ir.model.access.csv добавить записи с существующими группами:
+
+  estate.deal:
+  - group_estate_isa: read
+  - group_estate_buyer_agent: read
+  - group_estate_listing_agent: read, write
+  - group_estate_team_lead: read, write, create, unlink
+
+  estate.deal.participant:
+  - group_estate_isa: read
+  - group_estate_listing_agent: read, write
+  - group_estate_team_lead: read, write, create, unlink
+
+  estate.lead.match:
+  - group_estate_isa: read, create
+  - group_estate_buyer_agent: read
+  - group_estate_team_lead: read, write, create, unlink
+
+  Record rules (ir.rule) в estate_security.xml:
+  - ISA видит только свои лиды (lead.isa_user_id = user)
+  - Buyer agent видит сделки где он participant
+  - Team lead видит все сделки
+
+solution: |
+  ACL в ir.model.access.csv — 20 строк для 3 моделей (все группы листинг-иерархии):
+  - estate.deal: team_lead (full CRUD), остальные (read)
+  - estate.deal.participant: team_lead (full CRUD), остальные (read)
+  - estate.lead.match: team_lead (full CRUD), остальные (read+create)
+
+  Record rules в estate_security.xml — 7 правил:
+  - estate.deal: team_lead видит все, agent видит сделки со своим участием
+  - estate.deal.participant: team_lead видит все, agent видит участников своих сделок
+  - estate.lead.match: team_lead видит все, agent видит/создаёт матчи своих лидов

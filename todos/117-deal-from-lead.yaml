@@ -1,0 +1,33 @@
+title: Автоматическое создание сделки из выигранного лида
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  При переводе лида в стадию Won автоматически создаётся estate.deal
+  с предзаполненными данными из лида (property_id, client, участники).
+
+recommendation: |
+  Переопределить action_set_won (или использовать stage_id onchange) в crm.lead:
+  1. При переходе в Won — создать estate.deal:
+     - lead_id = self
+     - property_id = self.property_id
+     - client_partner_id = self.partner_id
+     - deal_type из контекста (sale/rent)
+  2. Автоматически создать участников из полей лида:
+     - isa_user_id → participant (role=isa)
+     - buyer_agent_id → participant (role=buyer_agent)
+     - transaction_coordinator_id → participant (role=coordinator)
+  3. Открыть форму созданной сделки.
+
+solution: |
+  В models/crm_lead.py переопределён action_set_won:
+  - Вызывает super().action_set_won() — стандартное поведение Odoo CRM сохранено
+  - _create_deal_if_not_exists(): проверяет наличие сделки через search, чтобы избежать дублей
+  - Создаёт estate.deal с lead_id, property_id, client_partner_id, deal_type
+    (deal_type берётся из search_deal_type, по умолчанию "sale")
+  - _create_deal_participants(): batch create участников через один вызов create()
+    для isa_user_id (role=isa), buyer_agent_id (role=buyer_agent),
+    transaction_coordinator_id (role=coordinator)
+  Открытие формы сделки не реализовано намеренно — action_set_won возвращает
+  стандартный результат Odoo; открытие формы будет задачей view-слоя (122).

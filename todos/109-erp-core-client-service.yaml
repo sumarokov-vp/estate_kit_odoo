@@ -1,0 +1,55 @@
+title: Создать сервис erp_core_client
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Сервис-фасад для взаимодействия Odoo с ERP Core.
+  Отвечает за создание Invoice при завершении сделки, запись выплат (Money),
+  получение баланса взаиморасчётов, отмену Invoice.
+
+recommendation: |
+  Создать services/erp_core_client/ по стандартной архитектуре модуля:
+
+  services/erp_core_client/
+  ├── __init__.py              # реэкспорт Factory
+  ├── config.py                # get_database_url() из os.environ ERP_CORE_DB_*
+  ├── factory.py               # создаёт psycopg connection, собирает зависимости
+  ├── service.py               # фасад
+  ├── seed.py                  # начальные данные (используется из post_init_hook)
+  └── protocols/
+      ├── i_invoice_creator.py
+      ├── i_payment_recorder.py
+      └── i_balance_provider.py
+
+  config.py — единая точка для database_url. Используется:
+  - post_init_hook (миграции + seed)
+  - factory.py (создание connection для бизнес-операций)
+
+  factory.py — создаёт psycopg.Connection к ERP Core БД, инстанциирует
+  erp_core репозитории и use cases, собирает фасад.
+
+  service.py — методы:
+  - create_deal_invoice(deal) — Invoice + ItemInvoice + EmployeeInvoice
+  - record_commission_payment(participant, amount, asset_id) — Money OUT + submit
+  - get_party_balance(party_id) — баланс через Mutual
+  - get_employee_commissions(employee_id, date_from, date_to)
+  - cancel_deal_invoice(erp_invoice_id) — смена статуса Invoice на CANCELLED
+
+  Зависимость: 106 (erp_core доступен), 107 (БД создана, миграции прошли),
+  108 (справочные данные загружены).
+
+solution: |
+  Создан полный пакет services/erp_core_client/:
+  - config.py: get_database_url() из env vars
+  - factory.py: Factory.create() — composition root, инстанциирует erp_core
+    репозитории (InvoiceRepository, MoneyRepository, MutualRepository, etc.)
+    и собирает ErpCoreClientService
+  - service.py: ErpCoreClientService — тонкий фасад с 5 методами
+  - invoice_creator.py: InvoiceCreator — создаёт Invoice + ItemInvoice + EmployeeInvoice
+  - payment_recorder.py: PaymentRecorder — создаёт Money OUT (submitted),
+    cancel_deal_invoice меняет статус на cancelled
+  - balance_provider.py: BalanceProvider — get_party_balance через cumulative mutual,
+    get_employee_commissions через salary_accruals
+  - protocols/: IInvoiceCreator, IPaymentRecorder, IBalanceProvider (typing.Protocol)
+  - seed.py: seed_initial_data(database_url)

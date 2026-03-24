@@ -1,0 +1,50 @@
+title: Загрузить начальные данные в ERP Core
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  После создания схемы (миграции) нужно загрузить справочные данные:
+  валюты, активы, каталог ролей-услуг, планы комиссий, контрагенты.
+  Без этих данных erp_core_client не сможет создавать Invoice и Money.
+
+recommendation: |
+  Создать seed-скрипт в addons/estate_kit/services/erp_core_client/seed.py.
+  Скрипт использует erp_core репозитории напрямую (psycopg connection).
+
+  Вызов — из того же post_init_hook, после apply_migrations():
+    from erp_core.infra.migrations import apply_migrations
+    from .services.erp_core_client.seed import seed_initial_data
+    from .services.erp_core_client.config import get_database_url
+
+    url = get_database_url()  # из переменных окружения
+    apply_migrations(url)
+    seed_initial_data(url)
+
+  Данные для создания:
+  - Currency: KZT (code='KZT', symbol='₸')
+  - Asset: «Расчётный счёт» (основной банковский счёт агентства)
+  - Items (каталог ролей-услуг): listing_agent, buyer_agent, isa,
+    team_lead, coordinator, legal, referral, mls_fee.
+    Каждый Item — это «услуга» в контексте erp_core.
+  - SalaryPlan «Standard 70/30» + SalaryPlanEmployee записи
+  - Party «MLS EstateKit» (type=company) — контрагент для MLS fee
+  - Статусы: InvoiceStatus (DRAFT, SENT, PAID, CANCELLED),
+    MoneyStatus (DRAFT, SUBMITTED, CANCELLED),
+    ExpenseStatus (DRAFT, SUBMITTED, CANCELLED)
+    и AllowedTransitions для каждого.
+    Примечание: проверить, создаются ли они миграциями (INSERT в SQL)
+    или нужно создавать программно.
+
+  Идемпотентность: перед INSERT проверять EXISTS по уникальному полю
+  (code, symbol, name). Повторный запуск не создаёт дубли.
+
+solution: |
+  Создан services/erp_core_client/seed.py с функцией seed_initial_data(database_url).
+  Статусы (InvoiceStatus, MoneyStatus, ExpenseStatus) и их AllowedTransitions
+  НЕ создаются миграциями — только DDL. Seed создаёт их программно.
+  Все INSERT используют ON CONFLICT DO NOTHING для идемпотентности.
+  Данные: KZT currency, BANK_ACCOUNT asset, 8 items (роли-услуги),
+  party «MLS EstateKit» (company).
+  SalaryPlan не создаётся в seed — привязывается к конкретным сотрудникам
+  в задаче 123 (employee sync).

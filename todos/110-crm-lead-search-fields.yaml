@@ -1,0 +1,33 @@
+title: "Расширить crm.lead: поля потребности клиента"
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Добавить в crm.lead вкладку «Потребность» с полями критериев поиска.
+  ISA заполняет при приёме звонка. Поля маппятся в SearchCriteria для matching_service.
+
+recommendation: |
+  В models/crm_lead.py добавить поля:
+  - search_deal_type (Selection: sale/rent)
+  - search_property_type (Many2one → estate.property.type)
+  - search_city_id (Many2one → estate.city)
+  - search_district_ids (Many2many → estate.district)
+  - search_rooms_min, search_rooms_max (Integer)
+  - search_price_min, search_price_max (Monetary)
+  - search_area_min, search_area_max (Float)
+  - search_notes (Text)
+  Создать view с xpath, добавляющий вкладку «Потребность» в форму лида.
+
+solution: |
+  Добавлены поля в models/crm_lead.py:
+  - search_deal_type: Selection (sale/Покупка, rent/Аренда)
+  - search_property_type: Selection — estate.property.type не существует как отдельная модель,
+    в проекте property_type реализован как Selection на estate.property; использован тот же набор значений
+  - search_city_id: Many2one → estate.city
+  - search_district_ids: Many2many → estate.district (промежуточная таблица crm_lead_estate_district_rel)
+  - search_rooms_min, search_rooms_max: Integer
+  - search_price_min, search_price_max: Monetary (currency_field=company_currency)
+  - search_area_min, search_area_max: Float (digits=(10,1))
+  - search_notes: Text
+  Добавлено вспомогательное вычисляемое поле company_currency для Monetary.

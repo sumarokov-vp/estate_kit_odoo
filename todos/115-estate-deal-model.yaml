@@ -1,0 +1,37 @@
+title: Модель estate.deal — сделка
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Основная модель сделки в модуле недвижимости.
+  Создаётся из выигранного лида (Won). Хранит данные о сделке, участников,
+  связь с ERP Core (erp_invoice_id).
+
+recommendation: |
+  Создать models/estate_deal.py:
+  - name (Char, auto-sequence DEAL/YYYY/NNNN)
+  - lead_id (Many2one → crm.lead)
+  - property_id (Many2one → estate.property)
+  - deal_type (Selection: sale/rent)
+  - state (Selection: draft/confirmed/in_progress/closing/done/cancelled)
+  - deal_price (Monetary), currency_id
+  - client_partner_id (Many2one → res.partner) — покупатель
+  - owner_partner_id (Many2one → res.partner) — собственник
+  - date_deal, date_closing (Date)
+  - commission_percent (Float), total_commission (Monetary, computed)
+  - participant_ids (One2many → estate.deal.participant)
+  - erp_invoice_id (Char) — UUID Invoice в ERP Core
+  - note (Html)
+  Views: form, tree, kanban. Меню в Estate Kit.
+  Actions: action_complete_deal (→ done, создать Invoice в ERP Core),
+           action_cancel_deal (→ cancelled, отменить Invoice).
+
+solution: |
+  Создан models/estate_deal.py с полями: name (auto-sequence DEAL/YYYY/NNNN через ir.sequence),
+  lead_id, property_id, deal_type, state (draft/confirmed/in_progress/closing/done/cancelled),
+  deal_price, currency_id, client_partner_id, owner_partner_id, date_deal, date_closing,
+  commission_percent, total_commission (computed), participant_ids, erp_invoice_id, note.
+  Actions: action_confirm, action_start, action_closing, action_complete, action_cancel.
+  Создан data/estate_deal_sequence.xml с ir.sequence (code=estate.deal, prefix=DEAL/%(year)s/, padding=4).
+  models/__init__.py и __manifest__.py не модифицировались (по заданию).

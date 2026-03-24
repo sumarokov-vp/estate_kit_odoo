@@ -1,0 +1,30 @@
+title: Обновить __manifest__.py и __init__.py
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Зарегистрировать все новые модели, views, data-файлы и security в манифесте.
+  Добавить post_init_hook для ERP Core инициализации.
+
+solution: |
+  1. models/__init__.py — добавлены импорты новых моделей:
+     crm_lead_matching, estate_lead_match, estate_deal, estate_deal_participant
+
+  2. hooks.py — добавлена функция _init_erp_core(env), вызываемая из post_init_hook.
+     Выполняет apply_migrations(url) + seed_initial_data(url).
+     Обёрнута в try/except с предупреждением — чтобы старт Odoo не падал
+     если ERP Core БД недоступна.
+
+  3. __manifest__.py:
+     - version обновлена: 19.0.1.6.0 → 19.0.1.7.0
+     - crm уже был в depends
+     - post_init_hook уже был в манифесте
+     - Добавлены в data:
+       * data/crm_stages.xml
+       * data/estate_deal_sequence.xml
+       * data/matching_cron.xml
+       * views/estate_deal_views.xml
+       * views/estate_lead_match_views.xml
+       * views/commission_report_views.xml
+       * views/estate_deal_menus.xml

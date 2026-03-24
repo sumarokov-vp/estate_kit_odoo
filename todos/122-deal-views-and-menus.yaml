@@ -1,0 +1,57 @@
+title: Views и меню для сделок и матчинга
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  ISA-менеджеру нужен полноценный интерфейс:
+  - Форма сделки с участниками и комиссиями
+  - Список сделок (tree + kanban)
+  - Обновлённая форма лида с вкладкой «Потребность» и подобранными объектами
+  - Пункты меню для навигации
+  Без views модели существуют только в БД, пользователь их не увидит.
+
+recommendation: |
+  Создать XML-файлы:
+
+  1. views/estate_deal_views.xml:
+     - estate.deal form: основные поля + notebook с вкладками:
+       «Участники» (participant_ids inline tree),
+       «Комиссии» (computed данные из ERP Core, read-only),
+       «Примечания» (note)
+     - estate.deal tree: name, property_id, client, deal_price, state, date_deal
+     - estate.deal kanban: по state
+     - estate.deal search: фильтры по state, deal_type, date_deal
+
+  2. views/estate_deal_menus.xml:
+     - Пункт меню Estate Kit → Сделки (action window на estate.deal tree/kanban)
+     - Подменю: Все сделки, Мои сделки (domain: user_id = uid)
+
+  3. views/crm_lead_views.xml (обновить существующий):
+     - Вкладка «Потребность»: поля search_*, кнопка «Подобрать объекты»
+     - Вкладка «Подобранные объекты»: match_ids tree (property, score, state)
+     - Smart button «Telegram Bot» (если bot_connected)
+     - Smart button «Сделка» (если есть связанная estate.deal)
+     - Поле deeplink URL (computed, readonly)
+
+  4. views/estate_lead_match_views.xml:
+     - inline tree для отображения внутри формы лида
+     - Standalone tree/form для отдельного просмотра (опционально)
+
+solution: |
+  Созданы 4 XML-файла:
+
+  1. views/estate_deal_views.xml — form (header с кнопками state transitions,
+     sheet с основными полями, notebook: Участники/Даты и стороны/Примечания,
+     chatter), list, kanban (group by state), search (фильтры по state, deal_type,
+     группировки), action window.
+
+  2. views/estate_deal_menus.xml — пункт меню «Сделки» в корневом меню «Недвижимость».
+
+  3. views/crm_lead_views.xml — полностью переработан: smart button «Подборки»,
+     группа «Недвижимость» с property_id и ответственными, три новые вкладки
+     в notebook: «Потребность» (search_*), «Подобранные объекты» (match_ids),
+     «Telegram» (deeplink, bot_connected).
+
+  4. views/estate_lead_match_views.xml — inline list view для estate.lead.match
+     (property_id, score, match_date, state с badge).

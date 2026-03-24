@@ -1,0 +1,29 @@
+title: Сервис matching_client — gRPC-клиент к matching_service
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  gRPC-клиент для вызова matching_service из Odoo.
+  Аналогичен customer_bot/src/matching_client/.
+  Используется для подбора объектов по критериям лида.
+
+recommendation: |
+  Создать services/matching_client/ по стандартной архитектуре:
+  - factory.py — создаёт gRPC channel из ir.config_parameter
+  - service.py — фасад: search(criteria) → list[MatchResult]
+  - config.py — host:port matching_service
+  Добавить кнопку «Подобрать объекты» на форму лида (action_run_matching),
+  которая вызывает matching_client, обновляет estate.lead.match записи.
+
+solution: |
+  Создан services/matching_client/ по стандартной архитектуре:
+  - config.py: MatchingClientConfig, читает estate_kit.matching_service_url из ir.config_parameter
+  - protocols/http_client.py: IHttpClient (Protocol)
+  - http_client.py: HttpClient — POST через requests
+  - match_result.py: MatchResult dataclass (property_id, score)
+  - search_criteria.py: SearchCriteria dataclass
+  - service.py: MatchingClientService — фасад, метод search()
+  - factory.py: Factory.create(env) — composition root
+  - __init__.py: реэкспорт Factory, MatchResult, SearchCriteria
+  Сервис использует HTTP (не gRPC) — аналогично реализации в customer_bot.

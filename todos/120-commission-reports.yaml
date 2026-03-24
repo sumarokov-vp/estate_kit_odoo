@@ -1,0 +1,30 @@
+title: Отчёты по комиссиям из ERP Core
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Wizard/report в Odoo для просмотра комиссионных данных из ERP Core:
+  сводка по сотруднику за период и баланс взаиморасчётов с контрагентом.
+
+recommendation: |
+  Создать wizard estate.commission.report.wizard:
+  - Фильтры: сотрудник, период (date_from, date_to), контрагент
+  - Вызывает erp_core_client.get_employee_commissions() и get_party_balance()
+  - Показывает результат в tree view
+  Кнопки экспорта: CSV (через MutualSettlementsCsvGenerator из erp_core),
+  PDF (через InvoicePdfGenerator).
+  Пункт меню: Estate Kit → Отчёты → Комиссии.
+
+solution: |
+  Созданы файлы:
+  - wizards/commission_report_wizard.py — TransientModel estate.commission.report.wizard
+    с полями employee_id (res.users), date_from, date_to, partner_id (res.partner),
+    line_ids, employee_total, party_balance. Метод action_generate() вызывает
+    erp_core_client (ensure_employee/ensure_party + get_employee_commissions/get_party_balance).
+  - wizards/commission_report_line.py — TransientModel estate.commission.report.line
+    с полями label, amount, line_type.
+  - views/commission_report_views.xml — form view wizard + action + меню
+    «Недвижимость → Отчёты → Комиссии».
+  - wizards/__init__.py обновлён (добавлены импорты новых модулей).
+  __manifest__.py НЕ модифицировался.

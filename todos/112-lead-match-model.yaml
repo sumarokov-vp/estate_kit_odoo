@@ -1,0 +1,26 @@
+title: Модель estate.lead.match — результаты матчинга
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Связь между лидом и подобранным объектом недвижимости.
+  Заполняется при ручном или автоматическом запуске матчинга.
+
+recommendation: |
+  Создать models/estate_lead_match.py:
+  - lead_id (Many2one → crm.lead, required, ondelete='cascade')
+  - property_id (Many2one → estate.property, required)
+  - score (Float) — релевантность от matching_service
+  - match_date (Datetime, default=now)
+  - state (Selection: new/viewed/interested/rejected, default='new')
+  Добавить match_ids (One2many) и match_count (computed Integer) в crm.lead.
+  View: список подобранных объектов во вкладке «Потребность» на форме лида.
+  Security: read для group_user, CRUD для group_manager.
+
+solution: |
+  Создана models/estate_lead_match.py — модель estate.lead.match с полями
+  lead_id, property_id, score, match_date, state и методом _cron_update_matching.
+  Создана models/crm_lead_matching.py — наследник crm.lead с полями
+  last_matching_date, match_ids (One2many), match_count (computed).
+  Импорты в __init__.py добавляет worker задачи 121.

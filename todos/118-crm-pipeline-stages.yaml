@@ -1,0 +1,22 @@
+title: CRM Pipeline стадии для недвижимости
+status: done
+created_at: 24.03.2026
+completed_at: 24.03.2026
+
+description: |
+  Настроить стадии воронки CRM для процесса продажи недвижимости.
+
+recommendation: |
+  Создать data/crm_stages.xml с записями crm.stage:
+  - New (sequence=1, probability=5)
+  - Qualified (sequence=2, probability=15)
+  - Matched (sequence=3, probability=25)
+  - Viewing (sequence=4, probability=40)
+  - Negotiation (sequence=5, probability=60)
+  - Proposal (sequence=6, probability=80)
+  Won и Lost — стандартные стадии Odoo, не создавать.
+
+solution: |
+  Создан data/crm_stages.xml с 6 стадиями crm.stage (noupdate=1):
+  New, Qualified, Matched, Viewing, Negotiation, Proposal.
+  XML ID: estate_kit.crm_stage_<name>. Won/Lost не создаются (стандартные стадии Odoo).
