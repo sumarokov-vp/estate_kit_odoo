@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_estate_lead_match_list" model="ir.ui.view">
+        <field name="name">estate.lead.match.list</field>
+        <field name="model">estate.lead.match</field>
+        <field name="arch" type="xml">
+            <list string="Подобранные объекты" editable="bottom">
+                <field name="property_id"/>
+                <field name="score"/>
+                <field name="match_date"/>
+                <field name="state" widget="badge"
+                    decoration-info="state == 'new'"
+                    decoration-success="state == 'interested'"
+                    decoration-muted="state == 'rejected'"/>
+            </list>
+        </field>
+    </record>
+</odoo>

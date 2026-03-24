@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="estate_menu_deals" name="Сделки" parent="estate_menu_root"
+        action="estate_deal_action" sequence="20"/>
+</odoo>

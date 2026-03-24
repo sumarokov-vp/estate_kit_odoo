@@ -5,8 +5,18 @@
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
+            <!-- Smart button: Подборки -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" icon="fa-handshake-o"
+                    name="%(estate_deal_action)d" type="action"
+                    context="{'search_default_lead_id': active_id}">
+                    <field name="match_count" string="Подборки" widget="statinfo"/>
+                </button>
+            </xpath>
+
+            <!-- Real Estate info group -->
             <xpath expr="//sheet" position="inside">
-                <group string="Real Estate" name="estate_info">
+                <group string="Недвижимость" name="estate_info">
                     <group>
                         <field name="property_id"/>
                     </group>
@@ -16,6 +26,65 @@
                         <field name="transaction_coordinator_id"/>
                     </group>
                 </group>
+            </xpath>
+
+            <!-- Вкладка: Потребность -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Потребность" name="search_criteria">
+                    <group>
+                        <group>
+                            <field name="search_deal_type"/>
+                            <field name="search_property_type"/>
+                            <field name="search_city_id"/>
+                            <field name="search_district_ids" widget="many2many_tags"/>
+                        </group>
+                        <group>
+                            <field name="search_rooms_min"/>
+                            <field name="search_rooms_max"/>
+                            <field name="search_price_min"/>
+                            <field name="search_price_max"/>
+                            <field name="company_currency" invisible="1"/>
+                            <field name="search_area_min"/>
+                            <field name="search_area_max"/>
+                        </group>
+                    </group>
+                    <group string="Примечания по поиску">
+                        <field name="search_notes" nolabel="1" colspan="2"/>
+                    </group>
+                </page>
+
+                <!-- Вкладка: Подобранные объекты -->
+                <page string="Подобранные объекты" name="matching">
+                    <field name="match_ids">
+                        <list>
+                            <field name="property_id"/>
+                            <field name="score"/>
+                            <field name="match_date"/>
+                            <field name="state" widget="badge"
+                                decoration-info="state == 'new'"
+                                decoration-success="state == 'interested'"
+                                decoration-muted="state == 'rejected'"/>
+                        </list>
+                    </field>
+                    <group>
+                        <field name="last_matching_date" readonly="1"/>
+                    </group>
+                </page>
+
+                <!-- Вкладка: Telegram -->
+                <page string="Telegram" name="deeplink">
+                    <group>
+                        <group>
+                            <field name="lead_code" readonly="1"/>
+                            <field name="deeplink_url" readonly="1" widget="CopyClipboardChar"/>
+                        </group>
+                        <group>
+                            <field name="bot_connected"/>
+                            <field name="telegram_user_id" readonly="1"/>
+                            <field name="last_bot_activity" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>

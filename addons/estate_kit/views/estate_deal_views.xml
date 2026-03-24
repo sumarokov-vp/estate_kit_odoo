@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_estate_deal_form" model="ir.ui.view">
+        <field name="name">estate.deal.form</field>
+        <field name="model">estate.deal</field>
+        <field name="arch" type="xml">
+            <form string="Сделка">
+                <header>
+                    <button name="action_confirm" type="object" string="Подтвердить"
+                        class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_start" type="object" string="В работу"
+                        class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <button name="action_closing" type="object" string="Закрытие"
+                        class="oe_highlight" invisible="state != 'in_progress'"/>
+                    <button name="action_complete" type="object" string="Завершить"
+                        class="oe_highlight" invisible="state != 'closing'"/>
+                    <button name="action_cancel" type="object" string="Отменить"
+                        invisible="state in ('done', 'cancelled')"/>
+                    <field name="state" widget="statusbar"
+                        statusbar_visible="draft,confirmed,in_progress,closing,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="lead_id"/>
+                            <field name="property_id"/>
+                            <field name="deal_type"/>
+                        </group>
+                        <group>
+                            <field name="deal_price"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="commission_percent"/>
+                            <field name="total_commission"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Участники" name="participants">
+                            <field name="participant_ids">
+                                <list editable="bottom">
+                                    <field name="role"/>
+                                    <field name="user_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="commission_percent"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="commission_amount"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Даты и стороны" name="dates">
+                            <group>
+                                <group>
+                                    <field name="date_deal"/>
+                                    <field name="date_closing"/>
+                                </group>
+                                <group>
+                                    <field name="client_partner_id"/>
+                                    <field name="owner_partner_id"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Примечания" name="notes">
+                            <field name="note" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_estate_deal_list" model="ir.ui.view">
+        <field name="name">estate.deal.list</field>
+        <field name="model">estate.deal</field>
+        <field name="arch" type="xml">
+            <list string="Сделки"
+                decoration-success="state == 'done'"
+                decoration-warning="state == 'closing'"
+                decoration-muted="state == 'cancelled'">
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="client_partner_id"/>
+                <field name="deal_price"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="state" widget="badge"
+                    decoration-success="state == 'done'"
+                    decoration-info="state in ('confirmed', 'in_progress')"
+                    decoration-warning="state == 'closing'"
+                    decoration-muted="state == 'cancelled'"/>
+                <field name="date_deal"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_estate_deal_kanban" model="ir.ui.view">
+        <field name="name">estate.deal.kanban</field>
+        <field name="model">estate.deal</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state">
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="client_partner_id"/>
+                <field name="deal_price"/>
+                <field name="currency_id"/>
+                <field name="state"/>
+                <field name="deal_type"/>
+                <templates>
+                    <t t-name="card">
+                        <field name="name" class="fw-bold fs-5"/>
+                        <div class="text-muted">
+                            <field name="property_id"/>
+                        </div>
+                        <div t-if="record.client_partner_id.raw_value">
+                            <field name="client_partner_id"/>
+                        </div>
+                        <div class="fw-bold">
+                            <field name="deal_price" widget="monetary"/>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <record id="view_estate_deal_search" model="ir.ui.view">
+        <field name="name">estate.deal.search</field>
+        <field name="model">estate.deal</field>
+        <field name="arch" type="xml">
+            <search string="Поиск сделок">
+                <field name="name"/>
+                <field name="property_id"/>
+                <field name="client_partner_id"/>
+                <field name="owner_partner_id"/>
+                <separator/>
+                <filter name="draft" string="Черновик" domain="[('state', '=', 'draft')]"/>
+                <filter name="confirmed" string="Подтверждена" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="in_progress" string="В работе" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="closing" string="Закрытие" domain="[('state', '=', 'closing')]"/>
+                <filter name="done" string="Завершена" domain="[('state', '=', 'done')]"/>
+                <filter name="cancelled" string="Отменена" domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter name="sale" string="Продажа" domain="[('deal_type', '=', 'sale')]"/>
+                <filter name="rent" string="Аренда" domain="[('deal_type', '=', 'rent')]"/>
+                <separator/>
+                <filter name="group_state" string="Статус" context="{'group_by': 'state'}"/>
+                <filter name="group_deal_type" string="Тип сделки" context="{'group_by': 'deal_type'}"/>
+                <filter name="group_date" string="Дата сделки" context="{'group_by': 'date_deal'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="estate_deal_action" model="ir.actions.act_window">
+        <field name="name">Сделки</field>
+        <field name="res_model">estate.deal</field>
+        <field name="view_mode">list,kanban,form</field>
+    </record>
+</odoo>
