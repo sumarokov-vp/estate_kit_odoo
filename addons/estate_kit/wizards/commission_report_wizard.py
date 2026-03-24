@@ -1,6 +1,6 @@
 from datetime import date
 
-from odoo import _, api, fields, models
+from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 from ..services.erp_core_client import Factory as ErpCoreClientFactory
@@ -69,7 +69,6 @@ class CommissionReportWizard(models.TransientModel):
                 from datetime import datetime
                 date_from_dt = datetime.combine(self.date_from, datetime.min.time())
                 date_to_dt = datetime.combine(self.date_to, datetime.max.time())
-                from decimal import Decimal
                 total = service.get_employee_commissions(
                     employee_party_id=erp_employee_id,
                     date_from=date_from_dt,
@@ -114,7 +113,6 @@ class CommissionReportWizard(models.TransientModel):
 
     def _get_or_ensure_employee(self, service) -> int | None:
         user = self.employee_id
-        external_id = str(user.id)
         employee = service.ensure_employee(
             odoo_user_id=user.id,
             name=user.name,

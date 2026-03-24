@@ -148,6 +148,8 @@ class CrmLead(models.Model):
         if self.buyer_agent_id:
             participants.append({"deal_id": deal.id, "role": "buyer_agent", "user_id": self.buyer_agent_id.id})
         if self.transaction_coordinator_id:
-            participants.append({"deal_id": deal.id, "role": "coordinator", "user_id": self.transaction_coordinator_id.id})
+            participants.append({
+                "deal_id": deal.id, "role": "coordinator", "user_id": self.transaction_coordinator_id.id,
+            })
         if participants:
             self.env["estate.deal.participant"].create(participants)
