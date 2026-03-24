@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="crm_stage_new" model="crm.stage">
+        <field name="name">New</field>
+        <field name="sequence">1</field>
+        <field name="probability">5</field>
+    </record>
+
+    <record id="crm_stage_qualified" model="crm.stage">
+        <field name="name">Qualified</field>
+        <field name="sequence">2</field>
+        <field name="probability">15</field>
+    </record>
+
+    <record id="crm_stage_matched" model="crm.stage">
+        <field name="name">Matched</field>
+        <field name="sequence">3</field>
+        <field name="probability">25</field>
+    </record>
+
+    <record id="crm_stage_viewing" model="crm.stage">
+        <field name="name">Viewing</field>
+        <field name="sequence">4</field>
+        <field name="probability">40</field>
+    </record>
+
+    <record id="crm_stage_negotiation" model="crm.stage">
+        <field name="name">Negotiation</field>
+        <field name="sequence">5</field>
+        <field name="probability">60</field>
+    </record>
+
+    <record id="crm_stage_proposal" model="crm.stage">
+        <field name="name">Proposal</field>
+        <field name="sequence">6</field>
+        <field name="probability">80</field>
+    </record>
+</odoo>

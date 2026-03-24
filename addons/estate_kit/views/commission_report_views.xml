@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form: Wizard параметров отчёта -->
+    <record id="view_commission_report_wizard_form" model="ir.ui.view">
+        <field name="name">estate.commission.report.wizard.form</field>
+        <field name="model">estate.commission.report.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Отчёт по комиссиям">
+                <sheet>
+                    <group string="Параметры отчёта">
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group>
+                            <field name="partner_id"/>
+                        </group>
+                    </group>
+                    <div class="mt-3">
+                        <button name="action_generate" string="Сформировать" type="object" class="btn-primary"/>
+                    </div>
+                    <group string="Итоги" attrs="{'invisible': [('line_ids', '=', [])]}">
+                        <field name="currency_id" invisible="1"/>
+                        <field name="employee_total" attrs="{'invisible': [('employee_id', '=', False)]}"/>
+                        <field name="party_balance" attrs="{'invisible': [('partner_id', '=', False)]}"/>
+                    </group>
+                    <field name="line_ids" nolabel="1" attrs="{'invisible': [('line_ids', '=', [])]}">
+                        <list create="0" delete="0" editable="0">
+                            <field name="line_type" string="Тип"/>
+                            <field name="label" string="Описание"/>
+                            <field name="amount" string="Сумма"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action для открытия wizard -->
+    <record id="action_commission_report_wizard" model="ir.actions.act_window">
+        <field name="name">Комиссии</field>
+        <field name="res_model">estate.commission.report.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Пункт меню: Недвижимость → Отчёты → Комиссии -->
+    <menuitem
+        id="estate_menu_reports"
+        name="Отчёты"
+        parent="estate_menu_root"
+        sequence="50"/>
+
+    <menuitem
+        id="estate_menu_commission_report"
+        name="Комиссии"
+        parent="estate_menu_reports"
+        action="action_commission_report_wizard"
+        sequence="10"/>
+</odoo>
