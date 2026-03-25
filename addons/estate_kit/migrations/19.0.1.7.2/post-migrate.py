@@ -1,3 +1,4 @@
+import json
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -50,7 +51,10 @@ def migrate(cr, version):
     for dup_xmlid in DUPLICATES:
         dup_id = duplicate_ids.get(dup_xmlid)
         if dup_id:
-            cr.execute("DELETE FROM ir_model_data WHERE res_id = %s AND model = 'crm.stage'", (dup_id,))
+            cr.execute(
+                "DELETE FROM ir_model_data WHERE res_id = %s AND model = 'crm.stage' AND module = %s",
+                (dup_id, "estate_kit"),
+            )
             cr.execute("DELETE FROM crm_stage WHERE id = %s", (dup_id,))
             _logger.info("Migration 19.0.1.7.2: deleted duplicate stage %s", dup_xmlid)
 
@@ -60,7 +64,7 @@ def migrate(cr, version):
         if stage_id:
             cr.execute(
                 "UPDATE crm_stage SET name = %s WHERE id = %s",
-                (f'{{"en_US": "{names["name_en"]}", "ru_RU": "{names["name_ru"]}"}}', stage_id),
+                (json.dumps({"en_US": names["name_en"], "ru_RU": names["name_ru"]}), stage_id),
             )
             _logger.info("Migration 19.0.1.7.2: renamed stage %s to %s", xmlid, names["name_ru"])
 
@@ -70,7 +74,7 @@ def migrate(cr, version):
         if stage_id:
             cr.execute(
                 "UPDATE crm_stage SET name = %s, sequence = %s WHERE id = %s",
-                (f'{{"en_US": "{data["name_en"]}", "ru_RU": "{data["name_ru"]}"}}', data["sequence"], stage_id),
+                (json.dumps({"en_US": data["name_en"], "ru_RU": data["name_ru"]}), data["sequence"], stage_id),
             )
             _logger.info(
                 "Migration 19.0.1.7.2: renamed stage %s to %s (seq %s)", xmlid, data["name_ru"], data["sequence"]
@@ -84,12 +88,14 @@ def migrate(cr, version):
         """
     )
     if not cr.fetchone():
+        lost_name = json.dumps({"en_US": "Lost", "ru_RU": "Потеряно"})
         cr.execute(
             """
-            INSERT INTO crm_stage (name, sequence, is_won, fold)
-            VALUES ('{"en_US": "Lost", "ru_RU": "Потеряно"}', 80, false, true)
+            INSERT INTO crm_stage (name, sequence, is_won, fold, create_uid, write_uid)
+            VALUES (%s, 80, false, true, 1, 1)
             RETURNING id
-            """
+            """,
+            (lost_name,),
         )
         lost_id = cr.fetchone()[0]
         cr.execute(
