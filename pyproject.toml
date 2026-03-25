@@ -15,7 +15,7 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "pathspec<1.0"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]

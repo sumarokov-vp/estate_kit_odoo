@@ -68,7 +68,7 @@ def main() -> None:
     log(YELLOW, "Starting Odoo...")
     run([*compose, "start", SERVICE])
 
-    # 5. Final health check
+    # 6. Final health check
     log(YELLOW, "Final health check...")
     wait_healthy(compose)
 
