@@ -1,0 +1,9 @@
+from typing import Any, Protocol
+
+
+class IMarketingPool(Protocol):
+    def calculate_all(self) -> None: ...
+
+    def update_single(self, prop) -> None: ...
+
+    def build_pool_status(self, prop, scoring) -> Any: ...

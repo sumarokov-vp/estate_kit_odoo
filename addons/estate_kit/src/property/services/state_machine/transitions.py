@@ -1,0 +1,15 @@
+ALLOWED_TRANSITIONS: dict[str, list[str]] = {
+    "draft": ["internal_review"],
+    "internal_review": ["draft", "active"],
+    "active": ["moderation", "sold", "unpublished"],
+    "moderation": ["legal_review", "rejected", "active"],
+    "legal_review": ["published", "rejected", "moderation", "active"],
+    "published": ["unpublished", "sold", "archived", "active"],
+    "rejected": ["internal_review"],
+    "unpublished": ["active"],
+    "archived": [],
+    "sold": [],
+    "mls_listed": ["mls_removed", "mls_sold"],
+    "mls_removed": [],
+    "mls_sold": [],
+}

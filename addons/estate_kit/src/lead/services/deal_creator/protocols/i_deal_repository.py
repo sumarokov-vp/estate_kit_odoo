@@ -1,0 +1,6 @@
+from typing import Protocol
+
+
+class IDealRepository(Protocol):
+    def exists_for_lead(self, lead_id: int) -> bool: ...
+    def create(self, lead) -> object: ...
