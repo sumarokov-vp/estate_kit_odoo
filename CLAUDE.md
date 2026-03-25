@@ -35,35 +35,64 @@ cd podman && cp .env.example .env && podman-compose up -d
 
 PostgreSQL (внешний). Настройки в `.env`: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`.
 
-## Архитектура сервисов
+## Архитектура: DDD-структура моделей
 
-Каждый сервис в `addons/estate_kit/services/` оформляется как самостоятельный пакет (папка) с единым фасадом, протоколами и фабрикой. Это обеспечивает совместимость с Odoo (где нет DI-контейнера) и чистую архитектуру.
+Каждая Odoo-модель (или группа связанных моделей) живёт в `addons/estate_kit/src/<domain>/` — это bounded context. Модель остаётся тонкой (поля + однострочные делегаты), вся логика выносится в сервисы.
 
-### Структура пакета сервиса
+### Структура домена
 
 ```
-services/<service_name>/
-├── __init__.py              # Реэкспорт: Factory + публичные типы
-├── factory.py               # Factory — единственная точка сборки графа зависимостей
-├── service.py               # Фасад — тонкий класс, делегирует всё внутренним зависимостям
-├── protocols/               # Протоколы (typing.Protocol) для всех зависимостей
-│   ├── __init__.py
-│   └── <name>.py            # Один протокол = один файл, имя с префиксом I (IAiClient, IMpsCalculator)
-├── <implementation>.py      # Реализации — один класс = один метод = один файл
-├── config.py                # Конфигурация (dataclass, читает ir.config_parameter)
-└── <data>.py                # Данные (промпты, маппинги, константы)
+src/<domain>/
+├── __init__.py              # from . import models
+├── models/
+│   ├── __init__.py          # from . import <model_file>
+│   └── <model>.py           # Odoo-модель: поля + тонкие методы-делегаты
+└── services/
+    ├── __init__.py
+    └── <service_name>/      # Каждый сервис — отдельный пакет
+        ├── __init__.py      # Реэкспорт: Factory + публичные типы
+        ├── factory.py       # Factory — composition root
+        ├── service.py       # Фасад — тонкий класс, делегирует зависимостям
+        ├── protocols/       # typing.Protocol для зависимостей
+        │   ├── __init__.py
+        │   └── i_<name>.py  # Один протокол = один файл, один метод
+        ├── <impl>.py        # Реализации: один класс = один публичный метод = один файл
+        ├── config.py        # Конфигурация (dataclass, ir.config_parameter)
+        └── <data>.py        # Данные (константы, маппинги)
 ```
 
-### Правила
+### Принцип тонкой модели
+
+Odoo-модель содержит только:
+- Определения полей (`fields.*`)
+- `@api.depends` / `@api.onchange` — вызывают сервис в одну строку
+- `create()` / `write()` — вызывают сервис, затем `super()`
+- `action_*` кнопки — однострочные делегаты к сервису
+- `_sql_constraints`
+
+Вся бизнес-логика, валидация, внешние вызовы — в сервисах.
+
+```python
+# Модель (тонкая):
+class CrmLead(models.Model):
+    _inherit = "crm.lead"
+
+    def action_set_won(self):
+        result = super().action_set_won()
+        DealCreatorFactory.create(self.env).create_if_not_exists(self)
+        return result
+```
+
+### Правила сервисов
 
 **Фасад (service.py):**
-- Единый класс, выставляемый наружу — все публичные методы сервиса в одном месте
-- Тонкий: не содержит бизнес-логики, только делегирует вызовы внутренним зависимостям
-- Принимает все зависимости через конструктор (DI), типизированные протоколами
+- Единый класс, все публичные методы сервиса в одном месте
+- Тонкий: не содержит бизнес-логики, делегирует зависимостям
+- Зависимости через конструктор (DI), типизированные протоколами
 
 **Протоколы (protocols/):**
 - `typing.Protocol` — structural subtyping, реализации НЕ наследуют протоколы
-- Имена с префиксом `I`: `IAiClient`, `IThresholdChecker`, `IMpsCalculator`
+- Имена с префиксом `I`: `IAiClient`, `IThresholdChecker`
 - Один протокол = один файл, один метод
 
 **Реализации:**
@@ -73,24 +102,25 @@ services/<service_name>/
 **Фабрика (factory.py):**
 - Класс `Factory` со статическими методами — composition root
 - Собирает граф зависимостей, создаёт конкретные реализации, возвращает фасад
-- Единственное место, знающее о конкретных классах — потребители работают только с фасадом
+- Единственное место, знающее о конкретных классах
 
 **Совместимость с Odoo:**
-- Odoo-модели (controllers, models) вызывают `Factory.create(env, ...)` и работают с фасадом
-- `env` (Odoo Environment) передаётся в фабрику, не в фасад напрямую
-- Сервисы не импортируют из models/controllers (контракт lint-imports)
+- Модели вызывают `Factory.create(env, ...)` и работают с фасадом
+- `env` (Odoo Environment) передаётся в фабрику, не в фасад
+- Сервисы не импортируют из models/controllers
 
-### Пример: marketing_pool
+### Цепочка импортов
 
-```python
-# В Odoo-модели:
-from ..services.marketing_pool import Factory as MarketingPoolFactory
-
-service = MarketingPoolFactory.create(self.env, AnthropicClient(self.env))
-service.calculate_all()
-service.update_single(prop)
-service.score_property(property_data)
 ```
+addons/estate_kit/__init__.py      → from . import src
+src/__init__.py                     → from . import lead, property
+src/<domain>/__init__.py            → from . import models
+src/<domain>/models/__init__.py     → from . import <model_file>
+```
+
+### Устаревшие сервисы (legacy)
+
+`addons/estate_kit/services/` — старые сервисы, не привязанные к домену. Новые сервисы создавать ТОЛЬКО в `src/<domain>/services/`. При рефакторинге — переносить из `services/` в соответствующий домен.
 
 ## Скиллы
 

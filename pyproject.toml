@@ -32,6 +32,7 @@ dev = [
     "mkdocs>=1.6.1",
     "mkdocs-material>=9.7.1",
     "mypy>=1.19.1",
+    "pathspec<1.0",
     "types-requests>=2.32.4.20260107",
     "types-grpcio>=1.0.0.20251009",
 ]
