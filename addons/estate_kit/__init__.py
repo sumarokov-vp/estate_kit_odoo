@@ -1,2 +1,2 @@
-from . import models, src
+from . import src
 from .hooks import post_init_hook
