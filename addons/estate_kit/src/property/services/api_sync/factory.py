@@ -1,5 +1,5 @@
-from .....services.image_sync_service import ImageSyncService
-from .....services.property_sync_service import PropertySyncService
+from ..image_sync_service import ImageSyncService
+from ..property_sync_service import PropertySyncService
 from .service import ApiSyncService
 
 

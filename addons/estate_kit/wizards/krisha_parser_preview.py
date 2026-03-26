@@ -1,8 +1,8 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
-from ..services.krisha_parser import KrishaParser
-from ..services.property_import_service import PropertyImportService
+from ..src.property.services.krisha_parser import KrishaParser
+from ..src.property.services.property_import_service import PropertyImportService
 
 
 class KrishaParserPreview(models.TransientModel):

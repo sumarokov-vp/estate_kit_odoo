@@ -1,6 +1,6 @@
 import logging
 
-from .protocols import IMarketingPool
+from .protocols import IMarketingPool, IPoolProtector, IPoolRemover
 
 _logger = logging.getLogger(__name__)
 
@@ -8,8 +8,16 @@ POOL_ELIGIBLE_STATES = ("active", "published")
 
 
 class PoolRotationService:
-    def __init__(self, marketing_pool: IMarketingPool, env) -> None:
+    def __init__(
+        self,
+        marketing_pool: IMarketingPool,
+        pool_protector: IPoolProtector,
+        pool_remover: IPoolRemover,
+        env,
+    ) -> None:
         self._marketing_pool = marketing_pool
+        self._pool_protector = pool_protector
+        self._pool_remover = pool_remover
         self._env = env
 
     def rotate_pool(self) -> None:
@@ -33,12 +41,12 @@ class PoolRotationService:
         pool_properties = self._env["estate.property"].search([("tag_ids", "in", pool_tag.id)])
         for prop in pool_properties:
             if prop.state not in POOL_ELIGIBLE_STATES:
-                self._pool_remove(prop, pool_tag, "Объект в статусе «%s»" % prop.state)
+                self._pool_remover.remove(prop, pool_tag, "Объект в статусе «%s»" % prop.state)
                 continue
 
             latest = prop.scoring_ids[:1]
             if latest and self._marketing_pool.scores_below_threshold(latest, min_price, min_quality, min_listing):
-                self._pool_remove(
+                self._pool_remover.remove(
                     prop, pool_tag,
                     "AI-скоринг ниже порога: price=%d quality=%d listing=%d"
                     % (latest.price_score, latest.quality_score, latest.listing_score),
@@ -47,7 +55,7 @@ class PoolRotationService:
 
             mps = prop.marketing_pool_score
             if mps < t_exclude:
-                if self._is_pool_protected(prop):
+                if self._pool_protector.is_pool_protected(prop):
                     prop.activity_schedule(
                         act_type_xmlid="mail.mail_activity_data_todo",
                         summary="MPS ниже порога — проверьте",
@@ -55,7 +63,7 @@ class PoolRotationService:
                              "Объект защищён от исключения." % (mps, t_exclude),
                     )
                 else:
-                    self._pool_remove(
+                    self._pool_remover.remove(
                         prop, pool_tag,
                         "MPS %.1f ниже порога %.1f" % (mps, t_exclude),
                     )
@@ -125,33 +133,3 @@ class PoolRotationService:
             "Callback activities created for %d properties in marketing pool",
             len(properties),
         )
-
-    def _is_pool_protected(self, prop) -> bool:
-        get_param = self._env["ir.config_parameter"].sudo().get_param
-        protect_priority = int(get_param("estate_kit.tier_lead_protection_priority", "5"))
-
-        lead_tiers = prop.tier_ids.filtered(lambda t: t.role == "team_lead")
-        if lead_tiers and min(t.priority for t in lead_tiers) <= protect_priority:
-            return True
-
-        active_with_leads = prop.placement_ids.filtered(
-            lambda p: p.state == "active" and p.leads_count > 0
-        )
-        if active_with_leads:
-            return True
-
-        return False
-
-    def _pool_remove(self, prop, pool_tag, reason: str) -> None:
-        prop.tag_ids -= pool_tag
-        active_placements = prop.placement_ids.filtered(
-            lambda p: p.state in ("draft", "active", "paused")
-        )
-        if active_placements:
-            active_placements.write({"state": "removed"})
-        prop.message_post(
-            body="Выведен из маркетингового пула: %s" % reason,
-            message_type="comment",
-            subtype_xmlid="mail.mt_note",
-        )
-        _logger.info("Property %s removed from pool: %s", prop.id, reason)

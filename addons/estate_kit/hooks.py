@@ -14,8 +14,8 @@ def _init_erp_core(env):
     try:
         from erp_core.infra.migrations import apply_migrations
 
-        from .services.erp_core_client.config import get_database_url
-        from .services.erp_core_client.seed import seed_initial_data
+        from .src.deal.services.erp_core_client.config import get_database_url
+        from .src.deal.services.erp_core_client.seed import seed_initial_data
         url = get_database_url()
         applied = apply_migrations(url)
         _logger.info("ERP Core: applied %d migrations", applied)

@@ -1,4 +1,4 @@
-from .....services.geocoder import YandexGeocoder
+from .geocoder import YandexGeocoder
 from .service import DistrictDetectorService
 
 

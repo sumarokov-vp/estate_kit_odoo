@@ -1,5 +1,5 @@
-from .....services.anthropic_client import AnthropicClient
-from .....services.marketing_pool import Factory as MarketingPoolFactory
+from .....src.shared.services.anthropic_client import AnthropicClient
+from ..marketing_pool import Factory as MarketingPoolFactory
 from .service import ScoringService
 
 

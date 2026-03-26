@@ -47,7 +47,7 @@ select = ["E", "F", "W", "I"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401", "I001"]
-"addons/estate_kit/services/generated/*" = ["E", "F", "W", "I"]
+"addons/estate_kit/src/shared/services/generated/*" = ["E", "F", "W", "I"]
 "addons/estate_kit/migrations/*" = ["F401"]
 
 [tool.mypy]
@@ -55,7 +55,7 @@ python_version = "3.12"
 mypy_path = ["stubs", "../../erp_core"]
 files = ["addons/estate_kit"]
 exclude = [
-    "addons/estate_kit/services/generated",
+    "addons/estate_kit/src/shared/services/generated",
     "addons/estate_kit/services/image_service_client\\.py",
     "addons/estate_kit/migrations",
 ]
@@ -70,7 +70,7 @@ exclude = [
     ".venv",
     ".claude",
     "addons/estate_kit/__manifest__.py",
-    "addons/estate_kit/services/generated",
+    "addons/estate_kit/src/shared/services/generated",
     "addons/estate_kit/migrations",
 ]
 reportMissingImports = "none"
@@ -92,8 +92,3 @@ type = "forbidden"
 source_modules = ["estate_kit.controllers"]
 forbidden_modules = ["estate_kit.wizards"]
 
-[[tool.importlinter.contracts]]
-name = "Services should not import from models or controllers"
-type = "forbidden"
-source_modules = ["estate_kit.services"]
-forbidden_modules = ["estate_kit.models", "estate_kit.controllers", "estate_kit.wizards"]

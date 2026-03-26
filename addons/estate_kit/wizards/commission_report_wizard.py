@@ -56,7 +56,7 @@ class CommissionReportWizard(models.TransientModel):
         if not self.employee_id and not self.partner_id:
             raise UserError(_("Укажите сотрудника или контрагента."))
 
-        from ..services.erp_core_client.factory import Factory as ErpCoreClientFactory
+        from ..src.deal.services.erp_core_client.factory import Factory as ErpCoreClientFactory
 
         service = ErpCoreClientFactory.create()
         lines_data = []

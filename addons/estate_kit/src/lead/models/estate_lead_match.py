@@ -1,7 +1,7 @@
 from odoo import fields, models
 
-from ....services.matching_client import Factory as MatchingClientFactory
-from ....services.matching_client import SearchCriteria
+from ..services.matching_client import Factory as MatchingClientFactory
+from ..services.matching_client import SearchCriteria
 
 
 class EstateleadMatch(models.Model):

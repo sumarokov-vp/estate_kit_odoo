@@ -3,7 +3,7 @@ import logging
 from odoo import http
 from odoo.http import Response, request
 
-from ..services.image_service import Factory as ImageServiceFactory
+from ..src.shared.services.image_service import Factory as ImageServiceFactory
 
 _logger = logging.getLogger(__name__)
 

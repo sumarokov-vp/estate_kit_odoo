@@ -1,7 +1,7 @@
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
-from ..services.krisha_parser import KrishaParser, ParseParams
+from ..src.property.services.krisha_parser import KrishaParser, ParseParams
 
 
 class KrishaParserWizard(models.TransientModel):
