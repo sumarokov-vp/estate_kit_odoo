@@ -44,7 +44,7 @@
         "views/commission_report_views.xml",
         "views/res_users_views.xml",
         "views/res_config_settings_views.xml",
-        "wizards/krisha_parser_views.xml",
+        "src/property/wizards/krisha_parser_views.xml",
         "views/estate_deal_menus.xml",
         "views/estate_menus.xml",
     ],

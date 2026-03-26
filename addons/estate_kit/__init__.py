@@ -1,2 +1,2 @@
-from . import controllers, models, src, wizards
+from . import models, src
 from .hooks import post_init_hook

@@ -81,14 +81,22 @@ reportAttributeAccessIssue = "warning"
 root_packages = ["estate_kit"]
 
 [[tool.importlinter.contracts]]
-name = "Models should not import from controllers"
+name = "Domain services should not import from controllers or wizards"
 type = "forbidden"
-source_modules = ["estate_kit.models"]
-forbidden_modules = ["estate_kit.controllers"]
-
-[[tool.importlinter.contracts]]
-name = "Controllers should not import from wizards"
-type = "forbidden"
-source_modules = ["estate_kit.controllers"]
-forbidden_modules = ["estate_kit.wizards"]
+source_modules = [
+    "estate_kit.src.property.services",
+    "estate_kit.src.deal.services",
+    "estate_kit.src.webhook.services",
+    "estate_kit.src.config.services",
+    "estate_kit.src.lead.services",
+    "estate_kit.src.placement.services",
+    "estate_kit.src.shared.services",
+]
+forbidden_modules = [
+    "estate_kit.src.property.controllers",
+    "estate_kit.src.property.wizards",
+    "estate_kit.src.webhook.controllers",
+    "estate_kit.src.geography.controllers",
+    "estate_kit.src.deal.wizards",
+]
 
