@@ -1,0 +1,120 @@
+ODOO_TO_API_ENUM_MAP: dict[str, dict[str, str]] = {
+    "building_type": {
+        "panel": "Панельный",
+        "brick": "Кирпичный",
+        "monolith": "Монолит",
+        "metal_frame": "Металлокаркас",
+        "wood": "Деревянный",
+    },
+    "condition": {
+        "no_repair": "Без ремонта",
+        "cosmetic": "Косметический",
+        "euro": "Евроремонт",
+        "designer": "Дизайнерский",
+    },
+    "bathroom": {
+        "combined": "Совмещённый",
+        "separate": "Раздельный",
+    },
+    "balcony": {
+        "none": "Нет",
+        "balcony": "Балкон",
+        "loggia": "Лоджия",
+        "terrace": "Терраса",
+    },
+    "parking": {
+        "none": "Нет",
+        "yard": "Двор",
+        "underground": "Подземная",
+        "garage": "Гараж",
+        "ground": "Наземная",
+    },
+    "furniture": {
+        "none": "Без мебели",
+        "partial": "Частично",
+        "full": "Полная",
+    },
+    "heating": {
+        "central": "Центральное",
+        "autonomous": "Автономное",
+        "none": "Нет",
+    },
+    "internet": {
+        "none": "Нет",
+        "wired": "Проводной",
+        "fiber": "Оптика",
+        "dsl": "DSL",
+        "mobile": "Мобильный (4G/5G)",
+    },
+    "gas": {
+        "central": "Центральный",
+        "balloon": "Баллон",
+        "gas_tank": "Газгольдер",
+        "none": "Нет",
+    },
+    "water": {
+        "central": "Центральное",
+        "well": "Скважина/колодец",
+        "none": "Нет",
+    },
+    "sewage": {
+        "central": "Центральная",
+        "septic": "Септик",
+        "none": "Нет",
+    },
+    "electricity": {
+        "yes": "Есть",
+        "nearby": "Рядом",
+        "none": "Нет",
+    },
+    "window_type": {
+        "plastic": "Пластиковые",
+        "wood": "Деревянные",
+        "aluminum": "Алюминиевые",
+    },
+    "commercial_type": {
+        "office": "Офис",
+        "retail": "Торговое",
+        "warehouse": "Склад",
+        "production": "Производство",
+    },
+    "road_access": {
+        "asphalt": "Асфальт",
+        "gravel": "Гравий",
+        "dirt": "Грунтовая",
+        "none": "Нет",
+    },
+    "ownership_type": {
+        "private": "Частная собственность",
+        "shared": "Долевая собственность",
+        "state": "Государственная",
+    },
+    "land_category": {
+        "izhs": "ИЖС",
+        "snt": "СНТ",
+        "lpkh": "ЛПХ",
+        "commercial": "Коммерческое",
+    },
+    "land_status": {
+        "owned": "В собственности",
+        "leased": "В аренде",
+    },
+    "wall_material": {
+        "brick": "Кирпич",
+        "gas_block": "Газоблок",
+        "wood": "Дерево",
+        "sip": "СИП-панели",
+        "frame": "Каркас",
+        "polystyrene": "Полистиролбетон",
+    },
+    "foundation": {
+        "strip": "Ленточный",
+        "slab": "Плитный",
+        "pile": "Свайный",
+    },
+    "roof_type": {
+        "flat": "Плоская",
+        "gable": "Двускатная",
+        "hip": "Вальмовая",
+    },
+}
