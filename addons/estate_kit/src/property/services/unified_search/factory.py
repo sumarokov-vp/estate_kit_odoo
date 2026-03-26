@@ -1,4 +1,4 @@
-from .....src.shared.services.api_client import EstateKitApiClient
+from ....shared.services.api_client import EstateKitApiClient
 from .local_property_searcher import LocalPropertySearcher
 from .mls_property_searcher import MlsPropertySearcher
 from .service import UnifiedSearchService

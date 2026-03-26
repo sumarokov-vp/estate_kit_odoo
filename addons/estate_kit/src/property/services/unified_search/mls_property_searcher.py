@@ -1,6 +1,6 @@
 import logging
 
-from .....src.shared.services.api_mapper.importer import API_DEAL_TYPE_MAP, API_PROPERTY_TYPE_MAP
+from ....shared.services.api_mapper.importer import API_DEAL_TYPE_MAP, API_PROPERTY_TYPE_MAP
 from .protocols import IApiClient
 
 _logger = logging.getLogger(__name__)

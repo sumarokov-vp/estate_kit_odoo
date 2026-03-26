@@ -1,4 +1,4 @@
-from .....src.shared.services.api_client import EstateKitApiClient
+from ....shared.services.api_client import EstateKitApiClient
 from .data_updater import DataUpdater
 from .registrator import MlsRegistrator
 from .service import MlsRegistrationService

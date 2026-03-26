@@ -1,4 +1,4 @@
-from ......src.shared.services.image_service import Factory as ImageServiceFactory
+from ....shared.services.image_service import Factory as ImageServiceFactory
 from ..image_sync_service import ImageSyncService
 from .image_deleter import ImageDeleter
 from .image_uploader import ImageUploader

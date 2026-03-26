@@ -1,4 +1,4 @@
-from .....src.shared.services.anthropic_client import AnthropicClient
+from ....shared.services.anthropic_client import AnthropicClient
 from ..marketing_pool import Factory as MarketingPoolFactory
 from .pool_protector import PoolProtector
 from .pool_remover import PoolRemover

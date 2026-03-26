@@ -44,7 +44,7 @@ class ScoringService:
         def _run():
             with registry.cursor() as cr:
                 env = api.Environment(cr, uid, {})
-                from .....src.shared.services.anthropic_client import AnthropicClient
+                from ....shared.services.anthropic_client import AnthropicClient
                 from ..marketing_pool import Factory as MarketingPoolFactory
                 MarketingPoolFactory.create(env, AnthropicClient(env)).calculate_all()
 

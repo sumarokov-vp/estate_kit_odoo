@@ -3,8 +3,8 @@ from typing import Any
 
 from odoo.exceptions import UserError
 
-from ....src.shared.services.api_client import EstateKitApiClient
-from ....src.shared.services.api_mapper import prepare_api_payload
+from ...shared.services.api_client import EstateKitApiClient
+from ...shared.services.api_mapper import prepare_api_payload
 
 _logger = logging.getLogger(__name__)
 

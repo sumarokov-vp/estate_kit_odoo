@@ -1,6 +1,6 @@
 import logging
 
-from ....src.shared.services.api_client import EstateKitApiClient
+from ...shared.services.api_client import EstateKitApiClient
 
 _logger = logging.getLogger(__name__)
 

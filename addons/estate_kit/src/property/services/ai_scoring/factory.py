@@ -1,4 +1,4 @@
-from ......src.shared.services.anthropic_client import AnthropicClient
+from ....shared.services.anthropic_client import AnthropicClient
 from ..marketing_pool import Factory as MarketingPoolFactory
 from .property_data_collector import PropertyDataCollector
 from .property_value_transformer import PropertyValueTransformer

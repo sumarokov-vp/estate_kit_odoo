@@ -1,4 +1,4 @@
-from .....src.shared.services.api_client import EstateKitApiClient
+from ....shared.services.api_client import EstateKitApiClient
 from ..api_sync import Factory as ApiSyncFactory
 from .api_action_caller import ApiActionCaller
 from .service import StateMachineService

@@ -1,7 +1,7 @@
 from typing import Any
 
-from .....src.shared.services.api_client import EstateKitApiClient
-from .....src.shared.services.api_mapper import import_from_api_data
+from ....shared.services.api_client import EstateKitApiClient
+from ....shared.services.api_mapper import import_from_api_data
 from .activity_creator import ActivityCreator
 from .approved_handler import ApprovedHandler
 from .contact_request_handler import ContactRequestHandler
