@@ -130,6 +130,57 @@ src/<domain>/__init__.py            → from . import models
 src/<domain>/models/__init__.py     → from . import <model_file>
 ```
 
+### Домен `erp_core` — интеграция с библиотекой erp-core
+
+Домен `src/erp_core/` управляет отдельной PostgreSQL-базой ERP Core (сделки, счета, платежи). Схема и данные управляются через yoyo-миграции.
+
+**Структура:**
+```
+src/erp_core/
+├── config.py                  # get_database_url() из ENV
+├── migrations/                # Клиентские SQL-миграции
+│   └── c0001.seed-reference-data.sql
+└── services/
+    └── initializer/           # Запуск миграций при установке модуля
+```
+
+**Добавление клиентской миграции или обновление erp-core:**
+
+В обоих случаях нужно применить миграции ERP Core через Odoo post-migrate. Порядок действий:
+
+1. Создать файл `src/erp_core/migrations/c<NNNN>.<описание>.sql` (если клиентская миграция)
+2. В первой строке указать зависимость: `-- depends: <предыдущая миграция>`
+3. Поднять версию модуля в `__manifest__.py`
+4. Создать Odoo-миграцию `migrations/<version>/post-migrate.py` с вызовом `Initializer`:
+
+```python
+import logging
+_logger = logging.getLogger(__name__)
+
+def migrate(cr, version):
+    if not version:
+        return
+    try:
+        from odoo.addons.estate_kit.src.erp_core.services.initializer.factory import Factory
+        Factory.create().initialize()
+    except Exception as e:
+        _logger.warning("ERP Core migrations skipped: %s", e)
+```
+
+Это применит все непримененные миграции — как клиентские, так и библиотечные (при обновлении версии erp-core).
+
+**Когда нужна Odoo post-migrate с Initializer:**
+- Добавлена новая клиентская миграция (`c0002`, `c0003`...)
+- Обновлена версия библиотеки erp-core (могут быть новые библиотечные миграции)
+
+Пример клиентской миграции:
+```sql
+-- depends: c0001.seed-reference-data
+ALTER TABLE party ADD COLUMN x_telegram_id BIGINT;
+```
+
+Конвенция именования: клиентские миграции с префиксом `c` (`c0001`, `c0002`...), библиотечные — числовые (`0001`, `0002`...).
+
 ### Устаревшие сервисы (legacy)
 
 `addons/estate_kit/services/` — старые сервисы, не привязанные к домену. Новые сервисы создавать ТОЛЬКО в `src/<domain>/services/`. При рефакторинге — переносить из `services/` в соответствующий домен.
