@@ -1,7 +1,7 @@
 import logging
 
-from .protocols import IAiClient, ICriteriaCollector, IPromptBuilder, IResponseParser
 from .prompt_builder import SYSTEM_PROMPT
+from .protocols import IAiClient, ICriteriaCollector, IPromptBuilder, IResponseParser
 
 _logger = logging.getLogger(__name__)
 
