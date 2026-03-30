@@ -19,8 +19,8 @@ class CrmLead(models.Model):
 
     property_id = fields.Many2one(
         "estate.property",
-        string="Property",
-        help="Related property for this deal",
+        string="Объект",
+        help="Связанный объект недвижимости",
     )
     isa_user_id = fields.Many2one(
         "res.users",
