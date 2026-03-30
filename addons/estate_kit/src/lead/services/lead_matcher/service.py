@@ -1,6 +1,5 @@
 from ..matching_client import SearchCriteria
-
-from .protocols import IMatchRepository, IMatchingClient
+from .protocols import IMatchingClient, IMatchRepository
 
 
 class LeadMatcherService:

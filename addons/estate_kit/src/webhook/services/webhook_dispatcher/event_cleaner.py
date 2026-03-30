@@ -1,3 +1,4 @@
+from datetime import timedelta
 from typing import Any
 
 from odoo import fields
@@ -8,7 +9,7 @@ class EventCleaner:
         self._env = env
 
     def cleanup(self, retention_days: int) -> None:
-        cutoff = fields.Datetime.subtract(fields.Datetime.now(), days=retention_days)
+        cutoff = fields.Datetime.now() - timedelta(days=retention_days)
         self._env["estatekit.webhook.event"].sudo().search(
             [("processed_at", "<", cutoff)]
         ).unlink()

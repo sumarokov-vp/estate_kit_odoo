@@ -1,7 +1,6 @@
 from typing import Any
 
 from ..matching_client import Factory as MatchingClientFactory
-
 from .match_repository import MatchRepository
 from .service import LeadMatcherService
 

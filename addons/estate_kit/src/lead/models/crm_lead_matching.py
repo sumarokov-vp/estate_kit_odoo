@@ -1,9 +1,8 @@
 import logging
 
-from requests.exceptions import RequestException
-
 from odoo import _, fields, models
 from odoo.exceptions import UserError
+from requests.exceptions import RequestException
 
 from ..services.lead_matcher import Factory as LeadMatcherFactory
 from ..services.matching_client import SearchCriteria

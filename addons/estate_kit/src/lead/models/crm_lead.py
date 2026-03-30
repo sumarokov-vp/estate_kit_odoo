@@ -141,7 +141,7 @@ class CrmLead(models.Model):
             rate = commission.get_rate(rec)
             rec.expected_revenue = estimated_price * rate / 100
 
-    def _get_estimated_price(self, price_estimation=None) -> float:
+    def _get_estimated_price(self, price_estimation=None):  # type: ignore[return]
         self.ensure_one()
         if self.property_id and self.property_id.listing_price:
             return self.property_id.listing_price
