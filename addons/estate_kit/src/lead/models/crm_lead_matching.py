@@ -42,18 +42,32 @@ class CrmLeadMatching(models.Model):
         try:
             count = service.match(self.id, criteria)
         except RequestException as exc:
-            _logger.warning("Matching service error for lead %s: %s", self.id, exc)
+            detail = self._extract_error_detail(exc)
+            _logger.warning("Matching service error for lead %s: %s", self.id, detail)
             self.env["estate.kit.log"].log(
                 "matching",
                 "Ошибка подбора для лида #%d" % self.id,
-                details=str(exc),
+                details=detail,
                 level="error",
             )
-            raise UserError(_("Сервис подбора недоступен. Попробуйте позже."))
+            raise UserError(
+                _("Сервис подбора вернул ошибку: %s", detail)
+            )
 
         if count > MIN_MATCHES_FOR_ADVANCE:
             stage = self.env.ref(STAGE_MATCHED_XMLID)
             self.write({"stage_id": stage.id})
+
+    @staticmethod
+    def _extract_error_detail(exc: RequestException) -> str:
+        if hasattr(exc, "response") and exc.response is not None:
+            try:
+                body = exc.response.json()
+                if "detail" in body:
+                    return str(body["detail"])
+            except (ValueError, AttributeError):
+                pass
+        return str(exc)
 
     def _build_match_criteria(self) -> SearchCriteria:
         self.ensure_one()
