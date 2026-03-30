@@ -41,6 +41,27 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
+            <!-- Hide probability section -->
+            <xpath expr="//div[@id='probability']/.." position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Hide email from header (opportunity view) — moved to Contacts tab -->
+            <xpath expr="//group[@name='opportunity_partner']//label[@for='email_from']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//group[@name='opportunity_partner']//field[@name='email_from']/.." position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <!-- Add email to Contacts tab -->
+            <xpath expr="//page[@name='lead']//field[@name='function']" position="after">
+                <field name="email_from" string="Эл. почта" widget="email"/>
+            </xpath>
+
+            <!-- Hide Marketing group inside Contacts tab -->
+            <xpath expr="//page[@name='lead']//field[@name='campaign_id']/.." position="replace"/>
+
             <!-- Smart button: Подборки -->
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button class="oe_stat_button" icon="fa-handshake-o"
@@ -50,22 +71,13 @@
                 </button>
             </xpath>
 
-            <!-- Real Estate info group -->
-            <xpath expr="//sheet" position="inside">
-                <group string="Недвижимость" name="estate_info">
-                    <group>
-                        <field name="property_id"/>
-                    </group>
-                    <group>
-                        <field name="isa_user_id"/>
-                        <field name="buyer_agent_id"/>
-                        <field name="transaction_coordinator_id"/>
-                    </group>
-                </group>
+            <!-- Hide original Notes tab (recreated below in correct position) -->
+            <xpath expr="//page[@name='internal_notes']" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
 
-            <!-- Вкладка: Потребность -->
-            <xpath expr="//notebook" position="inside">
+            <!-- Tab 1: Потребность (before hidden internal_notes = first position) -->
+            <xpath expr="//page[@name='internal_notes']" position="before">
                 <page string="Потребность" name="search_criteria">
                     <group>
                         <group>
@@ -88,9 +100,17 @@
                         <field name="search_notes" nolabel="1" colspan="2"/>
                     </group>
                 </page>
+            </xpath>
 
-                <!-- Вкладка: Подобранные объекты -->
-                <page string="Подобранные объекты" name="matching">
+            <!-- Tabs 3-6 after Контакты: Недвижимость, Маркетинг, Заметки, Telegram -->
+            <xpath expr="//page[@name='lead']" position="after">
+                <!-- Вкладка: Недвижимость -->
+                <page string="Недвижимость" name="estate_info">
+                    <group>
+                        <group>
+                            <field name="property_id"/>
+                        </group>
+                    </group>
                     <field name="match_ids">
                         <list>
                             <field name="property_id"/>
@@ -105,6 +125,30 @@
                     <group>
                         <field name="last_matching_date" readonly="1"/>
                     </group>
+                    <group string="Ответственные">
+                        <group>
+                            <field name="isa_user_id"/>
+                            <field name="buyer_agent_id"/>
+                            <field name="transaction_coordinator_id"/>
+                        </group>
+                    </group>
+                </page>
+
+                <!-- Вкладка: Маркетинг -->
+                <page string="Маркетинг" name="marketing">
+                    <group>
+                        <group>
+                            <field name="campaign_id"/>
+                            <field name="medium_id"/>
+                            <field name="source_id"/>
+                            <field name="referred"/>
+                        </group>
+                    </group>
+                </page>
+
+                <!-- Вкладка: Заметки -->
+                <page string="Заметки" name="notes_estate">
+                    <field name="description" placeholder="Добавьте заметки..." options="{'collaborative': true}"/>
                 </page>
 
                 <!-- Вкладка: Telegram -->
