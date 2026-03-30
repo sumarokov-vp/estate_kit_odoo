@@ -1,8 +1,14 @@
 id: 105
 title: "Исправить права на Caddyfile при деплое документации"
-status: todo
+status: done
 priority: low
 created: 22.03.2026
+completed_at: 30.03.2026
+solution: |
+  В reload_caddy() заменён прямой rsync в {remote_path}/Caddyfile на двухшаговый подход:
+  1. rsync во временный файл /tmp/Caddyfile
+  2. sudo mv /tmp/Caddyfile {remote_path}/Caddyfile
+  Это обходит проблему с правами root на целевой файл.
 context: |
   При деплое документации скрипт deploy-docs.py пытается скопировать Caddyfile
   напрямую через rsync в /opt/odoo/Caddyfile, но файл принадлежит root.

@@ -152,7 +152,7 @@ wheels = [
 
 [[package]]
 name = "erp-core"
-version = "0.1.0"
+version = "1.0.1"
 source = { editable = "../../erp_core" }
 dependencies = [
     { name = "pydantic" },
@@ -178,9 +178,10 @@ provides-extras = ["postgres", "documents", "all"]
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "erp-core", extras = ["all"], virtual = "../../erp_core" },
+    { name = "erp-core", extras = ["all"], editable = "../../erp_core" },
     { name = "import-linter", specifier = ">=2.10" },
     { name = "pyright", specifier = ">=1.1.408" },
+    { name = "rope", specifier = ">=1.14.0" },
     { name = "ruff", specifier = ">=0.15.2" },
 ]
 

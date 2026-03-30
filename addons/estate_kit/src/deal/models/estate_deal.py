@@ -92,11 +92,31 @@ class EstateDeal(models.Model):
         readonly=True,
     )
     note = fields.Html(string="Примечания")
+    price_discount_warning = fields.Boolean(
+        string="Предупреждение о скидке",
+        compute="_compute_price_discount_warning",
+    )
 
-    @api.depends("deal_price", "commission_percent")
+    @api.depends("property_id.listing_price", "deal_price", "commission_percent")
     def _compute_total_commission(self):
         for record in self:
-            record.total_commission = record.deal_price * record.commission_percent / 100
+            base_price = record.property_id.listing_price or record.deal_price
+            record.total_commission = base_price * record.commission_percent / 100
+
+    @api.depends("property_id.listing_price", "deal_price")
+    def _compute_price_discount_warning(self):
+        max_discount = float(
+            self.env["ir.config_parameter"]
+            .sudo()
+            .get_param("estate_kit.max_discount_percent", "10")
+        )
+        for record in self:
+            listing = record.property_id.listing_price
+            if listing and record.deal_price and listing > 0:
+                discount = (listing - record.deal_price) / listing * 100
+                record.price_discount_warning = discount > max_discount
+            else:
+                record.price_discount_warning = False
 
     def action_confirm(self):
         DealStateMachineFactory.create(self.env).confirm(self)

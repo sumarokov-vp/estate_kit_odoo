@@ -2,6 +2,8 @@ id: 128
 title: "Комиссия: computed expected_revenue на crm.lead"
 priority: high
 depends_on: [126, 127]
+status: done
+completed_at: 30.03.2026
 context: |
   Сделать expected_revenue вычисляемым полем (computed, not stored) на crm.lead.
 
@@ -17,3 +19,9 @@ context: |
   @api.depends('property_id.listing_price', 'search_price_min', 'search_price_max')
 
   Документация: docs/tech-docs/docs/commissions.md, раздел "Расчёт ожидаемого дохода"
+solution: |
+  Переопределено поле expected_revenue в src/lead/models/crm_lead.py как computed (not stored).
+  Формула: estimated_price * commission_rate / 100.
+  estimated_price определяется по приоритету: listing_price > среднее фильтров > одно значение > 0.
+  commission_rate получается через CommissionFactory.create(env).get_rate(lead).
+  @api.depends покрывает property_id.listing_price, search_price_min, search_price_max.

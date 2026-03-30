@@ -20,6 +20,12 @@
                         statusbar_visible="draft,confirmed,in_progress,closing,done"/>
                 </header>
                 <sheet>
+                    <field name="price_discount_warning" invisible="1"/>
+                    <div class="alert alert-warning" role="alert"
+                         invisible="not price_discount_warning">
+                        <strong>&#9888; Цена сделки значительно ниже цены публикации.</strong>
+                        Снижение превышает допустимый коридор скидки.
+                    </div>
                     <div class="oe_title">
                         <h1>
                             <field name="name" readonly="1"/>

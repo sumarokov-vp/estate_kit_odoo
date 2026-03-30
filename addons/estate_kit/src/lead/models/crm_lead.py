@@ -3,6 +3,7 @@ import uuid
 from odoo import api, fields, models
 
 from ..services.bot_status_checker import BotStatusCheckerService
+from ..services.commission import Factory as CommissionFactory
 from ..services.deal_creator import Factory as DealCreatorFactory
 from ..services.deeplink_builder import DeeplinkBuilderService
 from ..services.lead_creator import Factory as LeadCreatorFactory
@@ -76,6 +77,12 @@ class CrmLead(models.Model):
         readonly=True,
     )
 
+    expected_revenue = fields.Monetary(
+        string="Expected Revenue",
+        compute="_compute_expected_revenue",
+        currency_field="company_currency",
+    )
+
     # === Deeplink и Telegram ===
     lead_code = fields.Char(
         string="Код лида",
@@ -123,6 +130,22 @@ class CrmLead(models.Model):
         builder = DeeplinkBuilderService(bot_username)
         for rec in self:
             rec.deeplink_url = builder.build(rec.lead_code)
+
+    @api.depends("property_id.listing_price", "search_price_min", "search_price_max")
+    def _compute_expected_revenue(self):
+        commission = CommissionFactory.create(self.env)
+        for rec in self:
+            estimated_price = rec._get_estimated_price()
+            rate = commission.get_rate(rec)
+            rec.expected_revenue = estimated_price * rate / 100
+
+    def _get_estimated_price(self) -> float:
+        self.ensure_one()
+        if self.property_id and self.property_id.listing_price:
+            return self.property_id.listing_price
+        if self.search_price_min and self.search_price_max:
+            return (self.search_price_min + self.search_price_max) / 2
+        return self.search_price_min or self.search_price_max or 0.0
 
     @api.model_create_multi
     def create(self, vals_list):

@@ -1,0 +1,40 @@
+id: 133
+title: "Сервис contact_creator: создание res.partner из данных лида"
+priority: high
+status: todo
+created_at: 30.03.2026
+
+description: |
+  При создании лида contact_matcher ищет существующего партнёра по телефону.
+  Если не находит — поле «Контакт» (partner_id) остаётся пустым.
+  Нужен сервис contact_creator, который создаёт нового res.partner из данных лида.
+
+  Документация: docs/LEAD_SERVICES.md
+
+recommendation: |
+  Создать сервис src/lead/services/contact_creator/ по стандартной DDD-структуре:
+
+  1. PartnerBuilder — сборка vals для res.partner:
+     - name ← lead.contact_name или lead.name
+     - phone ← lead.phone
+     - mobile ← lead.mobile
+     - email ← lead.email_from
+     - company_name ← lead.partner_name
+
+  2. OrmPartnerCreator — вызов env['res.partner'].create(vals), возврат id
+
+  3. ContactCreatorService (фасад):
+     - Пропускает лиды с уже заполненным partner_id
+     - Повторно проверяет через IContactMatcher (защита от дубликатов при batch create)
+     - Если матчер нашёл — ставит partner_id, не создаёт
+     - Иначе — вызывает PartnerBuilder + OrmPartnerCreator
+     - Устанавливает lead.partner_id
+
+  4. Factory — собирает зависимости:
+     - ContactMatcherFactory.create(env) → IContactMatcher
+     - PhoneNormalizer, PartnerSearcher (через ContactMatcher)
+     - PartnerBuilder, OrmPartnerCreator
+
+  5. Протоколы:
+     - IPartnerBuilder: build(lead) -> dict
+     - IPartnerCreator: create(vals) -> int

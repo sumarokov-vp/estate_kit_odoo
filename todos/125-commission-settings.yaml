@@ -1,6 +1,8 @@
 id: 125
 title: "Комиссия: настройки min_commission_percent и max_discount_percent"
 priority: high
+status: done
+completed_at: 30.03.2026
 context: |
   Добавить два параметра в настройки модуля (ir.config_parameter + res.config.settings):
   - estate_kit.min_commission_percent (Float) — минимальная комиссия агентства (%)
@@ -9,3 +11,8 @@ context: |
   UI: блок "Комиссия" в настройках Estate Kit.
 
   Документация: docs/tech-docs/docs/commissions.md
+solution: |
+  Добавлены два Float-поля в ResConfigSettings (config_parameter) и блок "Комиссия" в XML view настроек.
+  - estate_kit_min_commission_percent: Float, digits=(5,2), без default
+  - estate_kit_max_discount_percent: Float, digits=(5,2), default=10.0
+  - XML: блок "Комиссия" перед "Маркетинговый пул"

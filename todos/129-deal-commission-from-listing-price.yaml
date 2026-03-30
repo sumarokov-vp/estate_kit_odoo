@@ -2,6 +2,8 @@ id: 129
 title: "Комиссия: total_commission от listing_price + price_discount_warning"
 priority: high
 depends_on: [126, 125]
+status: done
+completed_at: 30.03.2026
 context: |
   Изменить расчёт total_commission на estate.deal:
   - Считать от property_id.listing_price × commission_percent (не от deal_price)
@@ -11,3 +13,9 @@ context: |
   - Отображать warning-баннер на форме сделки, если True
 
   Документация: docs/tech-docs/docs/commissions.md, раздел "Допустимый коридор снижения"
+solution: |
+  1. _compute_total_commission теперь считает от property_id.listing_price (не deal_price)
+  2. Добавлено computed поле price_discount_warning (Boolean, store=True):
+     depends на deal_price и property_id.listing_price,
+     читает max_discount_percent из ir.config_parameter
+  3. XML: warning-баннер на форме сделки, виден когда price_discount_warning=True

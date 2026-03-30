@@ -2,6 +2,8 @@ id: 126
 title: "Комиссия: поле listing_price на estate.property"
 priority: high
 depends_on: [125]
+status: done
+completed_at: 30.03.2026
 context: |
   Добавить поле listing_price (Monetary) на estate.property — цена публикации объекта.
   Фиксируется при подаче на MLS и не может быть изменена без повторной модерации.
@@ -10,3 +12,6 @@ context: |
   занижение цены при торге как способ обхода комиссии.
 
   Документация: docs/tech-docs/docs/commissions.md, раздел "Защита от занижения цены"
+solution: |
+  Добавлено поле listing_price (Monetary, tracking=True, copy=False) на estate.property
+  после поля price. Поле использует тот же currency_id что и price.

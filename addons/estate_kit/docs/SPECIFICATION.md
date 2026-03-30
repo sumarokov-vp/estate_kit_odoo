@@ -9,6 +9,7 @@
 | [DATA_MODEL.md](./DATA_MODEL.md) | Архитектура хранения данных (EAV) |
 | [ATTRIBUTES.md](./ATTRIBUTES.md) | Полный список атрибутов (56 шт.) |
 | [INTEGRATIONS.md](./INTEGRATIONS.md) | Интеграции (CRM, ERP, 2GIS, S3) |
+| [LEAD_SERVICES.md](./LEAD_SERVICES.md) | Сервисы домена лидов (матчинг, создание контактов) |
 
 ---
 

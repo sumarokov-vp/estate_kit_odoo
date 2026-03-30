@@ -2,6 +2,8 @@ id: 127
 title: "Комиссия: use case CommissionService.get_rate(lead)"
 priority: high
 depends_on: [125]
+status: done
+completed_at: 30.03.2026
 context: |
   DDD-сервис для получения применимой ставки комиссии для лида.
 
@@ -17,3 +19,9 @@ context: |
   В будущем (этап 2) добавится MlsRateProvider с приоритетом над настройками.
 
   Документация: docs/tech-docs/docs/commissions.md, раздел "Use Case"
+solution: |
+  Создан пакет src/lead/services/commission/ по DDD-паттерну проекта:
+  - protocols/i_rate_provider.py — Protocol с методом get_rate(lead) → float
+  - settings_rate_provider.py — читает estate_kit.min_commission_percent из ir.config_parameter
+  - service.py — фасад CommissionService с get_rate(lead), делегирует IRateProvider
+  - factory.py — собирает SettingsRateProvider и CommissionService

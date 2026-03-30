@@ -74,8 +74,10 @@ def reload_caddy(ssh_alias: str, remote_path: str, dry_run: bool) -> None:
         "rsync", "-avz",
         "-e", "ssh",
         "docker/Caddyfile",
-        f"{ssh_alias}:{remote_path}/Caddyfile",
+        f"{ssh_alias}:/tmp/Caddyfile",
     ])
+
+    run(["ssh", ssh_alias, f"sudo mv /tmp/Caddyfile {remote_path}/Caddyfile"])
 
     run(["ssh", ssh_alias, f"cd {remote_path} && sudo docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile"])
 

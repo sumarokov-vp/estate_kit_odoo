@@ -1,0 +1,24 @@
+id: 134
+title: "Интеграция contact_creator в LeadCreatorService"
+priority: high
+status: todo
+created_at: 30.03.2026
+depends_on: [133]
+
+description: |
+  После создания contact_creator нужно подключить его в LeadCreatorService,
+  чтобы при создании лида выполнялась полная цепочка:
+  1. ContactMatcherService.match_leads() — поиск существующего
+  2. ContactCreatorService.create_for_leads() — создание нового (если не нашёл)
+
+recommendation: |
+  1. Добавить протокол IContactCreator в lead_creator/protocols/:
+     - create_for_leads(leads) -> None
+
+  2. Обновить LeadCreatorService:
+     - Добавить зависимость IContactCreator в __init__
+     - В after_create() вызывать create_for_leads() после match_leads()
+
+  3. Обновить Factory lead_creator:
+     - Импортировать ContactCreatorFactory
+     - Передать contact_creator в LeadCreatorService
