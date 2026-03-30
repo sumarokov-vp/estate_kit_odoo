@@ -44,9 +44,9 @@ class ScoringService:
         def _run():
             with registry.cursor() as cr:
                 env = api.Environment(cr, uid, {})
-                from ....shared.services.anthropic_client import AnthropicClient
+                from ....shared.services.ai_client import Factory as AiClientFactory
                 from ..marketing_pool import Factory as MarketingPoolFactory
-                MarketingPoolFactory.create(env, AnthropicClient(env)).calculate_all()
+                MarketingPoolFactory.create(env, AiClientFactory.create(env)).calculate_all()
 
         thread = threading.Thread(target=_run, daemon=True)
         thread.start()

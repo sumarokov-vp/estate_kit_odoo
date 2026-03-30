@@ -1,11 +1,3 @@
-from typing import Protocol
+from .....shared.services.ai_client.protocols import IAiClient
 
-
-class IAiClient(Protocol):
-    @property
-    def is_configured(self) -> bool: ...
-
-    @property
-    def model(self) -> str: ...
-
-    def complete(self, system: str, user: str) -> str | None: ...
+__all__ = ["IAiClient"]
