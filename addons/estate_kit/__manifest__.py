@@ -1,6 +1,6 @@
 {
     "name": "Estate Kit",
-    "version": "19.0.1.7.3",
+    "version": "19.0.1.8.2",
     "category": "Real Estate",
     "summary": "Manage real estate properties",
     "description": """
@@ -21,6 +21,8 @@
         "security/ir.model.access.csv",
         "data/ir_config_parameter.xml",
         "data/estate_city_data.xml",
+        "data/estate_district_data.xml",
+        "data/estate_source_data.xml",
         "data/estate_climate_equipment_data.xml",
         "data/estate_appliance_data.xml",
         "data/estate_property_tag_data.xml",
@@ -61,5 +63,4 @@
     "installable": True,
     "application": True,
     "auto_install": False,
-    "post_init_hook": "post_init_hook",
 }

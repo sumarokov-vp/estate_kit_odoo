@@ -8,8 +8,8 @@ from erp_core.mutual.infra.mutual_repository import MutualRepository
 from erp_core.party.infra.employee_repository import EmployeeRepository
 from erp_core.party.infra.party_repository import PartyRepository
 
+from ....erp_core.config import get_database_url
 from .balance_provider import BalanceProvider
-from .config import get_database_url
 from .employee_syncer import EmployeeSyncer
 from .invoice_creator import InvoiceCreator
 from .payment_recorder import PaymentRecorder
