@@ -152,8 +152,8 @@ wheels = [
 
 [[package]]
 name = "erp-core"
-version = "1.0.1"
-source = { git = "ssh://git@github.com/sumarokov-vp/erp-core.git?tag=v1.0.1#4a14b201a66a925fa6374f70aeab837995341253" }
+version = "1.1.0"
+source = { git = "ssh://git@github.com/sumarokov-vp/erp-core.git?tag=v1.1.0#5ed2e478c1446de0f5928ff179856f76ac1c2e0a" }
 dependencies = [
     { name = "pydantic" },
 ]
@@ -195,7 +195,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4" },
-    { name = "erp-core", extras = ["postgres"], git = "ssh://git@github.com/sumarokov-vp/erp-core.git?tag=v1.0.1" },
+    { name = "erp-core", extras = ["postgres"], git = "ssh://git@github.com/sumarokov-vp/erp-core.git?tag=v1.1.0" },
     { name = "grpcio", specifier = ">=1.70.0" },
     { name = "packaging" },
     { name = "protobuf", specifier = ">=5.29.0" },
