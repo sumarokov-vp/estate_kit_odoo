@@ -20,6 +20,30 @@ SCREENSHOTS_DIR.mkdir(exist_ok=True)
 ENV = os.environ.get("ODOO_ENV", "dev")
 
 
+def _read_pass(entry: str) -> dict[str, str]:
+    """Read credentials from pass (Unix password manager) via gnupg."""
+    import gnupg
+
+    pass_store = Path.home() / ".password-store"
+    gpg_file = pass_store / f"{entry}.gpg"
+    if not gpg_file.exists():
+        return {}
+
+    gpg = gnupg.GPG()
+    with open(gpg_file, "rb") as f:
+        decrypted = gpg.decrypt_file(f)
+    if not decrypted.ok:
+        return {}
+
+    lines = str(decrypted).strip().split("\n")
+    result = {"password": lines[0]}
+    for line in lines[1:]:
+        if "=" in line:
+            key, value = line.split("=", 1)
+            result[key.strip()] = value.strip()
+    return result
+
+
 def _load_config():
     with open(CONFIG_FILE) as f:
         config = yaml.safe_load(f)
@@ -31,9 +55,13 @@ def _load_config():
         env_config = wt
 
     url = env_config.get("url", "")
-    # Credentials from env vars (set via: set -x ODOO_EMAIL (pass ... | grep ...))
     email = os.environ.get("ODOO_EMAIL", "")
     password = os.environ.get("ODOO_PASSWORD", "")
+
+    if not email or not password:
+        creds = _read_pass("agent_fleet/projects/estate-kit/odoo")
+        email = email or creds.get("web_email", "")
+        password = password or creds.get(f"web_{ENV}_password", "")
 
     return url, email, password
 
