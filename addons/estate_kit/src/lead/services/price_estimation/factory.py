@@ -1,4 +1,4 @@
-from ...shared.services.ai_client import Factory as AiClientFactory
+from ....shared.services.ai_client import Factory as AiClientFactory
 from .criteria_collector import CriteriaCollector
 from .prompt_builder import PromptBuilder
 from .response_parser import ResponseParser
