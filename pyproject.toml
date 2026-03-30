@@ -19,7 +19,7 @@ requires = ["hatchling", "pathspec<1.0"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]
-erp-core = { path = "../../erp_core", editable = true }
+erp-core = { git = "ssh://git@github.com/sumarokov-vp/erp-core.git", tag = "v1.0.1" }
 
 [tool.hatch.build.targets.wheel]
 packages = ["addons/estate_kit"]
@@ -52,7 +52,7 @@ select = ["E", "F", "W", "I"]
 
 [tool.mypy]
 python_version = "3.12"
-mypy_path = ["stubs", "../../erp_core"]
+mypy_path = ["stubs"]
 files = ["addons/estate_kit"]
 exclude = [
     "addons/estate_kit/src/shared/services/generated",

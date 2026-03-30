@@ -153,7 +153,7 @@ wheels = [
 [[package]]
 name = "erp-core"
 version = "1.0.1"
-source = { editable = "../../erp_core" }
+source = { git = "ssh://git@github.com/sumarokov-vp/erp-core.git?tag=v1.0.1#4a14b201a66a925fa6374f70aeab837995341253" }
 dependencies = [
     { name = "pydantic" },
 ]
@@ -162,27 +162,6 @@ dependencies = [
 postgres = [
     { name = "psycopg", extra = ["binary"] },
     { name = "yoyo-migrations" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "psycopg", extras = ["binary"], marker = "extra == 'all'", specifier = ">=3.2.0" },
-    { name = "psycopg", extras = ["binary"], marker = "extra == 'postgres'", specifier = ">=3.2.0" },
-    { name = "pydantic", specifier = ">=2.11.0" },
-    { name = "reportlab", marker = "extra == 'all'", specifier = ">=4.0" },
-    { name = "reportlab", marker = "extra == 'documents'", specifier = ">=4.0" },
-    { name = "yoyo-migrations", marker = "extra == 'all'", specifier = "==9.0.0" },
-    { name = "yoyo-migrations", marker = "extra == 'postgres'", specifier = "==9.0.0" },
-]
-provides-extras = ["postgres", "documents", "all"]
-
-[package.metadata.requires-dev]
-dev = [
-    { name = "erp-core", extras = ["all"], editable = "../../erp_core" },
-    { name = "import-linter", specifier = ">=2.10" },
-    { name = "pyright", specifier = ">=1.1.408" },
-    { name = "rope", specifier = ">=1.14.0" },
-    { name = "ruff", specifier = ">=0.15.2" },
 ]
 
 [[package]]
@@ -216,7 +195,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "beautifulsoup4" },
-    { name = "erp-core", extras = ["postgres"], editable = "../../erp_core" },
+    { name = "erp-core", extras = ["postgres"], git = "ssh://git@github.com/sumarokov-vp/erp-core.git?tag=v1.0.1" },
     { name = "grpcio", specifier = ">=1.70.0" },
     { name = "packaging" },
     { name = "protobuf", specifier = ">=5.29.0" },
