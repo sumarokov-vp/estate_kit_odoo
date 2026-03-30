@@ -1,0 +1,17 @@
+title: Скрыть стандартное поле «Менеджер по продажам» из формы лида
+status: open
+created_at: 30.03.2026
+completed_at: null
+
+description: |
+  В форме лида CRM отображаются два поля с одинаковым смыслом:
+  - Стандартное «Менеджер по продажам» (user_id) — в шапке формы
+  - Кастомное «ИСА» (isa_user_id) — в разделе «Недвижимость»
+
+  Нужно скрыть стандартное поле, чтобы убрать дублирование.
+
+recommendation: |
+  В views/crm_lead_views.xml в наследуемом view crm_lead_view_form_inherit_estate
+  добавить xpath для поля user_id с invisible="1".
+
+solution: null
