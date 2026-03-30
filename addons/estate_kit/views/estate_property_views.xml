@@ -53,6 +53,7 @@
                             <field name="property_type"/>
                             <field name="deal_type"/>
                             <field name="price"/>
+                            <field name="listing_price" readonly="1"/>
                             <field name="currency_id" invisible="1"/>
                         </group>
                     </group>
@@ -300,6 +301,7 @@
                 <field name="area_total"/>
                 <field name="floor" optional="show"/>
                 <field name="price"/>
+                <field name="listing_price" optional="hide"/>
                 <field name="district_id"/>
                 <field name="marketing_pool_score_display" optional="show"/>
                 <field name="condition" optional="hide"/>

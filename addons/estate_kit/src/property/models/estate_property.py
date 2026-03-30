@@ -66,6 +66,18 @@ class EstateProperty(models.Model):
     )
 
     price = fields.Monetary(string="Цена", tracking=True)
+    listing_price = fields.Monetary(
+        string="Цена публикации",
+        tracking=True,
+        copy=False,
+        help="Цена объекта при подаче на MLS. Фиксируется и не меняется без повторной модерации. "
+             "Используется как база для расчёта комиссии.",
+    )
+    min_commission_percent = fields.Float(
+        string="Мин. комиссия MLS, %",
+        digits=(5, 2),
+        help="Минимальная комиссия MLS (%). Заполняется при синхронизации из MLS API.",
+    )
     currency_id = fields.Many2one(
         "res.currency",
         default=lambda self: self.env.company.currency_id,
