@@ -1,0 +1,17 @@
+id: 131
+title: "AI: протокол IAiClient и рефакторинг AnthropicClient"
+priority: medium
+context: |
+  Текущий AnthropicClient (src/shared/services/anthropic_client.py) — конкретная реализация
+  без протокола. Нужно сделать его заменяемым.
+
+  Структура:
+    src/shared/services/ai_client/
+    ├── protocols/
+    │   └── i_ai_client.py       # Protocol: complete(system, user) → str | None
+    ├── anthropic_client.py       # Текущая реализация
+    └── factory.py                # Создаёт клиента по настройкам
+
+  Все потребители (ai_scoring, будущая оценка стоимости) зависят от IAiClient.
+
+  Документация: docs/tech-docs/docs/commissions.md, раздел "Архитектура AI-клиента"

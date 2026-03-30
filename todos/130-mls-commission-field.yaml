@@ -1,0 +1,14 @@
+id: 130
+title: "Комиссия: поле min_commission_percent из MLS API на estate.property"
+priority: medium
+depends_on: [127]
+context: |
+  Добавить поле min_commission_percent (Float, nullable) на estate.property.
+  Заполняется при синхронизации объекта из MLS API (поле min_commission_percent в ответе API).
+
+  Добавить MlsRateProvider в CommissionService — если у объекта есть MLS-комиссия,
+  она имеет приоритет над настройкой агентства.
+
+  Зависит от задачи в API: добавление min_commission_percent в ответы MLS эндпоинтов.
+
+  Документация: docs/tech-docs/docs/commissions.md, раздел "MLS-комиссия"

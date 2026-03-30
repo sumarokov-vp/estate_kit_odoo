@@ -1,0 +1,13 @@
+id: 129
+title: "Комиссия: total_commission от listing_price + price_discount_warning"
+priority: high
+depends_on: [126, 125]
+context: |
+  Изменить расчёт total_commission на estate.deal:
+  - Считать от property_id.listing_price × commission_percent (не от deal_price)
+
+  Добавить computed поле price_discount_warning (Boolean):
+  - True, если (listing_price - deal_price) / listing_price × 100 > max_discount_percent
+  - Отображать warning-баннер на форме сделки, если True
+
+  Документация: docs/tech-docs/docs/commissions.md, раздел "Допустимый коридор снижения"

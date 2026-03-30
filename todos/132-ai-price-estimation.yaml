@@ -1,0 +1,15 @@
+id: 132
+title: "AI: оценка средней стоимости объекта по критериям поиска лида"
+priority: low
+depends_on: [131, 128]
+context: |
+  Сервис для AI-оценки средней стоимости объекта по критериям поиска лида.
+  Используется как fallback в расчёте expected_revenue, когда нет привязанного объекта
+  и нет фильтров по цене.
+
+  Входные данные: search_property_type, search_city_id, search_district_ids,
+  search_rooms_min/max, search_area_min/max.
+
+  Зависит от IAiClient (протокол). Аналогичный паттерн как у ai_scoring.
+
+  Документация: docs/tech-docs/docs/commissions.md, раздел "AI-оценка средней стоимости"
