@@ -2,16 +2,14 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from erp_core.core.entities.employee_invoice import EmployeeInvoice
-from erp_core.core.entities.invoice import Invoice
-from erp_core.core.entities.invoice_status import InvoiceStatusEnum
-from erp_core.core.entities.item_invoice import ItemInvoice
-from erp_core.infra.postgres.interfaces import (
-    IEmployeeInvoiceRepository,
-    IInvoiceRepository,
-    IInvoiceStatusRepository,
-    IItemInvoiceRepository,
-)
+from erp_core.invoice.entities.employee_invoice import EmployeeInvoice
+from erp_core.invoice.entities.invoice import Invoice
+from erp_core.invoice.entities.invoice_status import InvoiceStatusEnum
+from erp_core.invoice.entities.item_invoice import ItemInvoice
+from erp_core.invoice.protocols.employee_invoice_repository import IEmployeeInvoiceRepository
+from erp_core.invoice.protocols.invoice_repository import IInvoiceRepository
+from erp_core.invoice.protocols.invoice_status_repository import IInvoiceStatusRepository
+from erp_core.invoice.protocols.item_invoice_repository import IItemInvoiceRepository
 
 
 class InvoiceCreator:

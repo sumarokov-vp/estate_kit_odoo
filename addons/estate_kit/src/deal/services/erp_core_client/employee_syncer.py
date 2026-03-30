@@ -1,6 +1,7 @@
-from erp_core.core.entities.employee import Employee
-from erp_core.core.entities.party import Party
-from erp_core.infra.postgres.interfaces import IEmployeeRepository, IPartyRepository
+from erp_core.party.entities.employee import Employee
+from erp_core.party.entities.party import Party
+from erp_core.party.protocols.employee_repository import IEmployeeRepository
+from erp_core.party.protocols.party_repository import IPartyRepository
 
 
 class EmployeeSyncer:

@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 
-from erp_core.infra.postgres.interfaces import IMutualRepository
+from erp_core.mutual.protocols.mutual_repository import IMutualRepository
 
 
 class BalanceProvider:

@@ -1,12 +1,10 @@
 from decimal import Decimal
 
-from erp_core.core.entities.money import Money, MoneyDirection, SubmittingType
-from erp_core.infra.postgres.interfaces import (
-    IInvoiceRepository,
-    IInvoiceStatusRepository,
-    IMoneyRepository,
-    IMoneyStatusRepository,
-)
+from erp_core.invoice.protocols.invoice_repository import IInvoiceRepository
+from erp_core.invoice.protocols.invoice_status_repository import IInvoiceStatusRepository
+from erp_core.money.entities.money import Money, MoneyDirection, SubmittingType
+from erp_core.money.protocols.money_repository import IMoneyRepository
+from erp_core.money.protocols.money_status_repository import IMoneyStatusRepository
 
 
 class PaymentRecorder:
