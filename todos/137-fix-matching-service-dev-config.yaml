@@ -1,0 +1,17 @@
+title: "Настроить MLS API URL для matching-service в dev compose"
+status: todo
+priority: medium
+tags: [devops, matching-service, dev]
+description: |
+  matching-service в dev compose не может подключиться к MLS API.
+  Дефолтный mls_api_url (http://165.22.19.85:8000) — это production IP,
+  недоступный из Docker-сети.
+
+  Варианты:
+  1. Добавить MLS_API_URL в env matching-service в dev/docker-compose.yml
+  2. Поднять API в dev compose
+  3. Настроить проксирование через host.docker.internal
+
+  Файлы:
+  - matching_service/src/config.py — дефолт mls_api_url
+  - dev/docker-compose.yml — env для matching-service
