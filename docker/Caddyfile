@@ -23,3 +23,8 @@ royalestate.smartist.dev {
 		reverse_proxy odoo:8069
 	}
 }
+
+crm-docs.estate-kit.com {
+	root * /srv/docs/tech
+	file_server
+}

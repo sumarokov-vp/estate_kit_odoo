@@ -1,5 +1,8 @@
 site_name: EstateKit CRM — Техническая документация
-site_url: https://royalestate.smartist.dev/docs/tech/
+site_url: https://crm-docs.estate-kit.com/
+
+extra_javascript:
+  - javascripts/logout.js
 use_directory_urls: true
 theme:
   name: material
@@ -26,4 +29,5 @@ nav:
   - Модель данных: data-model.md
   - Атрибуты: attributes.md
   - Интеграции: integrations.md
+  - WhatsApp: whatsapp.md
   - Комиссия: commissions.md
