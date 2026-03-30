@@ -43,6 +43,12 @@ class CrmLeadMatching(models.Model):
             count = service.match(self.id, criteria)
         except RequestException as exc:
             _logger.warning("Matching service error for lead %s: %s", self.id, exc)
+            self.env["estate.kit.log"].log(
+                "matching",
+                "Ошибка подбора для лида #%d" % self.id,
+                details=str(exc),
+                level="error",
+            )
             raise UserError(_("Сервис подбора недоступен. Попробуйте позже."))
 
         if count > MIN_MATCHES_FOR_ADVANCE:
