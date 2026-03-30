@@ -107,6 +107,21 @@ class ResConfigSettings(models.TransientModel):
         help="Вес тир-листов в формуле MPS. Сумма с весом скоринга должна равняться 1.0.",
     )
 
+    # === Комиссия ===
+    estate_kit_min_commission_percent = fields.Float(
+        string="Минимальная комиссия, %",
+        config_parameter="estate_kit.min_commission_percent",
+        digits=(5, 2),
+        help="Минимальная комиссия агентства (%)",
+    )
+    estate_kit_max_discount_percent = fields.Float(
+        string="Макс. скидка от listing_price, %",
+        config_parameter="estate_kit.max_discount_percent",
+        default=10.0,
+        digits=(5, 2),
+        help="Допустимый коридор снижения цены сделки от listing_price (%)",
+    )
+
     @api.constrains("estate_kit_pool_scoring_weight", "estate_kit_pool_tier_weight")
     def _check_pool_weights_sum(self):
         for rec in self:

@@ -68,6 +68,22 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Комиссия" name="estate_kit_commission">
+                        <setting string="Ставки комиссии" help="Минимальная комиссия агентства и допустимый коридор скидки от listing_price">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_min_commission_percent" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_min_commission_percent" class="col-lg-3"/>
+                                    <span class="col-lg-6 text-muted small">Минимальная комиссия агентства (%)</span>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_max_discount_percent" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_max_discount_percent" class="col-lg-3"/>
+                                    <span class="col-lg-6 text-muted small">Макс. допустимое снижение цены сделки от listing_price (%)</span>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="Маркетинговый пул" name="estate_kit_marketing_pool">
                         <setting string="Размер и пороги" help="Параметры формирования маркетингового пула">
                             <div class="content-group">
