@@ -2,6 +2,8 @@ id: 132
 title: "AI: оценка средней стоимости объекта по критериям поиска лида"
 priority: low
 depends_on: [131, 128]
+status: done
+completed_at: 30.03.2026
 context: |
   Сервис для AI-оценки средней стоимости объекта по критериям поиска лида.
   Используется как fallback в расчёте expected_revenue, когда нет привязанного объекта
@@ -13,3 +15,12 @@ context: |
   Зависит от IAiClient (протокол). Аналогичный паттерн как у ai_scoring.
 
   Документация: docs/tech-docs/docs/commissions.md, раздел "AI-оценка средней стоимости"
+solution: |
+  Создан пакет src/lead/services/price_estimation/ по DDD-паттерну:
+  - criteria_collector.py — собирает критерии поиска из лида (тип, город, районы, комнаты, площадь)
+  - prompt_builder.py — формирует промпт для AI с системным промптом для рынка Казахстана
+  - response_parser.py — парсит числовой ответ AI (regex, защита от невалидного ответа)
+  - service.py — фасад PriceEstimationService.estimate(lead) -> float
+  - factory.py — собирает зависимости через AiClientFactory
+  - protocols/ — IAiClient (реэкспорт), ICriteriaCollector, IPromptBuilder, IResponseParser
+  Интегрирован в crm_lead._get_estimated_price как fallback (приоритет 3 после listing_price и фильтров).
