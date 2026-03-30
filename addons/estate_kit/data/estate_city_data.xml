@@ -1,20 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="1">
     <record id="city_almaty" model="estate.city">
-        <field name="name">г. Алматы</field>
+        <field name="name">Алматы</field>
         <field name="code">almaty</field>
         <field name="sequence">1</field>
     </record>
-
+    <record id="city_astana" model="estate.city">
+        <field name="name">Астана</field>
+        <field name="code">astana</field>
+        <field name="sequence">2</field>
+    </record>
+    <record id="city_shymkent" model="estate.city">
+        <field name="name">Шымкент</field>
+        <field name="code">shymkent</field>
+        <field name="sequence">3</field>
+    </record>
     <record id="city_almaty_oblast" model="estate.city">
         <field name="name">Алматинская область</field>
         <field name="code">almaty_oblast</field>
-        <field name="sequence">2</field>
+        <field name="sequence">4</field>
     </record>
-
-    <record id="city_astana" model="estate.city">
-        <field name="name">г. Астана</field>
-        <field name="code">astana</field>
-        <field name="sequence">3</field>
+    <record id="city_aktobe" model="estate.city">
+        <field name="name">Актобе</field>
+        <field name="code">aktobe</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="city_karaganda" model="estate.city">
+        <field name="name">Караганда</field>
+        <field name="code">karaganda</field>
+        <field name="sequence">11</field>
+    </record>
+    <record id="city_taraz" model="estate.city">
+        <field name="name">Тараз</field>
+        <field name="code">taraz</field>
+        <field name="sequence">12</field>
+    </record>
+    <record id="city_pavlodar" model="estate.city">
+        <field name="name">Павлодар</field>
+        <field name="code">pavlodar</field>
+        <field name="sequence">13</field>
+    </record>
+    <record id="city_ust_kamenogorsk" model="estate.city">
+        <field name="name">Усть-Каменогорск</field>
+        <field name="code">ust-kamenogorsk</field>
+        <field name="sequence">14</field>
+    </record>
+    <record id="city_semey" model="estate.city">
+        <field name="name">Семей</field>
+        <field name="code">semey</field>
+        <field name="sequence">15</field>
+    </record>
+    <record id="city_atyrau" model="estate.city">
+        <field name="name">Атырау</field>
+        <field name="code">atyrau</field>
+        <field name="sequence">16</field>
+    </record>
+    <record id="city_kostanay" model="estate.city">
+        <field name="name">Костанай</field>
+        <field name="code">kostanay</field>
+        <field name="sequence">17</field>
+    </record>
+    <record id="city_kyzylorda" model="estate.city">
+        <field name="name">Кызылорда</field>
+        <field name="code">kyzylorda</field>
+        <field name="sequence">18</field>
+    </record>
+    <record id="city_uralsk" model="estate.city">
+        <field name="name">Уральск</field>
+        <field name="code">uralsk</field>
+        <field name="sequence">19</field>
+    </record>
+    <record id="city_petropavlovsk" model="estate.city">
+        <field name="name">Петропавловск</field>
+        <field name="code">petropavlovsk</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="city_aktau" model="estate.city">
+        <field name="name">Актау</field>
+        <field name="code">aktau</field>
+        <field name="sequence">21</field>
+    </record>
+    <record id="city_temirtau" model="estate.city">
+        <field name="name">Темиртау</field>
+        <field name="code">temirtau</field>
+        <field name="sequence">22</field>
+    </record>
+    <record id="city_turkestan" model="estate.city">
+        <field name="name">Туркестан</field>
+        <field name="code">turkestan</field>
+        <field name="sequence">23</field>
+    </record>
+    <record id="city_kokshetau" model="estate.city">
+        <field name="name">Кокшетау</field>
+        <field name="code">kokshetau</field>
+        <field name="sequence">24</field>
+    </record>
+    <record id="city_taldykorgan" model="estate.city">
+        <field name="name">Талдыкорган</field>
+        <field name="code">taldykorgan</field>
+        <field name="sequence">25</field>
+    </record>
+    <record id="city_ekibastuz" model="estate.city">
+        <field name="name">Экибастуз</field>
+        <field name="code">ekibastuz</field>
+        <field name="sequence">26</field>
+    </record>
+    <record id="city_rudny" model="estate.city">
+        <field name="name">Рудный</field>
+        <field name="code">rudny</field>
+        <field name="sequence">27</field>
+    </record>
+    <record id="city_zhanaozen" model="estate.city">
+        <field name="name">Жанаозен</field>
+        <field name="code">zhanaozen</field>
+        <field name="sequence">28</field>
+    </record>
+    <record id="city_zhezkazgan" model="estate.city">
+        <field name="name">Жезказган</field>
+        <field name="code">zhezkazgan</field>
+        <field name="sequence">29</field>
+    </record>
+    <record id="city_balkhash" model="estate.city">
+        <field name="name">Балхаш</field>
+        <field name="code">balkhash</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="city_kentau" model="estate.city">
+        <field name="name">Кентау</field>
+        <field name="code">kentau</field>
+        <field name="sequence">31</field>
+    </record>
+    <record id="city_satpayev" model="estate.city">
+        <field name="name">Сатпаев</field>
+        <field name="code">satpayev</field>
+        <field name="sequence">32</field>
+    </record>
+    <record id="city_kaskelen" model="estate.city">
+        <field name="name">Каскелен</field>
+        <field name="code">kaskelen</field>
+        <field name="sequence">33</field>
+    </record>
+    <record id="city_konayev" model="estate.city">
+        <field name="name">Конаев</field>
+        <field name="code">konayev</field>
+        <field name="sequence">34</field>
     </record>
 </odoo>

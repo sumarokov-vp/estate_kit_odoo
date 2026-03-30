@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="district_alatau" model="estate.district">
+        <field name="name">Алатауский</field>
+        <field name="code">alatau</field>
+        <field name="city_id" ref="city_almaty"/>
+    </record>
+    <record id="district_almaly" model="estate.district">
+        <field name="name">Алмалинский</field>
+        <field name="code">almaly</field>
+        <field name="city_id" ref="city_almaty"/>
+    </record>
+    <record id="district_auezov" model="estate.district">
+        <field name="name">Ауэзовский</field>
+        <field name="code">auezov</field>
+        <field name="city_id" ref="city_almaty"/>
+    </record>
+    <record id="district_bostandyk" model="estate.district">
+        <field name="name">Бостандыкский</field>
+        <field name="code">bostandyk</field>
+        <field name="city_id" ref="city_almaty"/>
+    </record>
+    <record id="district_zhetysu" model="estate.district">
+        <field name="name">Жетысуский</field>
+        <field name="code">zhetysu</field>
+        <field name="city_id" ref="city_almaty"/>
+    </record>
+    <record id="district_medeu" model="estate.district">
+        <field name="name">Медеуский</field>
+        <field name="code">medeu</field>
+        <field name="city_id" ref="city_almaty"/>
+    </record>
+    <record id="district_nauryzbay" model="estate.district">
+        <field name="name">Наурызбайский</field>
+        <field name="code">nauryzbay</field>
+        <field name="city_id" ref="city_almaty"/>
+    </record>
+    <record id="district_turksib" model="estate.district">
+        <field name="name">Турксибский</field>
+        <field name="code">turksib</field>
+        <field name="city_id" ref="city_almaty"/>
+    </record>
+</odoo>
