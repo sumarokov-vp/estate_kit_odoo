@@ -6,13 +6,56 @@
         <field name="arch" type="xml">
             <list string="Подобранные объекты" editable="bottom">
                 <field name="property_id"/>
-                <field name="score"/>
-                <field name="match_date"/>
-                <field name="state" widget="badge"
-                    decoration-info="state == 'new'"
-                    decoration-success="state == 'interested'"
-                    decoration-muted="state == 'rejected'"/>
+                <field name="property_price" string="Цена"/>
+                <field name="marketing_pool_score_display" string="MPS"/>
+                <field name="stage_id" widget="badge"/>
+                <field name="viewed_date"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_estate_lead_match_form" model="ir.ui.view">
+        <field name="name">estate.lead.match.form</field>
+        <field name="model">estate.lead.match</field>
+        <field name="arch" type="xml">
+            <form string="Подбор объекта">
+                <header>
+                    <button name="action_set_viewed" type="object"
+                        string="Просмотрено" class="oe_highlight"
+                        invisible="stage_id != %(estate_kit.match_stage_new)d"/>
+                    <button name="action_set_rejected" type="object"
+                        string="Не подходит"
+                        invisible="stage_id in (%(estate_kit.match_stage_rejected)d, %(estate_kit.match_stage_selected)d)"/>
+                    <button name="action_set_selected" type="object"
+                        string="Выбрать" class="oe_highlight"
+                        invisible="stage_id in (%(estate_kit.match_stage_rejected)d, %(estate_kit.match_stage_selected)d)"
+                        confirm="Объект будет закреплён за лидом, лид перейдёт в стадию Переговоры. Продолжить?"/>
+                    <field name="stage_id" widget="statusbar"
+                        options="{'clickable': '1', 'fold_field': 'fold'}"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="lead_id" readonly="1"/>
+                            <field name="property_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="match_date" readonly="1"/>
+                            <field name="viewed_date" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Скоринг">
+                        <group>
+                            <field name="marketing_pool_score_display" readonly="1"/>
+                            <field name="price_score" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="quality_score" readonly="1"/>
+                            <field name="listing_score" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
 </odoo>
