@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="match_stage_new" model="estate.lead.match.stage">
+        <field name="name">Новый</field>
+        <field name="code">new</field>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="match_stage_viewed" model="estate.lead.match.stage">
+        <field name="name">Просмотрено</field>
+        <field name="code">viewed</field>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="match_stage_rejected" model="estate.lead.match.stage">
+        <field name="name">Не подходит</field>
+        <field name="code">rejected</field>
+        <field name="sequence">3</field>
+        <field name="fold" eval="True"/>
+    </record>
+
+    <record id="match_stage_selected" model="estate.lead.match.stage">
+        <field name="name">Выбран</field>
+        <field name="code">selected</field>
+        <field name="sequence">4</field>
+    </record>
+</odoo>
