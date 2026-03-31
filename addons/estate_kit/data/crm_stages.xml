@@ -5,11 +5,6 @@
         <field name="sequence">3</field>
     </record>
 
-    <record id="crm_stage_viewing" model="crm.stage">
-        <field name="name">Просмотр</field>
-        <field name="sequence">4</field>
-    </record>
-
     <record id="crm_stage_negotiation" model="crm.stage">
         <field name="name">Переговоры</field>
         <field name="sequence">5</field>
