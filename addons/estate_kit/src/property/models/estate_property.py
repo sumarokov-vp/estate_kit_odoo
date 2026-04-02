@@ -65,6 +65,8 @@ class EstateProperty(models.Model):
         tracking=True,
     )
 
+    draft_id = fields.Char(string="Draft ID", index=True, copy=False)
+
     price = fields.Monetary(string="Цена", tracking=True)
     listing_price = fields.Monetary(
         string="Цена публикации",
