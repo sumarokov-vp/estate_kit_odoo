@@ -136,3 +136,6 @@ access_lead_match_listing_agent,estate.lead.match.listing_agent,model_estate_lea
 access_lead_match_transaction_coordinator,estate.lead.match.transaction_coordinator,model_estate_lead_match,group_estate_transaction_coordinator,1,0,1,0
 access_lead_match_buyer_agent,estate.lead.match.buyer_agent,model_estate_lead_match,group_estate_buyer_agent,1,0,1,0
 access_lead_match_isa,estate.lead.match.isa,model_estate_lead_match,group_estate_isa,1,0,1,0
+access_upload_token_team_lead,estate.property.upload.token.team_lead,model_estate_property_upload_token,group_estate_team_lead,1,1,1,1
+access_upload_token_listing_agent,estate.property.upload.token.listing_agent,model_estate_property_upload_token,group_estate_listing_agent,1,0,1,0
+access_upload_token_listing_coordinator,estate.property.upload.token.listing_coordinator,model_estate_property_upload_token,group_estate_listing_coordinator,1,0,1,0
