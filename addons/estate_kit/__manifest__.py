@@ -46,6 +46,7 @@
         "views/estate_lead_match_views.xml",
         "views/commission_report_views.xml",
         "views/res_users_views.xml",
+        "views/res_partner_views.xml",
         "views/res_config_settings_views.xml",
         "src/property/wizards/krisha_parser_views.xml",
         "views/estate_deal_menus.xml",

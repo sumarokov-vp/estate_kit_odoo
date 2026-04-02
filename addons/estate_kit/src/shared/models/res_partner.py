@@ -7,3 +7,6 @@ class ResPartner(models.Model):
     external_owner_id = fields.Integer(
         string="API Owner ID", index=True, copy=False
     )
+    telegram_user_id = fields.Char(
+        string="Telegram User ID", index=True, copy=False
+    )

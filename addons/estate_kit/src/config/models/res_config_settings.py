@@ -30,6 +30,12 @@ class ResConfigSettings(models.TransientModel):
         readonly=True,
     )
 
+    estate_kit_customer_bot_username = fields.Char(
+        string="Username бота клиентов",
+        config_parameter="estate_kit.customer_bot_username",
+        help="Username Telegram-бота для клиентов (без @). Используется для генерации Deeplink URL в лидах.",
+    )
+
     estate_kit_api_url = fields.Char(
         string="URL API",
         config_parameter="estate_kit.api_url",

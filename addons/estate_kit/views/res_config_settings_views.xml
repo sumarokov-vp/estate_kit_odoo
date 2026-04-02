@@ -54,6 +54,16 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Telegram-бот" name="estate_kit_telegram_bot">
+                        <setting string="Бот для клиентов" help="Username Telegram-бота для генерации deeplink в лидах">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_customer_bot_username" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_customer_bot_username" class="col-lg-6" placeholder="estate_kit_customer_bot"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="AI-скоринг" name="estate_kit_ai_scoring">
                         <setting string="Anthropic Claude API" help="API-ключ для автоматической оценки объектов с помощью AI">
                             <div class="content-group">
