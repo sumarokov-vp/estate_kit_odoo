@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Загрузка фотографий — {property_name}</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  min-height: 100vh;
+}
+
+.header {
+  background: #714B67;
+  padding: 14px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  display: block;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+.property-info {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.property-info h1 {
+  font-size: 1.25rem;
+  margin-bottom: 6px;
+  color: #333;
+}
+.property-info .address {
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.upload-section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.file-input-wrapper {
+  position: relative;
+  margin-bottom: 16px;
+}
+.file-input-wrapper input[type="file"] {
+  display: none;
+}
+.select-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #f0f0f0;
+  border: 2px dashed #ccc;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 1rem;
+  color: #555;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.select-btn:active {
+  background: #e8e8e8;
+  border-color: #714B67;
+}
+.select-btn.has-files {
+  border-color: #714B67;
+  background: #f9f5f8;
+  color: #714B67;
+}
+
+.upload-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #714B67;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.upload-btn:active {
+  background: #5a3c53;
+}
+.upload-btn:disabled {
+  background: #bbb;
+  cursor: not-allowed;
+}
+
+.progress-section {
+  margin-top: 20px;
+  display: none;
+}
+.progress-section.visible {
+  display: block;
+}
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: #714B67;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+.progress-text {
+  text-align: center;
+  color: #666;
+  font-size: 0.95rem;
+}
+
+.result-section {
+  margin-top: 20px;
+  display: none;
+}
+.result-section.visible {
+  display: block;
+}
+.result-success {
+  background: #d4edda;
+  color: #155724;
+  padding: 16px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 500;
+}
+.result-errors {
+  margin-top: 12px;
+}
+.result-errors .error-item {
+  background: #fff3cd;
+  color: #856404;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a href="{base_url}/web/login">{company_name}</a>
+</div>
+
+<div class="container">
+  <div class="property-info">
+    <h1>{property_name}</h1>
+    <div class="address">{property_address}</div>
+  </div>
+
+  <div class="upload-section">
+    <div class="file-input-wrapper">
+      <label class="select-btn" id="selectBtn">
+        Выбрать фотографии
+        <input type="file" id="photoInput" multiple accept="image/*">
+      </label>
+    </div>
+
+    <button class="upload-btn" id="uploadBtn" disabled>Загрузить фотографии</button>
+
+    <div class="progress-section" id="progressSection">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">0 / 0</div>
+    </div>
+
+    <div class="result-section" id="resultSection">
+      <div class="result-success" id="resultSuccess"></div>
+      <div class="result-errors" id="resultErrors"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var UPLOAD_URL = '{upload_url}';
+
+  var photoInput = document.getElementById('photoInput');
+  var selectBtn = document.getElementById('selectBtn');
+  var uploadBtn = document.getElementById('uploadBtn');
+  var progressSection = document.getElementById('progressSection');
+  var progressFill = document.getElementById('progressFill');
+  var progressText = document.getElementById('progressText');
+  var resultSection = document.getElementById('resultSection');
+  var resultSuccess = document.getElementById('resultSuccess');
+  var resultErrors = document.getElementById('resultErrors');
+
+  photoInput.addEventListener('change', function() {
+    var count = photoInput.files.length;
+    if (count > 0) {
+      selectBtn.textContent = count + ' фото выбрано';
+      selectBtn.classList.add('has-files');
+      selectBtn.appendChild(photoInput);
+      uploadBtn.disabled = false;
+    } else {
+      selectBtn.textContent = 'Выбрать фотографии';
+      selectBtn.classList.remove('has-files');
+      selectBtn.appendChild(photoInput);
+      uploadBtn.disabled = true;
+    }
+  });
+
+  uploadBtn.addEventListener('click', function() {
+    var files = photoInput.files;
+    if (!files.length) return;
+
+    uploadBtn.disabled = true;
+    selectBtn.style.pointerEvents = 'none';
+    progressSection.classList.add('visible');
+    resultSection.classList.remove('visible');
+    resultErrors.innerHTML = '';
+
+    var total = files.length;
+    var completed = 0;
+    var failed = 0;
+    var errors = [];
+
+    function updateProgress() {
+      var pct = Math.round(((completed + failed) / total) * 100);
+      progressFill.style.width = pct + '%';
+      progressText.textContent = (completed + failed) + ' / ' + total;
+    }
+
+    function uploadNext(index) {
+      if (index >= total) {
+        showResult();
+        return;
+      }
+
+      var file = files[index];
+      var formData = new FormData();
+      formData.append('photo', file);
+
+      fetch(UPLOAD_URL, { method: 'POST', body: formData })
+        .then(function(response) { return response.json().then(function(data) { return { ok: response.ok, data: data }; }); })
+        .then(function(result) {
+          if (result.ok && result.data.success) {
+            completed++;
+          } else {
+            failed++;
+            errors.push((file.name || 'фото') + ': ' + (result.data.error || 'ошибка'));
+          }
+          updateProgress();
+          uploadNext(index + 1);
+        })
+        .catch(function() {
+          failed++;
+          errors.push((file.name || 'фото') + ': ошибка сети');
+          updateProgress();
+          uploadNext(index + 1);
+        });
+    }
+
+    function showResult() {
+      resultSection.classList.add('visible');
+      if (completed > 0) {
+        resultSuccess.textContent = 'Загружено ' + completed + ' из ' + total + ' фотографий';
+        resultSuccess.style.display = 'block';
+      } else {
+        resultSuccess.style.display = 'none';
+      }
+      for (var i = 0; i < errors.length; i++) {
+        var div = document.createElement('div');
+        div.className = 'error-item';
+        div.textContent = errors[i];
+        resultErrors.appendChild(div);
+      }
+      selectBtn.style.pointerEvents = '';
+    }
+
+    updateProgress();
+    uploadNext(0);
+  });
+})();
+</script>
+
+</body>
+</html>
