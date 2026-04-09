@@ -52,6 +52,7 @@ class EstateProperty(models.Model):
             ("published", "Опубликован в MLS"),
             ("rejected", "Отклонён MLS"),
             ("unpublished", "Снят с публикации"),
+            ("duplicate", "Дубликат"),
             ("sold", "Продан"),
             ("archived", "Архив"),
             ("mls_listed", "В MLS (чужой)"),
@@ -66,6 +67,12 @@ class EstateProperty(models.Model):
     )
 
     draft_id = fields.Char(string="Draft ID", index=True, copy=False)
+    duplicate_of_id = fields.Many2one(
+        "estate.property",
+        string="Дубликат объекта",
+        copy=False,
+        help="Справочная ссылка на объект, дубликатом которого является данный черновик",
+    )
 
     price = fields.Monetary(string="Цена", tracking=True)
     listing_price = fields.Monetary(
@@ -370,6 +377,7 @@ class EstateProperty(models.Model):
 
     # === Собственник и договор ===
     owner_id = fields.Many2one("res.partner", string="Собственник", tracking=True)
+    owner_phone = fields.Char(related="owner_id.phone", string="Телефон владельца", readonly=False)
     owner_name = fields.Char(string="Имя владельца", help="Имя владельца из бота")
     source_id = fields.Many2one("estate.source", string="Источник")
     contract_type = fields.Selection(
@@ -536,6 +544,12 @@ class EstateProperty(models.Model):
 
     def action_fix_rejected(self):
         self._svc.state_machine.fix_rejected(self)
+
+    def action_mark_duplicate(self, duplicate_of_id: int):
+        self._svc.state_machine.mark_duplicate(self, duplicate_of_id)
+
+    def action_resolve_duplicate(self):
+        self._svc.state_machine.resolve_duplicate(self)
 
     # =========================================================================
     # Actions — geocoder delegate
