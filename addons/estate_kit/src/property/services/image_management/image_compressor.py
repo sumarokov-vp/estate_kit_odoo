@@ -3,6 +3,13 @@ import logging
 
 from PIL import Image
 
+try:
+    from pillow_heif import register_heif_opener
+
+    register_heif_opener()
+except ImportError:
+    pass
+
 _logger = logging.getLogger(__name__)
 
 MAX_DIMENSION = 2000

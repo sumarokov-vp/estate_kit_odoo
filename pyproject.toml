@@ -11,6 +11,7 @@ dependencies = [
     "python-slugify",
     "packaging",
     "requests",
+    "pillow-heif>=0.21",
     "pyyaml>=6.0.3",
 ]
 
