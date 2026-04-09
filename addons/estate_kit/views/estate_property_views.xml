@@ -182,6 +182,7 @@
                             <group>
                                 <group string="Собственник">
                                     <field name="owner_id"/>
+                                    <field name="owner_phone" widget="phone"/>
                                     <field name="owner_name"/>
                                     <field name="source_id"/>
                                     <field name="krisha_url" widget="url"/>
@@ -209,7 +210,9 @@
                                     <field name="instagram_url" widget="url"/>
                                 </group>
                             </group>
-                            <field name="image_ids" widget="image_gallery"/>
+                            <div>
+                                <field name="image_ids" widget="image_gallery" nolabel="1" class="w-100"/>
+                            </div>
                         </page>
                         <page string="Служебное" name="service">
                             <group>
@@ -295,18 +298,53 @@
                 decoration-danger="state == 'rejected'"
                 decoration-muted="state in ('unpublished', 'archived', 'sold', 'mls_removed', 'mls_sold')">
                 <field name="name"/>
-                <field name="property_type"/>
-                <field name="deal_type"/>
-                <field name="rooms"/>
-                <field name="area_total"/>
+                <field name="property_type" optional="show"/>
+                <field name="deal_type" optional="show"/>
+                <field name="rooms" optional="show"/>
+                <field name="bedrooms" optional="hide"/>
+                <field name="area_total" optional="show"/>
+                <field name="area_living" optional="hide"/>
+                <field name="area_kitchen" optional="hide"/>
+                <field name="area_land" optional="hide"/>
                 <field name="floor" optional="show"/>
-                <field name="price"/>
+                <field name="floors_total" optional="hide"/>
+                <field name="price" optional="show"/>
                 <field name="listing_price" optional="hide"/>
-                <field name="district_id"/>
+                <field name="min_commission_percent" optional="hide"/>
+                <field name="city_id" optional="hide"/>
+                <field name="district_id" optional="show"/>
+                <field name="street_id" optional="hide"/>
+                <field name="residential_complex" optional="hide"/>
                 <field name="marketing_pool_score_display" optional="show"/>
                 <field name="condition" optional="hide"/>
+                <field name="building_type" optional="hide"/>
+                <field name="year_built" optional="hide"/>
+                <field name="ceiling_height" optional="hide"/>
+                <field name="wall_material" optional="hide"/>
+                <field name="bathroom" optional="hide"/>
+                <field name="balcony" optional="hide"/>
+                <field name="parking" optional="hide"/>
+                <field name="furniture" optional="hide"/>
+                <field name="heating" optional="hide"/>
+                <field name="owner_id" optional="hide"/>
+                <field name="owner_phone" optional="hide"/>
+                <field name="source_id" optional="hide"/>
+                <field name="contract_type" optional="hide"/>
+                <field name="contract_end" optional="hide"/>
+                <field name="ownership_type" optional="hide"/>
+                <field name="documents_ready" optional="hide"/>
+                <field name="is_pledged" optional="hide"/>
                 <field name="user_id" optional="hide"/>
-                <field name="state"/>
+                <field name="listing_agent_id" optional="hide"/>
+                <field name="listing_coordinator_id" optional="hide"/>
+                <field name="is_shared" optional="hide"/>
+                <field name="krisha_url" widget="url" optional="hide"/>
+                <field name="create_date" optional="hide"/>
+                <field name="write_date" optional="hide"/>
+                <field name="id" optional="hide"/>
+                <field name="external_id" optional="hide"/>
+                <field name="draft_id" optional="hide"/>
+                <field name="state" optional="show"/>
             </list>
         </field>
     </record>
