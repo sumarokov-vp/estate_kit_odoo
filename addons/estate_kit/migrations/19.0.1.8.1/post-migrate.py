@@ -99,6 +99,13 @@ def _dedup_table(cr, table, model, key_column, xmlid_map):
                 (keep_id, xmlid_name, model),
             )
 
+        # Reassign FK references in child tables to keep_id before deleting
+        if table == "estate_city":
+            cr.execute(
+                "UPDATE estate_district SET city_id = %s WHERE city_id IN %s",
+                (keep_id, tuple(delete_ids)),
+            )
+
         # Delete newer duplicates
         cr.execute(
             f"DELETE FROM {table} WHERE id IN %s",

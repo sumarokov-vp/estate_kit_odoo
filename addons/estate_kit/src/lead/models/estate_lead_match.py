@@ -20,7 +20,7 @@ class EstateleadMatch(models.Model):
         "estate.property",
         string="Объект",
         required=True,
-        ondelete="restrict",
+        ondelete="cascade",
     )
     property_price = fields.Monetary(
         related="property_id.price",
