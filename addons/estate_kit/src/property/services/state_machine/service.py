@@ -80,3 +80,17 @@ class StateMachineService:
             records, "rejected", "internal_review",
             "Исправить можно только отклонённый объект.",
         )
+
+    def mark_duplicate(self, records, duplicate_of_id: int) -> None:
+        self._state_transitioner.transition(
+            records, "draft", "duplicate",
+            "Пометить как дубликат можно только черновик.",
+        )
+        records.write({"duplicate_of_id": duplicate_of_id})
+
+    def resolve_duplicate(self, records) -> None:
+        self._state_transitioner.transition(
+            records, "duplicate", "draft",
+            "Разрешить дубликат можно только для объекта в статусе «Дубликат».",
+        )
+        records.write({"duplicate_of_id": False})
