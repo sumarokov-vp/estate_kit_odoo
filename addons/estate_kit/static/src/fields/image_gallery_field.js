@@ -2,7 +2,7 @@
 
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
-import { Component, useState, useRef, onWillUpdateProps } from "@odoo/owl";
+import { Component, useState, onWillUpdateProps } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
 import { ImageGallery } from "../components/image_gallery/image_gallery";
 import { ImageLightbox } from "../components/image_lightbox/image_lightbox";
@@ -23,8 +23,6 @@ export class ImageGalleryField extends Component {
             images: [],
             isLoading: true,
         });
-
-        this.fileInput = useRef("fileInput");
 
         this.loadImages();
 
@@ -88,52 +86,19 @@ export class ImageGalleryField extends Component {
         });
     }
 
-    onAddImage() {
-        if (this.fileInput.el) {
-            this.fileInput.el.click();
-        }
-    }
-
-    async onFileSelected(ev) {
-        const files = ev.target.files;
-        if (!files.length) return;
-
-        for (const file of files) {
-            await this.uploadImage(file);
-        }
-
-        ev.target.value = "";
-        await this.loadImages();
-    }
-
-    fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const base64 = reader.result.split(",")[1];
-                resolve(base64);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(file);
-        });
-    }
-
-    async uploadImage(file) {
+    async onAddImage() {
         const propertyId = this.props.record.resId;
-        const base64Data = await this.fileToBase64(file);
-        const dotIndex = file.name.lastIndexOf(".");
-        const fileName = dotIndex > 0 ? file.name.substring(0, dotIndex) : file.name;
+        if (!propertyId) return;
 
         try {
-            await this.orm.create("estate.property.image", [{
-                property_id: propertyId,
-                name: fileName,
-                image: base64Data,
-                sequence: (this.state.images.length + 1) * 10,
-            }]);
-            this.notification.add("Фото добавлено", { type: "success" });
+            const url = await this.orm.call(
+                "estate.property.upload.token",
+                "generate_token",
+                [propertyId],
+            );
+            window.open(url, "_blank");
         } catch {
-            this.notification.add("Ошибка загрузки фото", { type: "danger" });
+            this.notification.add("Ошибка генерации ссылки", { type: "danger" });
         }
     }
 
