@@ -378,6 +378,7 @@ class EstateProperty(models.Model):
     # === Собственник и договор ===
     owner_id = fields.Many2one("res.partner", string="Собственник", tracking=True)
     owner_phone = fields.Char(related="owner_id.phone", string="Телефон владельца", readonly=False)
+    owner_phone_raw = fields.Char(string="Телефон из бота", help="Телефон владельца из бота, до привязки к контакту")
     owner_name = fields.Char(string="Имя владельца", help="Имя владельца из бота")
     source_id = fields.Many2one("estate.source", string="Источник")
     contract_type = fields.Selection(
@@ -605,3 +606,15 @@ class EstateProperty(models.Model):
     @api.model
     def search_unified(self, criteria, limit=50, offset=0, count=False):
         return self._svc.unified_search.search_unified(criteria, limit, offset, count)
+
+    # =========================================================================
+    # XML-RPC — backoffice URL
+    # =========================================================================
+
+    @api.model
+    def get_backoffice_url(self, property_id):
+        base_url = (
+            self.env["ir.config_parameter"].sudo().get_param("web.base.url") or ""
+        ).rstrip("/")
+        action_id = self.env.ref("estate_kit.estate_property_action").id
+        return f"{base_url}/odoo/action-{action_id}/{property_id}"
