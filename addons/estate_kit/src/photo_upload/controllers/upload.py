@@ -65,7 +65,7 @@ class PhotoUploadController(http.Controller):
         methods=["POST"],
         csrf=False,
     )
-    def upload_photo(self, token):
+    def upload_photo(self, token, **kw):
         token_record = self._get_token(token)
         if not token_record:
             return Response(
