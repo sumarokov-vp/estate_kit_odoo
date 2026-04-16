@@ -47,12 +47,19 @@ services:
       - PORT=${DB_PORT:-5432}
       - USER=${DB_USER}
       - PASSWORD=${DB_PASSWORD}
+    networks:
+      - default
+      - shared
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
+
+networks:
+  shared:
+    external: true
 
 volumes:
   odoo-data:

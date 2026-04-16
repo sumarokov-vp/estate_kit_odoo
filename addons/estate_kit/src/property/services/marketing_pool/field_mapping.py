@@ -57,7 +57,7 @@ _COMMON_FIELDS: list[tuple[str, str, bool]] = [
     ("currency", "Валюта", False),
     ("area_total", "Общая площадь (м²)", False),
     ("city", "Город", False),
-    ("district", "Район", False),
+    ("district", "Район (опц.)", True),
     ("year_built", "Год постройки", True),
     ("description", "Описание", True),
     ("photo_count", "Количество фото", False),
