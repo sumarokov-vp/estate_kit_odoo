@@ -53,6 +53,7 @@ class YmapsProxyController(http.Controller):
             return {"error": "API key not configured"}
 
         try:
+            base_url = http.request.httprequest.host_url
             resp = requests.get(
                 GEOCODER_API_URL,
                 params={
@@ -61,6 +62,7 @@ class YmapsProxyController(http.Controller):
                     "format": "json",
                     "results": "1",
                 },
+                headers={"Referer": base_url},
                 timeout=10,
             )
             resp.raise_for_status()

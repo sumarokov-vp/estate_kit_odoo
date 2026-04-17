@@ -11,11 +11,9 @@ RESIDENTIAL_MARKER = "жилой"
 
 class YandexGeocoder:
     def __init__(self, env):
-        self.api_key = (
-            env["ir.config_parameter"]
-            .sudo()
-            .get_param("estate_kit.yandex_geocoder_api_key")
-        ) or ""
+        icp = env["ir.config_parameter"].sudo()
+        self.api_key = icp.get_param("estate_kit.yandex_geocoder_api_key") or ""
+        self.referer = icp.get_param("web.base.url") or ""
 
     @property
     def is_configured(self) -> bool:
@@ -25,6 +23,7 @@ class YandexGeocoder:
         response = requests.get(
             YANDEX_GEOCODER_URL,
             params={"apikey": self.api_key, "geocode": address, "format": "json"},
+            headers={"Referer": self.referer},
             timeout=10,
         )
         response.raise_for_status()
@@ -55,6 +54,7 @@ class YandexGeocoder:
                 "format": "json",
                 "kind": "district",
             },
+            headers={"Referer": self.referer},
             timeout=10,
         )
         response.raise_for_status()
