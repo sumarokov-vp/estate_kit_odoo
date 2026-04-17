@@ -64,6 +64,16 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Яндекс Карты" name="estate_kit_yandex_maps">
+                        <setting string="Яндекс Геокодер" help="API-ключ для геокодирования и отображения карт">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_yandex_geocoder_api_key" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_yandex_geocoder_api_key" class="col-lg-6" placeholder="API-ключ" password="True"/>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="AI-скоринг" name="estate_kit_ai_scoring">
                         <setting string="Anthropic Claude API" help="API-ключ для автоматической оценки объектов с помощью AI">
                             <div class="content-group">

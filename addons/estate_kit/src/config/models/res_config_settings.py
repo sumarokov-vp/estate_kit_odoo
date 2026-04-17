@@ -40,6 +40,12 @@ class ResConfigSettings(models.TransientModel):
         string="URL API",
         config_parameter="estate_kit.api_url",
     )
+    estate_kit_yandex_geocoder_api_key = fields.Char(
+        string="API-ключ Яндекс Геокодер",
+        config_parameter="estate_kit.yandex_geocoder_api_key",
+        help="API-ключ для Яндекс Карт и геокодирования",
+    )
+
     estate_kit_anthropic_api_key = fields.Char(
         string="API-ключ Anthropic",
         config_parameter="estate_kit.anthropic_api_key",
