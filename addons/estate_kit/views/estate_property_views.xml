@@ -183,6 +183,7 @@
                                 <group string="Собственник">
                                     <field name="owner_id"/>
                                     <field name="owner_phone" widget="phone"/>
+                                    <field name="owner_phone_raw" widget="phone"/>
                                     <field name="owner_name"/>
                                     <field name="source_id"/>
                                     <field name="krisha_url" widget="url"/>
@@ -328,6 +329,7 @@
                 <field name="heating" optional="hide"/>
                 <field name="owner_id" optional="hide"/>
                 <field name="owner_phone" optional="hide"/>
+                <field name="owner_phone_raw" optional="hide"/>
                 <field name="source_id" optional="hide"/>
                 <field name="contract_type" optional="hide"/>
                 <field name="contract_end" optional="hide"/>
