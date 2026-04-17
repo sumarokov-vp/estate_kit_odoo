@@ -21,14 +21,6 @@
                         <button class="btn btn-secondary" t-on-click="onAddImage">
                             <i class="fa fa-plus me-1"/>Добавить фото
                         </button>
-                        <input
-                            t-ref="fileInput"
-                            type="file"
-                            accept="image/*"
-                            multiple="multiple"
-                            class="d-none"
-                            t-on-change="onFileSelected"
-                        />
                     </div>
                 </t>
             </t>
