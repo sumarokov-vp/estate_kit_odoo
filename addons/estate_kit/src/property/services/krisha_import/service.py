@@ -1,3 +1,4 @@
+import itertools
 import logging
 
 from .protocols import (
@@ -12,6 +13,8 @@ from .protocols import (
 from .result import KrishaImportResult
 
 _logger = logging.getLogger(__name__)
+
+_MAX_PAGES = 50
 
 
 class KrishaImportService:
@@ -56,51 +59,75 @@ class KrishaImportService:
             config.search_url,
             config.limit,
         )
-        items = self._listing_fetcher.fetch(config.search_url)
-        _logger.info("Krisha import: fetched %d listings", len(items))
 
         imported = 0
         duplicates = 0
         errors = 0
-        for index, item in enumerate(items, start=1):
-            if config.limit > 0 and imported >= config.limit:
-                _logger.info(
-                    "Krisha import: limit reached, imported=%d limit=%d",
-                    imported,
-                    config.limit,
+        overall_index = 0
+        limit_reached = False
+
+        for page in itertools.count(1):
+            if page > _MAX_PAGES:
+                _logger.warning(
+                    "Krisha import: max pages reached, page=%d max=%d",
+                    page,
+                    _MAX_PAGES,
                 )
                 break
-            url = item.get("url", "")
-            _logger.info("Krisha import [%d/%d]: %s", index, len(items), url)
-            try:
-                if self._duplicate_checker.is_imported(url):
-                    _logger.info("Krisha import [%d/%d]: duplicate %s", index, len(items), url)
-                    self._logger.log_duplicate(url)
-                    duplicates += 1
-                    continue
-                detail = self._detail_fetcher.fetch(url)
-                detail["url"] = url
-                property_id = self._property_creator.create(detail)
-                self._photo_importer.import_photos(property_id, detail.get("photo_urls", []))
-                _logger.info(
-                    "Krisha import [%d/%d]: imported property_id=%s url=%s",
-                    index,
-                    len(items),
-                    property_id,
-                    url,
-                )
-                self._logger.log_success(url, property_id, detail)
-                imported += 1
-            except Exception as exc:
-                _logger.exception(
-                    "Krisha import [%d/%d]: error url=%s: %s",
-                    index,
-                    len(items),
-                    url,
-                    exc,
-                )
-                self._logger.log_error(url, exc)
-                errors += 1
+
+            _logger.info("Krisha import: fetching page=%d", page)
+            items = self._listing_fetcher.fetch(config.search_url, page)
+            _logger.info(
+                "Krisha import: page=%d fetched %d listings",
+                page,
+                len(items),
+            )
+
+            if not items:
+                break
+
+            for item in items:
+                if config.limit > 0 and imported >= config.limit:
+                    _logger.info(
+                        "Krisha import: limit reached, imported=%d limit=%d",
+                        imported,
+                        config.limit,
+                    )
+                    limit_reached = True
+                    break
+                overall_index += 1
+                url = item.get("url", "")
+                _logger.info("Krisha import [%d]: %s", overall_index, url)
+                try:
+                    if self._duplicate_checker.is_imported(url):
+                        _logger.info("Krisha import [%d]: duplicate %s", overall_index, url)
+                        self._logger.log_duplicate(url)
+                        duplicates += 1
+                        continue
+                    detail = self._detail_fetcher.fetch(url)
+                    detail["url"] = url
+                    property_id = self._property_creator.create(detail)
+                    self._photo_importer.import_photos(property_id, detail.get("photo_urls", []))
+                    _logger.info(
+                        "Krisha import [%d]: imported property_id=%s url=%s",
+                        overall_index,
+                        property_id,
+                        url,
+                    )
+                    self._logger.log_success(url, property_id, detail)
+                    imported += 1
+                except Exception as exc:
+                    _logger.exception(
+                        "Krisha import [%d]: error url=%s: %s",
+                        overall_index,
+                        url,
+                        exc,
+                    )
+                    self._logger.log_error(url, exc)
+                    errors += 1
+
+            if limit_reached:
+                break
 
         _logger.info(
             "Krisha import finished: imported=%d duplicates=%d errors=%d",
