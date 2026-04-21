@@ -1,5 +1,6 @@
 import json
 import logging
+from typing import cast
 
 from markupsafe import Markup
 from odoo import http
@@ -245,7 +246,9 @@ class PublicViewController(http.Controller):
         value = getattr(prop, field_name, False)
         if not value:
             return None
+        key = cast(str, value)
         selection = prop._fields[field_name].selection
         if callable(selection):
             selection = selection(prop)
-        return dict(selection).get(value)
+        items = cast(list[tuple[str, str]], selection)
+        return dict(items).get(key)
