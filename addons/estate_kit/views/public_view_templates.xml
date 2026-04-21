@@ -22,10 +22,23 @@
                     .header {
                         background: #714B67;
                         color: #fff;
-                        padding: 16px 20px;
-                        text-align: center;
+                        padding: 14px 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 12px;
                         font-weight: 600;
                         font-size: 1.05rem;
+                    }
+                    .header .logo {
+                        height: 36px;
+                        width: auto;
+                        max-width: 120px;
+                        object-fit: contain;
+                        background: #fff;
+                        border-radius: 6px;
+                        padding: 4px;
+                        flex-shrink: 0;
                     }
 
                     .container {
@@ -221,7 +234,8 @@
             </head>
             <body>
                 <div class="header">
-                    <t t-esc="company_name"/>
+                    <img t-if="company_logo" t-att-src="company_logo" alt="" class="logo"/>
+                    <span><t t-esc="company_name"/></span>
                 </div>
 
                 <div class="container">

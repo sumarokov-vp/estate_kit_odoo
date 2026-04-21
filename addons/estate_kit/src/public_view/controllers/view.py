@@ -28,6 +28,7 @@ class PublicViewController(http.Controller):
 
         prop = token_record.property_id
         images = self._sorted_images(prop)
+        company_name, company_logo = self._company_info()
         values = {
             "property": prop,
             "token": token,
@@ -37,7 +38,8 @@ class PublicViewController(http.Controller):
             "features": self._collect_features(prop),
             "images": images,
             "images_json": Markup(self._images_json(token, images)),
-            "company_name": self._company_name(),
+            "company_name": company_name,
+            "company_logo": company_logo,
         }
         html = request.env["ir.qweb"]._render(
             "estate_kit.public_view_page", values
@@ -157,9 +159,16 @@ class PublicViewController(http.Controller):
         return json.dumps(data)
 
     @staticmethod
-    def _company_name():
+    def _company_info():
         company = request.env["res.company"].sudo().search([], limit=1)
-        return company.name if company else "Estate Kit"
+        if not company:
+            return "Estate Kit", None
+        raw = company.logo_web or company.logo
+        logo = None
+        if raw:
+            b64 = raw.decode("ascii") if isinstance(raw, bytes) else raw
+            logo = f"data:image/png;base64,{b64}"
+        return company.name, logo
 
     @classmethod
     def _collect_characteristics(cls, prop):
