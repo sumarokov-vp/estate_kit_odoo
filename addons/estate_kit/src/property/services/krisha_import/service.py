@@ -52,17 +52,24 @@ class KrishaImportService:
             )
 
         _logger.info(
-            "Krisha import started: url=%s limit=%s",
+            "Krisha import started: url=%s import_target=%s",
             config.search_url,
             config.limit,
         )
-        items = self._listing_fetcher.fetch(config.search_url, config.limit)
+        items = self._listing_fetcher.fetch(config.search_url)
         _logger.info("Krisha import: fetched %d listings", len(items))
 
         imported = 0
         duplicates = 0
         errors = 0
         for index, item in enumerate(items, start=1):
+            if config.limit > 0 and imported >= config.limit:
+                _logger.info(
+                    "Krisha import: limit reached, imported=%d limit=%d",
+                    imported,
+                    config.limit,
+                )
+                break
             url = item.get("url", "")
             _logger.info("Krisha import [%d/%d]: %s", index, len(items), url)
             try:
