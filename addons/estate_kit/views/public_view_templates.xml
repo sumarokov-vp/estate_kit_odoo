@@ -155,14 +155,14 @@
                         align-items: center;
                         justify-content: center;
                         z-index: 100;
-                        touch-action: none;
+                        touch-action: pan-y pinch-zoom;
+                        overflow: auto;
                     }
                     .lightbox.open { display: flex; }
                     .lightbox img {
                         max-width: 95vw;
                         max-height: 90vh;
-                        user-select: none;
-                        -webkit-user-drag: none;
+                        touch-action: pinch-zoom;
                     }
                     .lightbox .close,
                     .lightbox .nav {
@@ -240,7 +240,7 @@
                             <button type="button" id="next-page">Вперёд →</button>
                         </div>
                         <script type="application/json" id="gallery-data">
-                            <t t-esc="images_json"/>
+                            <t t-out="images_json"/>
                         </script>
                     </div>
 
@@ -373,16 +373,26 @@
                         });
 
                         var touchStartX = null;
+                        var touchStartY = null;
                         lightbox.addEventListener("touchstart", function (e) {
-                            touchStartX = e.changedTouches[0].clientX;
+                            if (e.touches.length !== 1) {
+                                touchStartX = null;
+                                touchStartY = null;
+                                return;
+                            }
+                            touchStartX = e.touches[0].clientX;
+                            touchStartY = e.touches[0].clientY;
                         }, {passive: true});
                         lightbox.addEventListener("touchend", function (e) {
                             if (touchStartX === null) { return; }
+                            if (e.changedTouches.length !== 1) { touchStartX = null; return; }
                             var dx = e.changedTouches[0].clientX - touchStartX;
-                            if (Math.abs(dx) &gt; 50) {
+                            var dy = e.changedTouches[0].clientY - touchStartY;
+                            if (Math.abs(dx) &gt; 50 &amp;&amp; Math.abs(dx) &gt; Math.abs(dy)) {
                                 if (dx &gt; 0) { prevImage(); } else { nextImage(); }
                             }
                             touchStartX = null;
+                            touchStartY = null;
                         });
 
                         renderPage();

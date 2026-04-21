@@ -56,6 +56,7 @@
     "demo": [],
     "assets": {
         "web.assets_backend": [
+            "estate_kit/static/src/utils/*.js",
             "estate_kit/static/src/fields/*.js",
             "estate_kit/static/src/fields/*.xml",
             "estate_kit/static/src/components/**/*.js",

@@ -1,6 +1,7 @@
 import json
 import logging
 
+from markupsafe import Markup
 from odoo import http
 from odoo.http import Response, request
 
@@ -35,12 +36,15 @@ class PublicViewController(http.Controller):
             "characteristics": self._collect_characteristics(prop),
             "features": self._collect_features(prop),
             "images": images,
-            "images_json": self._images_json(token, images),
+            "images_json": Markup(self._images_json(token, images)),
             "company_name": self._company_name(),
         }
-        return request.render(
-            "estate_kit.public_view_page",
-            values,
+        html = request.env["ir.qweb"]._render(
+            "estate_kit.public_view_page", values
+        )
+        return Response(
+            "<!DOCTYPE html>\n" + str(html),
+            content_type="text/html; charset=utf-8",
         )
 
     @http.route(
