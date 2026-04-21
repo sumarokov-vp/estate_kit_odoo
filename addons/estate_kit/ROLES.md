@@ -25,9 +25,6 @@
 | estate.source | CRUD | R | R | R | R | R |
 | estate.climate.equipment | CRUD | R | R | R | R | R |
 | estate.appliance | CRUD | R | R | R | R | R |
-| krisha.parser.wizard | CRUD | CRUD | — | — | CRUD | — |
-| krisha.parser.preview | CRUD | CRUD | — | — | CRUD | — |
-| krisha.parser.result | CRUD | CRUD | — | — | CRUD | — |
 
 ## Record Rules (estate.property)
 
@@ -46,7 +43,6 @@
 |------|--------|
 | Недвижимость (root) | все 6 |
 | Объекты | все 6 |
-| Парсить Krisha.kz | Team Lead, Listing Agent, Listing Coordinator |
 | Справочники | Team Lead |
 
 ## Как назначить роли пользователю

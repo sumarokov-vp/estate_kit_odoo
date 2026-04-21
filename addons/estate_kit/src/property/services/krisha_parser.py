@@ -129,6 +129,19 @@ class KrishaParser:
             address = advert.get("address", "")
             description = ""
 
+        year_built = advert.get("buildYear") or advert.get("yearBuilt")
+        building_type = (
+            advert.get("houseType")
+            or advert.get("buildingType")
+            or advert.get("wallsType")
+        )
+        ceiling_height = advert.get("ceilingHeight") or advert.get("ceiling")
+        residential_complex = (
+            advert.get("residenceComplexName")
+            or advert.get("residentialComplex")
+            or advert.get("complex")
+        )
+
         return {
             "krisha_id": advert.get("id"),
             "url": f"{BASE_URL}/a/show/{advert.get('id')}",
@@ -144,6 +157,12 @@ class KrishaParser:
             "longitude": float(lon) if lon else None,
             "description": description,
             "photo_urls": photo_urls,
+            "year_built": int(year_built) if year_built else None,
+            "building_type": building_type if isinstance(building_type, str) else None,
+            "ceiling_height": float(ceiling_height) if ceiling_height else None,
+            "residential_complex": (
+                residential_complex if isinstance(residential_complex, str) else None
+            ),
         }
 
     def _parse_html_fallback(self, soup: BeautifulSoup) -> list[dict[str, Any]]:

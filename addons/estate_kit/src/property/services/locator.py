@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from .address.service import AddressService
     from .api_sync.service import ApiSyncService
     from .district_detector.service import DistrictDetectorService
+    from .krisha_import.service import KrishaImportService
     from .pool_rotation.service import PoolRotationService
     from .property_validator.service import PropertyValidatorService
     from .scoring.service import ScoringService
@@ -63,6 +64,10 @@ class ServiceLocator:
     def validator(self) -> PropertyValidatorService:
         return self._resolve("property_validator")
 
+    @property
+    def krisha_import(self) -> KrishaImportService:
+        return self._resolve("krisha_import")
+
     def _resolve(self, name: str):
         if name not in self._cache:
             self._cache[name] = _FACTORIES[name](self._env)
@@ -114,6 +119,11 @@ def _create_property_validator(env):
     return Factory.create(env)
 
 
+def _create_krisha_import(env):
+    from .krisha_import import Factory
+    return Factory.create(env)
+
+
 _FACTORIES: dict = {
     "state_machine": _create_state_machine,
     "tier_list": _create_tier_list,
@@ -124,4 +134,5 @@ _FACTORIES: dict = {
     "api_sync": _create_api_sync,
     "district_detector": _create_district_detector,
     "property_validator": _create_property_validator,
+    "krisha_import": _create_krisha_import,
 }

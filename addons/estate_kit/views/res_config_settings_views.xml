@@ -104,6 +104,21 @@
                             </div>
                         </setting>
                     </block>
+                    <block title="Парсинг Krisha.kz" name="estate_kit_krisha_parser">
+                        <setting string="Импорт объектов" help="Фоновая задача периодически импортирует объекты с Krisha.kz по одной ссылке поиска">
+                            <div class="content-group">
+                                <div class="row mt16">
+                                    <label for="estate_kit_krisha_search_url" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_krisha_search_url" class="col-lg-6" placeholder="https://krisha.kz/prodazha/kvartiry/almaty/?das[price][to]=50000000"/>
+                                </div>
+                                <div class="row mt16">
+                                    <label for="estate_kit_krisha_import_limit" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_krisha_import_limit" class="col-lg-3"/>
+                                    <span class="col-lg-6 text-muted small">Максимум объектов за один запуск фоновой задачи</span>
+                                </div>
+                            </div>
+                        </setting>
+                    </block>
                     <block title="Маркетинговый пул" name="estate_kit_marketing_pool">
                         <setting string="Размер и пороги" help="Параметры формирования маркетингового пула">
                             <div class="content-group">

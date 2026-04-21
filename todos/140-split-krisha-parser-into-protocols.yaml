@@ -1,0 +1,32 @@
+title: Разбить KrishaParser на низкоуровневые сервисы с протоколами
+status: open
+created_at: 21.04.2026
+completed_at: null
+
+description: |
+  Сейчас `src/property/services/krisha_parser.py` содержит один объёмный
+  класс `KrishaParser` с несколькими обязанностями:
+    - HTTP-сессия (session, fetch_page)
+    - парсинг HTML/JSON списка объявлений (parse_listing_page)
+    - парсинг карточки объявления (fetch_property_details + _parse_advert)
+    - скачивание изображений (download_image)
+
+  В новом сервисе `krisha_import` обёртки (`ListingFetcher`,
+  `DetailFetcher`, `PhotoImporter`) импортируют `KrishaParser` напрямую,
+  минуя Protocol. Это нарушает принцип «зависимость через Protocol» и
+  мешает подменять реализацию (например, для тестов или для новой версии
+  сайта Krisha).
+
+recommendation: |
+  - Разбить `KrishaParser` на четыре класса:
+    - `HttpFetcher` (реализует `IHttpFetcher.fetch(url) -> str`)
+    - `ListingPageParser` (`IListingPageParser.parse(html) -> list[dict]`)
+    - `AdvertDetailParser` (`IAdvertDetailParser.parse(html) -> dict`)
+    - `ImageDownloader` (`IImageDownloader.download(url) -> bytes | None`)
+  - Вынести каждый класс в отдельный файл.
+  - В обёртках `ListingFetcher`, `DetailFetcher`, `PhotoImporter` заменить
+    типизацию `KrishaParser` на соответствующие Protocol'ы.
+  - Фабрика `Factory.create` собирает граф из мелких классов.
+  - Удалить монолитный `KrishaParser` после миграции всех клиентов.
+
+solution: null

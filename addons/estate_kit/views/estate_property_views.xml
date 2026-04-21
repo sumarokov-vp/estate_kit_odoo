@@ -6,6 +6,9 @@
         <field name="arch" type="xml">
             <form string="Объект">
                 <header>
+                    <button name="action_promote_imported_to_draft" type="object" string="В черновик"
+                        class="oe_highlight" invisible="state != 'imported'"
+                        groups="estate_kit.group_estate_listing_coordinator"/>
                     <button name="action_submit_review" type="object" string="На проверку"
                         class="oe_highlight" invisible="state != 'draft'"
                         groups="estate_kit.group_estate_listing_coordinator"/>
@@ -29,7 +32,7 @@
                         invisible="state != 'published'"/>
                     <button name="action_fix_rejected" type="object" string="Исправить"
                         class="oe_highlight" invisible="state != 'rejected'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,internal_review,active,published,sold"/>
+                    <field name="state" widget="statusbar" statusbar_visible="imported,draft,internal_review,active,published,sold"/>
                 </header>
                 <div class="alert alert-warning" role="alert"
                      invisible="state != 'active'">
@@ -186,7 +189,6 @@
                                     <field name="owner_phone_raw" widget="phone"/>
                                     <field name="owner_name"/>
                                     <field name="source_id"/>
-                                    <field name="krisha_url" widget="url"/>
                                 </group>
                                 <group string="Договор">
                                     <field name="contract_type"/>
@@ -224,6 +226,13 @@
                             <div>
                                 <field name="image_ids" widget="image_gallery" nolabel="1" class="w-100"/>
                             </div>
+                        </page>
+                        <page string="Импорт" name="import">
+                            <group>
+                                <group string="Источник">
+                                    <field name="krisha_url" widget="url"/>
+                                </group>
+                            </group>
                         </page>
                         <page string="Служебное" name="service">
                             <group>

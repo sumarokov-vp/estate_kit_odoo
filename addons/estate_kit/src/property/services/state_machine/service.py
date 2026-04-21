@@ -12,6 +12,12 @@ class StateMachineService:
         self._api_action_caller = api_action_caller
         self._api_sync = api_sync
 
+    def promote_imported_to_draft(self, records) -> None:
+        self._state_transitioner.transition(
+            records, "imported", "draft",
+            "В черновик можно перевести только импортированный объект.",
+        )
+
     def submit_review(self, records) -> None:
         self._state_transitioner.transition(
             records, "draft", "internal_review",

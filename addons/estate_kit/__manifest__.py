@@ -1,6 +1,6 @@
 {
     "name": "Estate Kit",
-    "version": "19.0.1.10.0",
+    "version": "19.0.1.11.0",
     "category": "Real Estate",
     "summary": "Manage real estate properties",
     "description": """
@@ -49,7 +49,6 @@
         "views/res_users_views.xml",
         "views/res_partner_views.xml",
         "views/res_config_settings_views.xml",
-        "src/property/wizards/krisha_parser_views.xml",
         "views/estate_deal_menus.xml",
         "views/estate_menus.xml",
     ],

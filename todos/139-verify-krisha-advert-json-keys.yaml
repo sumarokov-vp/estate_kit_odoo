@@ -1,0 +1,32 @@
+title: Уточнить ключи JSON advert Krisha.kz для building_type, year_built, ceiling_height, residential_complex
+status: open
+created_at: 21.04.2026
+completed_at: null
+
+description: |
+  В сервисе KrishaImportService маппинг полей расширен для импорта
+  дополнительных характеристик квартир: year_built, building_type,
+  ceiling_height, residential_complex.
+
+  В `src/property/services/krisha_parser.py::_parse_advert` сделаны
+  fallback-попытки считать эти значения из JSON advert по нескольким
+  возможным именам ключей:
+    - year_built: buildYear / yearBuilt
+    - building_type: houseType / buildingType / wallsType
+    - ceiling_height: ceilingHeight / ceiling
+    - residential_complex: residenceComplexName / residentialComplex / complex
+
+  Точные имена ключей в JSON Krisha не подтверждены. Пока маппинг
+  толерантен — если ключа нет, значение остаётся пустым. Но это значит,
+  что часть объявлений импортируется без важных характеристик.
+
+recommendation: |
+  - Запустить cron «Импорт объектов с Krisha.kz» (set active=True) на
+    тестовом URL поиска.
+  - Собрать несколько объявлений через `KrishaParser.fetch_property_details`
+    и залогировать сырой JSON `advert` — чтобы сверить реальные ключи.
+  - Оставить только корректные ключи в `_parse_advert`, убрать fallback'и.
+  - Прокрутить импорт ещё раз и убедиться, что в импортированных объектах
+    заполняются year_built, building_type, ceiling_height и жилой комплекс.
+
+solution: null

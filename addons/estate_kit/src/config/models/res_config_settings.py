@@ -134,6 +134,20 @@ class ResConfigSettings(models.TransientModel):
         help="Допустимый коридор снижения цены сделки от listing_price (%)",
     )
 
+    # === Парсинг Krisha.kz ===
+    estate_kit_krisha_search_url = fields.Char(
+        string="URL поиска Krisha.kz",
+        config_parameter="estate_kit.krisha_search_url",
+        help="URL поиска на Krisha.kz с фильтрами. Фоновая задача импортирует объекты, "
+             "найденные по этой ссылке. Пустое значение отключает импорт.",
+    )
+    estate_kit_krisha_import_limit = fields.Integer(
+        string="Максимум объектов за запуск",
+        config_parameter="estate_kit.krisha_import_limit",
+        default=10,
+        help="Максимум объектов за один запуск фоновой задачи.",
+    )
+
     @api.constrains("estate_kit_pool_scoring_weight", "estate_kit_pool_tier_weight")
     def _check_pool_weights_sum(self):
         for rec in self:
