@@ -28,9 +28,9 @@ class EstatePropertyImage(models.Model):
     def create(self, vals_list):
         svc = ImageManagementFactory.create(self.env)
         for vals in vals_list:
-            image_b64 = vals.pop("image", None)
-            if image_b64 and not vals.get("image_key"):
-                svc.upload(vals, image_b64)
+            image_data = vals.pop("image_data", None)
+            if image_data and not vals.get("image_key"):
+                svc.upload(vals, image_data)
         return super().create(vals_list)
 
     def unlink(self):

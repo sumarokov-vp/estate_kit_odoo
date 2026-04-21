@@ -1,4 +1,3 @@
-import base64
 import logging
 
 from .protocols import IImageCompressor, IImageService
@@ -11,15 +10,12 @@ class ImageUploader:
         self._image_service = image_service
         self._compressor = compressor
 
-    def upload(self, vals: dict, image_b64: str) -> None:
-        try:
-            file_data = base64.b64decode(image_b64)
-        except Exception:
-            _logger.warning("Failed to decode base64 image data")
+    def upload(self, vals: dict, image_data: bytes) -> None:
+        if not image_data:
             return
 
         file_name = vals.get("name", "image")
-        file_data, content_type = self._compressor.compress(file_data)
+        file_data, content_type = self._compressor.compress(image_data)
 
         result = self._image_service.upload(file_data, content_type, generate_thumbnail=True)
         if result:

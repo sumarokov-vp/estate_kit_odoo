@@ -1,8 +1,4 @@
-import base64
-
 from ..krisha_scraping.protocols import IImageDownloader
-
-_MAX_IMPORT_PHOTOS = 10
 
 
 class PhotoImporter:
@@ -12,7 +8,7 @@ class PhotoImporter:
 
     def import_photos(self, property_id: int, photo_urls: list[str]) -> int:
         imported = 0
-        for index, photo_url in enumerate(photo_urls[:_MAX_IMPORT_PHOTOS]):
+        for index, photo_url in enumerate(photo_urls):
             if not photo_url:
                 continue
             image_data = self._image_downloader.download(photo_url)
@@ -21,7 +17,7 @@ class PhotoImporter:
             self._env["estate.property.image"].create({
                 "property_id": property_id,
                 "name": f"Фото {index + 1}",
-                "image": base64.b64encode(image_data).decode("utf-8"),
+                "image_data": image_data,
                 "sequence": index * 10,
                 "is_main": index == 0,
             })

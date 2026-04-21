@@ -10,8 +10,8 @@ class ImageManagementService:
         self._image_uploader = image_uploader
         self._image_deleter = image_deleter
 
-    def upload(self, vals: dict, image_b64: str) -> None:
-        self._image_uploader.upload(vals, image_b64)
+    def upload(self, vals: dict, image_data: bytes) -> None:
+        self._image_uploader.upload(vals, image_data)
 
     def delete_images(self, records) -> None:
         self._image_deleter.delete(records)

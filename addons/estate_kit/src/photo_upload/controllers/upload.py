@@ -1,4 +1,3 @@
-import base64
 import json
 import logging
 import os
@@ -99,7 +98,6 @@ class PhotoUploadController(http.Controller):
                 content_type="application/json",
             )
 
-        image_b64 = base64.b64encode(file_data).decode("ascii")
         property_id = token_record.property_id.id
 
         try:
@@ -107,7 +105,7 @@ class PhotoUploadController(http.Controller):
                 {
                     "property_id": property_id,
                     "name": photo.filename or "photo",
-                    "image": image_b64,
+                    "image_data": file_data,
                 }
             )
         except Exception:
