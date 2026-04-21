@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="public_view_page" name="Estate Kit Public View">
+        <html lang="ru">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="robots" content="noindex, nofollow"/>
+                <title t-esc="property.name or 'Объект недвижимости'"/>
+                <style>
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                                     Roboto, "Helvetica Neue", sans-serif;
+                        background: #f5f5f7;
+                        color: #1d1d1f;
+                        min-height: 100vh;
+                        -webkit-font-smoothing: antialiased;
+                    }
+                    a { color: inherit; }
+
+                    .header {
+                        background: #714B67;
+                        color: #fff;
+                        padding: 16px 20px;
+                        text-align: center;
+                        font-weight: 600;
+                        font-size: 1.05rem;
+                    }
+
+                    .container {
+                        max-width: 960px;
+                        margin: 0 auto;
+                        padding: 20px 16px 40px;
+                    }
+
+                    .card {
+                        background: #fff;
+                        border-radius: 14px;
+                        padding: 22px;
+                        margin-bottom: 16px;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+                    }
+
+                    .title {
+                        font-size: 1.4rem;
+                        line-height: 1.3;
+                        font-weight: 600;
+                        margin-bottom: 8px;
+                    }
+                    .address {
+                        color: #666;
+                        font-size: 0.98rem;
+                        margin-bottom: 14px;
+                    }
+                    .price {
+                        font-size: 1.6rem;
+                        font-weight: 700;
+                        color: #714B67;
+                    }
+
+                    .section-title {
+                        font-size: 1.05rem;
+                        font-weight: 600;
+                        margin-bottom: 14px;
+                        color: #333;
+                    }
+
+                    .specs {
+                        display: grid;
+                        grid-template-columns: repeat(2, 1fr);
+                        gap: 10px 22px;
+                    }
+                    .specs .row {
+                        display: flex;
+                        justify-content: space-between;
+                        gap: 12px;
+                        padding: 6px 0;
+                        border-bottom: 1px solid #f0f0f2;
+                        font-size: 0.94rem;
+                    }
+                    .specs .row .label { color: #888; }
+                    .specs .row .value { color: #1d1d1f; font-weight: 500; text-align: right; }
+
+                    .features {
+                        display: flex;
+                        flex-wrap: wrap;
+                        gap: 8px;
+                    }
+                    .features .chip {
+                        background: #f0ecef;
+                        color: #714B67;
+                        padding: 6px 12px;
+                        border-radius: 999px;
+                        font-size: 0.88rem;
+                        font-weight: 500;
+                    }
+
+                    .description {
+                        white-space: pre-wrap;
+                        line-height: 1.55;
+                        color: #333;
+                        font-size: 0.97rem;
+                    }
+
+                    .gallery {
+                        display: grid;
+                        grid-template-columns: repeat(3, 1fr);
+                        gap: 10px;
+                    }
+                    .gallery .tile {
+                        position: relative;
+                        aspect-ratio: 4 / 3;
+                        background: #e9e9ec;
+                        border-radius: 10px;
+                        overflow: hidden;
+                        cursor: pointer;
+                    }
+                    .gallery .tile img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                        display: block;
+                        transition: transform 0.25s;
+                    }
+                    .gallery .tile:hover img { transform: scale(1.03); }
+
+                    .pagination {
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 14px;
+                        margin-top: 18px;
+                        flex-wrap: wrap;
+                    }
+                    .pagination button {
+                        border: 1px solid #e5e5e9;
+                        background: #fff;
+                        color: #1d1d1f;
+                        padding: 8px 14px;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 0.92rem;
+                        transition: background 0.15s;
+                    }
+                    .pagination button:hover:not(:disabled) { background: #f5f5f7; }
+                    .pagination button:disabled { opacity: 0.4; cursor: default; }
+                    .pagination .counter { color: #666; font-size: 0.92rem; min-width: 60px; text-align: center; }
+
+                    .lightbox {
+                        position: fixed;
+                        inset: 0;
+                        background: rgba(0,0,0,0.92);
+                        display: none;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 100;
+                        touch-action: none;
+                    }
+                    .lightbox.open { display: flex; }
+                    .lightbox img {
+                        max-width: 95vw;
+                        max-height: 90vh;
+                        user-select: none;
+                        -webkit-user-drag: none;
+                    }
+                    .lightbox .close,
+                    .lightbox .nav {
+                        position: absolute;
+                        background: rgba(255,255,255,0.1);
+                        color: #fff;
+                        border: none;
+                        font-size: 2rem;
+                        width: 48px;
+                        height: 48px;
+                        border-radius: 50%;
+                        cursor: pointer;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        transition: background 0.15s;
+                    }
+                    .lightbox .close:hover,
+                    .lightbox .nav:hover { background: rgba(255,255,255,0.25); }
+                    .lightbox .close { top: 16px; right: 16px; }
+                    .lightbox .prev { left: 16px; top: 50%; transform: translateY(-50%); }
+                    .lightbox .next { right: 16px; top: 50%; transform: translateY(-50%); }
+                    .lightbox .counter {
+                        position: absolute;
+                        bottom: 20px;
+                        left: 0;
+                        right: 0;
+                        text-align: center;
+                        color: #fff;
+                        font-size: 0.95rem;
+                    }
+
+                    .empty {
+                        color: #888;
+                        text-align: center;
+                        padding: 24px 0;
+                    }
+
+                    .footer {
+                        text-align: center;
+                        color: #999;
+                        font-size: 0.85rem;
+                        margin-top: 12px;
+                    }
+
+                    @media (max-width: 640px) {
+                        .container { padding: 14px 12px 32px; }
+                        .card { padding: 18px; border-radius: 12px; }
+                        .title { font-size: 1.2rem; }
+                        .price { font-size: 1.35rem; }
+                        .specs { grid-template-columns: 1fr; }
+                        .gallery { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+                        .lightbox .nav { width: 44px; height: 44px; font-size: 1.7rem; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <t t-esc="company_name"/>
+                </div>
+
+                <div class="container">
+                    <div class="card">
+                        <div class="title"><t t-esc="property.name"/></div>
+                        <div class="address" t-if="address"><t t-esc="address"/></div>
+                        <div class="price" t-if="price_text"><t t-esc="price_text"/></div>
+                    </div>
+
+                    <div class="card" t-if="images">
+                        <div class="section-title">Фотографии</div>
+                        <div class="gallery" id="gallery"></div>
+                        <div class="pagination" id="pagination" style="display:none">
+                            <button type="button" id="prev-page">← Назад</button>
+                            <span class="counter" id="page-counter"></span>
+                            <button type="button" id="next-page">Вперёд →</button>
+                        </div>
+                        <script type="application/json" id="gallery-data">
+                            <t t-esc="images_json"/>
+                        </script>
+                    </div>
+
+                    <div class="card" t-if="characteristics">
+                        <div class="section-title">Характеристики</div>
+                        <div class="specs">
+                            <t t-foreach="characteristics" t-as="row">
+                                <div class="row">
+                                    <span class="label"><t t-esc="row[0]"/></span>
+                                    <span class="value"><t t-esc="row[1]"/></span>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="card" t-if="features">
+                        <div class="section-title">Особенности</div>
+                        <div class="features">
+                            <t t-foreach="features" t-as="feature">
+                                <span class="chip"><t t-esc="feature"/></span>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="card" t-if="property.description">
+                        <div class="section-title">Описание</div>
+                        <div class="description"><t t-esc="property.description"/></div>
+                    </div>
+
+                    <div class="footer">© <t t-esc="company_name"/></div>
+                </div>
+
+                <div class="lightbox" id="lightbox">
+                    <button type="button" class="close" aria-label="Закрыть">×</button>
+                    <button type="button" class="nav prev" aria-label="Предыдущее">‹</button>
+                    <img id="lightbox-img" alt=""/>
+                    <button type="button" class="nav next" aria-label="Следующее">›</button>
+                    <div class="counter" id="lightbox-counter"></div>
+                </div>
+
+                <script>
+                    (function () {
+                        var raw = document.getElementById("gallery-data");
+                        if (!raw) { return; }
+                        var images = JSON.parse(raw.textContent);
+                        if (!images.length) { return; }
+
+                        var pageSize = 6;
+                        var page = 0;
+                        var totalPages = Math.ceil(images.length / pageSize);
+
+                        var galleryEl = document.getElementById("gallery");
+                        var paginationEl = document.getElementById("pagination");
+                        var counterEl = document.getElementById("page-counter");
+                        var prevBtn = document.getElementById("prev-page");
+                        var nextBtn = document.getElementById("next-page");
+
+                        function renderPage() {
+                            galleryEl.innerHTML = "";
+                            var start = page * pageSize;
+                            var slice = images.slice(start, start + pageSize);
+                            slice.forEach(function (img, idx) {
+                                var tile = document.createElement("div");
+                                tile.className = "tile";
+                                tile.dataset.index = String(start + idx);
+                                var el = document.createElement("img");
+                                el.src = img.thumb;
+                                el.loading = "lazy";
+                                el.alt = "";
+                                tile.appendChild(el);
+                                tile.addEventListener("click", function () {
+                                    openLightbox(parseInt(tile.dataset.index, 10));
+                                });
+                                galleryEl.appendChild(tile);
+                            });
+                            if (totalPages > 1) {
+                                paginationEl.style.display = "flex";
+                                counterEl.textContent = (page + 1) + " / " + totalPages;
+                                prevBtn.disabled = page === 0;
+                                nextBtn.disabled = page >= totalPages - 1;
+                            }
+                        }
+
+                        prevBtn.addEventListener("click", function () {
+                            if (page > 0) { page--; renderPage(); window.scrollTo({top: galleryEl.offsetTop - 80, behavior: "smooth"}); }
+                        });
+                        nextBtn.addEventListener("click", function () {
+                            if (page &lt; totalPages - 1) { page++; renderPage(); window.scrollTo({top: galleryEl.offsetTop - 80, behavior: "smooth"}); }
+                        });
+
+                        var lightbox = document.getElementById("lightbox");
+                        var lightboxImg = document.getElementById("lightbox-img");
+                        var lightboxCounter = document.getElementById("lightbox-counter");
+                        var currentIndex = 0;
+
+                        function openLightbox(index) {
+                            currentIndex = index;
+                            showCurrent();
+                            lightbox.classList.add("open");
+                            document.body.style.overflow = "hidden";
+                        }
+                        function closeLightbox() {
+                            lightbox.classList.remove("open");
+                            document.body.style.overflow = "";
+                        }
+                        function showCurrent() {
+                            lightboxImg.src = images[currentIndex].full;
+                            lightboxCounter.textContent = (currentIndex + 1) + " / " + images.length;
+                        }
+                        function prevImage() {
+                            currentIndex = (currentIndex - 1 + images.length) % images.length;
+                            showCurrent();
+                        }
+                        function nextImage() {
+                            currentIndex = (currentIndex + 1) % images.length;
+                            showCurrent();
+                        }
+
+                        lightbox.querySelector(".close").addEventListener("click", closeLightbox);
+                        lightbox.querySelector(".prev").addEventListener("click", prevImage);
+                        lightbox.querySelector(".next").addEventListener("click", nextImage);
+                        lightbox.addEventListener("click", function (e) {
+                            if (e.target === lightbox) { closeLightbox(); }
+                        });
+                        document.addEventListener("keydown", function (e) {
+                            if (!lightbox.classList.contains("open")) { return; }
+                            if (e.key === "Escape") { closeLightbox(); }
+                            else if (e.key === "ArrowLeft") { prevImage(); }
+                            else if (e.key === "ArrowRight") { nextImage(); }
+                        });
+
+                        var touchStartX = null;
+                        lightbox.addEventListener("touchstart", function (e) {
+                            touchStartX = e.changedTouches[0].clientX;
+                        }, {passive: true});
+                        lightbox.addEventListener("touchend", function (e) {
+                            if (touchStartX === null) { return; }
+                            var dx = e.changedTouches[0].clientX - touchStartX;
+                            if (Math.abs(dx) &gt; 50) {
+                                if (dx &gt; 0) { prevImage(); } else { nextImage(); }
+                            }
+                            touchStartX = null;
+                        });
+
+                        renderPage();
+                    })();
+                </script>
+            </body>
+        </html>
+    </template>
+</odoo>

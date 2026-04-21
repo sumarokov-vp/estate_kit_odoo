@@ -206,9 +206,19 @@
                         </page>
                         <page string="Медиа" name="media">
                             <group>
-                                <group>
+                                <group string="Ссылки">
                                     <field name="video_url" widget="url"/>
                                     <field name="instagram_url" widget="url"/>
+                                </group>
+                                <group string="Публичная страница для клиента">
+                                    <field name="public_view_url" widget="CopyClipboardChar" readonly="1" invisible="not id"/>
+                                    <button name="action_regenerate_public_view_url"
+                                            type="object"
+                                            string="Сгенерировать новую ссылку"
+                                            icon="fa-refresh"
+                                            class="btn-link"
+                                            confirm="Текущая ссылка перестанет работать. Продолжить?"
+                                            invisible="not id"/>
                                 </group>
                             </group>
                             <div>

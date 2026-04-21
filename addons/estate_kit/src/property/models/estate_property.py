@@ -465,6 +465,13 @@ class EstateProperty(models.Model):
         "property_id",
         string="Фотографии",
     )
+    public_view_url = fields.Char(
+        string="Ссылка для клиента",
+        compute="_compute_public_view_url",
+        store=False,
+        help="Публичная ссылка с карточкой объекта для клиента. "
+             "Действует 30 дней, обновляется автоматически.",
+    )
 
     # =========================================================================
     # ORM overrides
@@ -490,6 +497,14 @@ class EstateProperty(models.Model):
     @api.depends("city_id", "district_id", "street_id", "house_number")
     def _compute_geo_address(self):
         self._svc.address.compute_geo_address(self)
+
+    def _compute_public_view_url(self):
+        token_model = self.env["estate.property.public.view.token"].sudo()
+        for record in self:
+            if record.id:
+                record.public_view_url = token_model.get_or_create_url(record.id)
+            else:
+                record.public_view_url = False
 
     @api.model
     def _default_city(self):
@@ -606,6 +621,19 @@ class EstateProperty(models.Model):
     @api.model
     def search_unified(self, criteria, limit=50, offset=0, count=False):
         return self._svc.unified_search.search_unified(criteria, limit, offset, count)
+
+    # =========================================================================
+    # Actions — public view delegates
+    # =========================================================================
+
+    def action_regenerate_public_view_url(self):
+        self.ensure_one()
+        token_model = self.env["estate.property.public.view.token"].sudo()
+        token_model.regenerate_url(self.id)
+        return {
+            "type": "ir.actions.client",
+            "tag": "reload",
+        }
 
     # =========================================================================
     # XML-RPC — backoffice URL

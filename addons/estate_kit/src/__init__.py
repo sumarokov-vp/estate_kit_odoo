@@ -7,6 +7,7 @@ from . import (
     log,
     photo_upload,
     placement,
+    public_view,
     reference,
     shared,
     webhook,

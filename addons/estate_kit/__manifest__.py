@@ -1,6 +1,6 @@
 {
     "name": "Estate Kit",
-    "version": "19.0.1.9.0",
+    "version": "19.0.1.10.0",
     "category": "Real Estate",
     "summary": "Manage real estate properties",
     "description": """
@@ -38,6 +38,7 @@
         "views/estate_climate_equipment_views.xml",
         "views/estate_appliance_views.xml",
         "views/estate_property_views.xml",
+        "views/public_view_templates.xml",
         "views/estate_placement_views.xml",
         "views/estate_property_tier_views.xml",
         "views/estate_kit_log_views.xml",
