@@ -184,6 +184,17 @@ class ResConfigSettings(models.TransientModel):
         self.set_values()
         return MlsRegistrationFactory.create(self.env).update_data(self)
 
+    def action_import_krisha_now(self):
+        self.set_values()
+        result = self.env["estate.property"]._svc.krisha_import.import_batch()
+        if result.skipped_reason:
+            return self._notify(result.skipped_reason, notification_type="warning")
+        message = (
+            f"Импорт завершён: {result.imported} импортировано, "
+            f"{result.duplicates} дубликатов, {result.errors} ошибок"
+        )
+        return self._notify(message)
+
     def _notify(self, message, notification_type="info"):
         return {
             "type": "ir.actions.client",

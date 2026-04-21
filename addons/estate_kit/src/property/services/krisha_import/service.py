@@ -7,6 +7,7 @@ from .protocols import (
     IPhotoImporter,
     IPropertyCreator,
 )
+from .result import KrishaImportResult
 
 
 class KrishaImportService:
@@ -28,16 +29,22 @@ class KrishaImportService:
         self._photo_importer = photo_importer
         self._logger = logger
 
-    def import_batch(self) -> None:
+    def import_batch(self) -> KrishaImportResult:
         config = self._config_provider.load()
         if not config.search_url:
+            skipped_reason = "URL не настроен"
             self._logger.log_summary(
                 imported=0,
                 duplicates=0,
                 errors=0,
-                skipped_reason="URL не настроен",
+                skipped_reason=skipped_reason,
             )
-            return
+            return KrishaImportResult(
+                imported=0,
+                duplicates=0,
+                errors=0,
+                skipped_reason=skipped_reason,
+            )
 
         items = self._listing_fetcher.fetch(config.search_url, config.limit)
 
@@ -62,3 +69,4 @@ class KrishaImportService:
                 errors += 1
 
         self._logger.log_summary(imported, duplicates, errors)
+        return KrishaImportResult(imported=imported, duplicates=duplicates, errors=errors)

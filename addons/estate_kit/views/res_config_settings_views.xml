@@ -105,7 +105,7 @@
                         </setting>
                     </block>
                     <block title="Парсинг Krisha.kz" name="estate_kit_krisha_parser">
-                        <setting string="Импорт объектов" help="Фоновая задача периодически импортирует объекты с Krisha.kz по одной ссылке поиска">
+                        <setting string="Импорт объектов" help="Ручной импорт объектов с Krisha.kz по одной ссылке поиска">
                             <div class="content-group">
                                 <div class="row mt16">
                                     <label for="estate_kit_krisha_search_url" class="col-lg-3 o_light_label"/>
@@ -114,7 +114,10 @@
                                 <div class="row mt16">
                                     <label for="estate_kit_krisha_import_limit" class="col-lg-3 o_light_label"/>
                                     <field name="estate_kit_krisha_import_limit" class="col-lg-3"/>
-                                    <span class="col-lg-6 text-muted small">Максимум объектов за один запуск фоновой задачи</span>
+                                    <span class="col-lg-6 text-muted small">Максимум объектов за один запуск импорта</span>
+                                </div>
+                                <div class="mt16">
+                                    <button name="action_import_krisha_now" type="object" string="Импортировать сейчас" class="btn-primary"/>
                                 </div>
                             </div>
                         </setting>

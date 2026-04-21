@@ -56,14 +56,4 @@
         <field name="active">True</field>
     </record>
 
-    <record id="cron_import_krisha" model="ir.cron">
-        <field name="name">Импорт объектов с Krisha.kz</field>
-        <field name="model_id" ref="model_estate_property"/>
-        <field name="state">code</field>
-        <field name="code">model._cron_import_krisha()</field>
-        <field name="interval_number">1</field>
-        <field name="interval_type">hours</field>
-        <field name="active">False</field>
-    </record>
-
 </odoo>
