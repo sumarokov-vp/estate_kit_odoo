@@ -1,7 +1,7 @@
 title: Разбить KrishaParser на низкоуровневые сервисы с протоколами
-status: open
+status: done
 created_at: 21.04.2026
-completed_at: null
+completed_at: 21.04.2026
 
 description: |
   Сейчас `src/property/services/krisha_parser.py` содержит один объёмный
@@ -29,4 +29,14 @@ recommendation: |
   - Фабрика `Factory.create` собирает граф из мелких классов.
   - Удалить монолитный `KrishaParser` после миграции всех клиентов.
 
-solution: null
+solution: |
+  Создан пакет `src/property/services/krisha_scraping/` с 4 публичными классами
+  (HttpFetcher, ListingPageParser, AdvertDetailParser, ImageDownloader) и
+  Protocol'ами в `protocols/i_*.py`. Приватные helper'ы вынесены в отдельные
+  классы с DI: JsdataExtractor, RoomsExtractor, AreaExtractor, PriceParser,
+  HtmlFallbackParser, AdvertCoreMapper, ListingAdvertMapper, DetailAdvertMapper.
+  Общая HTTP-сессия — класс HttpSession с Protocol IHttpSession, используется
+  и HttpFetcher, и ImageDownloader (один requests.Session на оба). Обёртки
+  ListingFetcher/DetailFetcher/PhotoImporter теперь зависят от Protocol'ов,
+  `krisha_import/factory.py` собирает граф. Монолитный krisha_parser.py удалён
+  вместе с мёртвым кодом (KrishaProperty, ParseParams, build_search_url, parse).
