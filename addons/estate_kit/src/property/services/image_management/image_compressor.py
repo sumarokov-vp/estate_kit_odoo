@@ -35,7 +35,7 @@ class ImageCompressor:
             else:
                 new_height = MAX_DIMENSION
                 new_width = int(width * MAX_DIMENSION / height)
-            image = image.resize((new_width, new_height), Image.LANCZOS)
+            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
             _logger.info("Resized image from %dx%d to %dx%d", width, height, new_width, new_height)
 
         buffer = io.BytesIO()
