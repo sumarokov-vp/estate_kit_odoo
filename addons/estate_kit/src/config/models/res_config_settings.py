@@ -186,14 +186,10 @@ class ResConfigSettings(models.TransientModel):
 
     def action_import_krisha_now(self):
         self.set_values()
-        result = self.env["estate.property"]._svc.krisha_import.import_batch()
-        if result.skipped_reason:
-            return self._notify(result.skipped_reason, notification_type="warning")
-        message = (
-            f"Импорт завершён: {result.imported} импортировано, "
-            f"{result.duplicates} дубликатов, {result.errors} ошибок"
+        self.env.ref("estate_kit.cron_krisha_import_manual").sudo()._trigger()
+        return self._notify(
+            "Импорт запущен в фоне. Прогресс смотри в логах Odoo."
         )
-        return self._notify(message)
 
     def _notify(self, message, notification_type="info"):
         return {

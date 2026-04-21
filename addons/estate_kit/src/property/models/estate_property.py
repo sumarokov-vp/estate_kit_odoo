@@ -618,6 +618,10 @@ class EstateProperty(models.Model):
     def _cron_create_callback_activities(self):
         self._svc.pool_rotation.create_callback_activities()
 
+    @api.model
+    def _cron_krisha_import_manual(self):
+        self._svc.krisha_import.import_batch()
+
     # =========================================================================
     # XML-RPC — unified search delegate
     # =========================================================================
