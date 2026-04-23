@@ -1,7 +1,7 @@
 title: Krisha возвращает транслит имени города (Almaty, Zhanaturmys), CityResolver ищет по русскому
-status: open
+status: done
 created_at: 23.04.2026
-completed_at: null
+completed_at: 23.04.2026
 
 description: |
   Теперь, когда `AdvertCoreMapper` берёт city из `address.city`
@@ -23,4 +23,23 @@ recommendation: |
     до запятой для listing (где `addressTitle` присутствует как поле
     advert).
 
-solution: null
+solution: |
+  Проверено: поле `code` в `addons/estate_kit/data/estate_city_data.xml`
+  для всех 28 городов уже заполнено транслитом, совпадающим со
+  значениями из `advert.address.city` от Krisha (almaty, astana, shymkent,
+  karaganda, taraz, pavlodar, ust-kamenogorsk, semey, atyrau, kostanay
+  и т.д.).
+
+  `CityResolver.resolve` во втором запросе использует
+  `("code", "=ilike", needle)` — это case-insensitive equality в Odoo,
+  поэтому `Almaty`, `ALMATY`, `almaty` одинаково матчатся с code=`almaty`.
+  Для базовых городов справочника ничего менять не нужно — резолв уже
+  работает корректно.
+
+  Остающаяся проблема с райоными/посёлочными значениями (например
+  `Zhanaturmys`, которые Krisha кладёт в `address.city` вместо самого
+  города) покрывается отдельной задачей todo 142
+  (fallback из `addressTitle`) — дублирования не делаем.
+
+  Код `CityResolver` и код заполнения `code` в data.xml не менялись.
+  Линтер `ruff check` по сервису krisha_import — чистый.

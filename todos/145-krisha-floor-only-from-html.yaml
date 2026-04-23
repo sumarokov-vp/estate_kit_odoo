@@ -1,7 +1,7 @@
 title: Krisha листинг не отдаёт floor/floors_total — поля заполняются только через HTML-деталку
-status: open
+status: done
 created_at: 23.04.2026
-completed_at: null
+completed_at: 23.04.2026
 
 description: |
   В сыром JSON `advert` (подтверждено на 15+ объявлениях) нет ключей
@@ -26,4 +26,20 @@ recommendation: |
   - Рассмотреть опцию частичного импорта: сначала листинг для быстрой
     индексации (без HTML), потом фоновая подгрузка деталей батчами.
 
-solution: null
+solution: |
+  Выбран минимальный вариант — докстринг в `AdvertCoreMapper`.
+
+  В `src/property/services/krisha_scraping/advert_core_mapper.py`
+  добавлен class-docstring с описанием контракта core-маппера. В нём
+  явно зафиксировано: поля `floor` и `floors_total` всегда `None` на
+  уровне core, т.к. в сыром JSON Krisha их нет; они заполняются только
+  HTML-парсером (`AdvertInfoHtmlExtractor`) при заходе на страницу
+  деталки.
+
+  Регэксп по title не добавлялся — это over-engineering. Если в будущем
+  потребуется быстрый импорт без похода на деталку, это отдельная
+  задача (и тогда можно будет рассмотреть двухфазный импорт, как
+  предложено в рекомендациях).
+
+  Линтер: `uv run ruff check addons/estate_kit/src/property/services/krisha_scraping/`
+  проходит без замечаний.

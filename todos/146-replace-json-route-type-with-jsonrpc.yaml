@@ -1,0 +1,34 @@
+title: Заменить @route(type='json') на type='jsonrpc' (Odoo 19 deprecation)
+status: done
+created_at: 23.04.2026
+completed_at: 23.04.2026
+
+description: |
+  При загрузке модуля Odoo пишет предупреждение:
+
+  > DeprecationWarning: Since 19.0, @route(type='json') is a deprecated
+  > alias to @route(type='jsonrpc')
+
+  Конкретно срабатывает в `src/geography/controllers/twogis_proxy.py`,
+  но по кодовой базе type='json' встречается и в других контроллерах
+  (wizards, public_view, notifications и т.п.) — нужно проверить все.
+
+recommendation: |
+  - grep по `type="json"` и `type='json'` в addons/estate_kit/**/controllers/ и
+    addons/estate_kit/**/*.py
+  - Заменить на `type="jsonrpc"`
+  - Проверить что endpoints продолжают работать (формат ответа идентичен)
+  - Задеплоить, убедиться что warning исчез
+
+solution: |
+  Grep по `type="json"` / `type='json'` в addons/estate_kit/ показал только
+  две точки использования — обе в одном контроллере.
+
+  Изменённые файлы:
+  - addons/estate_kit/src/geography/controllers/twogis_proxy.py
+    - TwoGisProxyController.twogis_api_key — `/estate_kit/twogis/api_key` (type="json" → type="jsonrpc")
+    - TwoGisProxyController.geocode         — `/estate_kit/geocode`         (type="json" → type="jsonrpc")
+
+  Других контроллеров с type="json" в модуле не обнаружено.
+  Линтер: `uv run ruff check addons/estate_kit/` — All checks passed.
+  Формат ответа JSON-RPC идентичен старому type='json', поведение endpoints не меняется.

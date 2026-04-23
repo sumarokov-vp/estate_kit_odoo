@@ -1,7 +1,7 @@
 title: Krisha listing mapper пишет dict-address в поле-строку
-status: open
+status: done
 created_at: 23.04.2026
-completed_at: null
+completed_at: 23.04.2026
 
 description: |
   В `src/property/services/krisha_scraping/listing_advert_mapper.py::ListingAdvertMapper.map`
@@ -34,4 +34,34 @@ recommendation: |
     `item["address_struct"]` — dict. В `ListingAdvertMapper`
     явно извлекать строку (addressTitle) вместо присваивания dict.
 
-solution: null
+solution: |
+  Выбран вариант переноса логики в `AdvertCoreMapper` (рекомендация №1).
+
+  Изменения:
+
+  - `src/property/services/krisha_scraping/advert_core_mapper.py` — теперь
+    формирует три адресных поля единообразно для листинга и деталки:
+    * `address` — строка (`addressTitle` или пустая строка, никогда не dict);
+    * `address_title` — строка (`addressTitle` или пустая строка);
+    * `address_struct` — dict из исходного `advert["address"]` или пустой
+      dict, если Krisha вернула строку/None.
+    Добавлен докстринг с описанием контракта адресных полей и с тем,
+    что `floor`/`floors_total` всегда `None` на core-уровне
+    (закрывает task 145).
+  - `src/property/services/krisha_scraping/detail_advert_mapper.py` —
+    убрана дублирующая адресная логика, теперь маппер только
+    добавляет `description` из `advert["text"]`.
+  - `src/property/services/krisha_scraping/listing_advert_mapper.py` —
+    перестал перезаписывать `address` сырым dict'ом; теперь только
+    задаёт пустой `description` (на листинге Krisha не отдаёт текст).
+
+  Побочный эффект: `ListingAdvertMapper` теперь возвращает
+  `address_title`/`address_struct`, которые раньше отсутствовали на
+  листинге. `FieldMapper` использует их через `.get(...)` с
+  fallback'ами — новых веток или изменений не потребовалось.
+
+  Линтер: `uv run ruff check addons/estate_kit/src/property/services/krisha_scraping/`
+  проходит без замечаний.
+
+  Расхождение с `HtmlFallbackParser` (он не возвращает
+  `address_title`/`address_struct`) зафиксировано отдельным todo 146.
