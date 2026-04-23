@@ -49,7 +49,7 @@ class BenchmarkResolverService:
                         snapshot.district_id.name if snapshot.district_id else None
                     ),
                     property_type=snapshot.property_type,
-                    rooms=snapshot.rooms or 0,
+                    rooms=snapshot.rooms if relax_level == "exact" else 0,
                     relax_level=relax_level,
                 )
 

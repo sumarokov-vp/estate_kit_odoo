@@ -23,9 +23,7 @@ class SnapshotLookup:
             domain.append(("district_id", "=", False))
         else:
             domain.append(("district_id", "=", district_id))
-        if rooms is None:
-            domain.append(("rooms", "=", 0))
-        else:
+        if rooms is not None:
             domain.append(("rooms", "=", rooms))
 
         return self._env["estate.market.snapshot"].search(
