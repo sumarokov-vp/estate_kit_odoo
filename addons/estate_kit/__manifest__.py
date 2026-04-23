@@ -1,6 +1,6 @@
 {
     "name": "Estate Kit",
-    "version": "19.0.1.17.0",
+    "version": "19.0.1.18.0",
     "category": "Real Estate",
     "summary": "Manage real estate properties",
     "description": """
@@ -32,7 +32,6 @@
         "data/estate_lead_match_stage_data.xml",
         "data/estate_deal_sequence.xml",
         "data/matching_cron.xml",
-        "data/market_snapshot_cron.xml",
         "views/estate_city_views.xml",
         "views/estate_district_views.xml",
         "views/estate_street_views.xml",

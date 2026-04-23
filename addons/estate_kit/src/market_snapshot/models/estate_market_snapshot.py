@@ -1,6 +1,4 @@
-from odoo import api, fields, models
-
-from ..services.snapshot_collector.factory import Factory as SnapshotCollectorFactory
+from odoo import fields, models
 
 
 class EstateMarketSnapshot(models.Model):
@@ -81,11 +79,3 @@ class EstateMarketSnapshot(models.Model):
                 (city_id, district_id, property_type, rooms, collected_at DESC)
             """
         )
-
-    @api.model
-    def _cron_collect(self) -> None:
-        SnapshotCollectorFactory.create(self.env).collect_all()
-
-    @api.model
-    def action_collect_now(self) -> None:
-        SnapshotCollectorFactory.create(self.env).collect_all()

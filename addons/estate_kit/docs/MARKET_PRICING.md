@@ -4,13 +4,16 @@
 объектов недвижимости на основе снапшотов рынка и hedonic-коэффициентов.
 
 Добавлена в версии модуля **19.0.1.16.0** (миграция post-migrate создаёт
-таблицы, коэффициенты, cron).
+таблицы, коэффициенты). В **19.0.1.18.0** сборщик Krisha был вынесен
+из Odoo-модуля в отдельный sidecar-проект — см. раздел
+[«Инфраструктура сбора»](#инфраструктура-сбора) ниже.
 
 ## Как это работает (кратко)
 
-1. **Cron** раз в сутки (`Daily market snapshot collection from Krisha`)
-   обходит Krisha.kz по списку срезов (`estate.market.snapshot.config`):
-   город + район (опц.) + тип объекта + комнаты.
+1. **Внешний sidecar-процесс** `krisha_snapshots` (docker-compose на
+   dev-сервере) раз в сутки обходит Krisha.kz по списку срезов из
+   таблицы `estate.market.snapshot.config`: город + район (опц.) +
+   тип объекта + комнаты.
 2. Для каждого среза парсер считает `price / area` по ~100 объявлениям,
    обрезает 5% выбросов, пишет медиану, P25, P75 в
    `estate.market.snapshot` (минимум 20 объявлений на срез, иначе пропуск).
@@ -23,6 +26,125 @@
    - Если snapshot не найден — fallback на LLM (с пометкой в rationale).
 
 Подробности реализации — см. коммиты `4ac310f`, `1a87d16`, `676cd8e`.
+
+## Инфраструктура сбора
+
+### Почему отдельный проект (sidecar)
+
+Prod-сервер Odoo находится в DigitalOcean Frankfurt (AS14061).
+Krisha.kz agressively блокирует IP из datacenter-ASN: эмпирически —
+после ~25-30 HTTP-запросов IP уходит в silent-drop на часы/сутки (не
+403, не CAPTCHA — TCP просто не отвечает). Попытки обойти через
+User-Agent, pacing, retries не спасают — корневая причина в geo/ASN.
+
+Dev-сервер `sumarokov-home` находится в Казахстане (Kar-Tel,
+residential FTTB). С KZ-residential IP anti-bot Krisha не срабатывает
+даже при 90+ запросах подряд.
+
+**Вывод:** сбор рыночных данных перенесён с prod на dev-сервер.
+Парсер работает там, а снапшоты пишет в prod-БД через SSH-туннель.
+
+### Архитектурная схема
+
+```
+┌──────────────────────────────────────┐  ┌──────────────────────────┐
+│ dev-сервер sumarokov-home (KZ)       │  │ prod: royal_estate_odoo  │
+│ внешний IP 37.99.66.15 (Kar-Tel)     │  │ (DO Frankfurt)           │
+│                                      │  │                          │
+│ ~/projects/estate_kit/krisha_snapshots│  │  odoo-odoo-1 (Odoo 19)   │
+│                                      │  │         ↓                │
+│  docker compose:                     │  │  estate_market_snapshot  │
+│  ┌────────────────────────────────┐  │  │  estate_market_snapshot_ │
+│  │ ssh-tunnel (alpine+openssh)    │──┼──┼─→  config                │
+│  │  ssh -N -L 5432:10.114.0.2:5432│  │  │                          │
+│  │      royal_estate_odoo         │  │  │  ┌───────────────────┐   │
+│  └────────────────────────────────┘  │  │  │ PG 10.114.0.2:5432│   │
+│  ┌────────────────────────────────┐  │  │  │ (DO Managed PG    │   │
+│  │ collector (python 3.14)        │  │  │  │  в VPC, доступен  │   │
+│  │  supercronic: 0 4 * * *        │  │  │  │  только изнутри)  │   │
+│  │  → python -m krisha_snapshots  │  │  │  └───────────────────┘   │
+│  │     HTTP GET krisha.kz (KZ IP) │  │  └──────────────────────────┘
+│  │     psycopg → ssh-tunnel:5432  │──┘
+│  └────────────────────────────────┘
+└──────────────────────────────────────┘
+```
+
+### Состав проекта `krisha_snapshots`
+
+- Путь: `/home/sumarokov/projects/estate_kit/krisha_snapshots/` (отдельный git-репо)
+- Стек: Python 3.14, `uv`, `httpx`, `beautifulsoup4`, `psycopg`, `pydantic-settings`
+- Контейнеры: `ssh-tunnel` (alpine + openssh-client), `collector` (python:3.14-slim + supercronic)
+- Cron-расписание: `0 4 * * *` (ежедневно в 04:00 `Asia/Almaty`, задаётся в `docker/crontab`)
+- Credentials: `pass agent_fleet/projects/estate-kit/odoo-db` — пароль Odoo-юзера PG
+
+См. `README.md` проекта для детальной документации по разработке и локальному запуску.
+
+### Операционные команды
+
+```bash
+cd ~/projects/estate_kit/krisha_snapshots
+
+# Развернуть (первый раз или после обновления кода):
+./scripts/deploy.sh
+
+# Статус:
+docker compose ps
+
+# Логи (в реальном времени):
+docker compose logs -f
+
+# Запустить сбор вручную, не дожидаясь 04:00:
+docker compose exec collector python -m krisha_snapshots
+
+# Остановить:
+docker compose down
+```
+
+### Почему UI-кнопка «Запустить сбор сейчас» удалена на prod
+
+В версии модуля `19.0.1.18.0` кнопка и Odoo-cron убраны. Причина: с
+prod-IP сбор заведомо не работает (IP забанен Krisha), а сама попытка
+запуска создаёт «шумные» ошибки в логах и может триггерить новые баны.
+Сбор теперь возможен **только** со sidecar на dev-сервере.
+
+Если нужно запустить сбор вручную — зайди на dev-сервер и выполни
+команду из блока выше.
+
+### Troubleshooting
+
+**Парсер не собирает данные / `connect_timeout` на krisha.kz.**
+Проверить IP dev-сервера:
+
+```bash
+curl -s ipinfo.io/country  # ожидается: KZ
+```
+
+Если не KZ (провайдер сменил маршрутизацию, переехал сервер) — нужно
+восстановить KZ residential IP через VPN или перенести sidecar.
+
+**SSH-туннель падает / `Bad owner or permissions on /root/.ssh/config`.**
+Entrypoint контейнера копирует ключи из `/mnt/ssh` (bind-mount на
+`~/.ssh` хоста) в `/root/.ssh` с правильными правами (`700`/`600`).
+Если проблема сохраняется — проверить пермиссии на хосте:
+
+```bash
+ls -la ~/.ssh/
+```
+
+и убедиться что SSH-alias `royal_estate_odoo` разрешается
+(`ssh royal_estate_odoo whoami` должно отдать `root`).
+
+**Connection failed: no pg_hba.conf entry for host "10.114.0.3".**
+PG-сервер на 10.114.0.2 принимает подключения с IP prod-хоста
+(10.114.0.3) только для юзера `odoo`. Юзер `sumarokov` (admin) ходит
+только с хоста PG-сервера. Использовать юзера `odoo` — его пароль
+лежит в pass `agent_fleet/projects/estate-kit/odoo-db`.
+
+**Parser вернул 0 объявлений.**
+Вероятно изменилась вёрстка Krisha. Проверить ручным curl, что
+страница `https://krisha.kz/prodazha/kvartiry/almaty/` возвращает 200
+и содержит блоки `div[data-id]`. При изменениях — адаптировать
+`src/krisha_snapshots/krisha/listing_parser.py`.
 
 ---
 
@@ -48,23 +170,22 @@ SELECT COUNT(*) FROM estate_market_snapshot_config;
 SELECT COUNT(*) FROM estate_market_snapshot;
 ```
 
-### 2. Проверить cron
+### 2. Поднять sidecar-сборщик на dev-сервере
 
-Cron регистрируется автоматически из `data/market_snapshot_cron.xml`.
-Настраивать вручную на prod **не нужно** — миграция подхватит.
+На dev-сервере (`sumarokov-home`, KZ IP):
 
-```sql
-SELECT cron_name, active, lastcall, nextcall
-FROM ir_cron ic
-JOIN ir_act_server ias ON ias.id = ic.ir_actions_server_id
-WHERE ias.code LIKE '%_cron_collect%';
+```bash
+cd ~/projects/estate_kit/krisha_snapshots
+./scripts/deploy.sh
 ```
 
-Должна быть запись `Daily market snapshot collection from Krisha`,
-`active=t`, `interval_type=days`, `interval_number=1`.
+Проверка: `docker compose ps` — оба контейнера `Up`, ssh-tunnel
+`healthy`. Подробнее — см. раздел
+[«Инфраструктура сбора»](#инфраструктура-сбора) выше.
 
-Если на prod ранее был отключён планировщик Odoo — убедиться, что
-`--max-cron-threads > 0` в конфиге (по умолчанию 2, норм).
+**В Odoo-модуле cron НЕТ** — начиная с версии `19.0.1.18.0` запись
+`ir_cron` «Daily market snapshot collection from Krisha» удалена
+миграцией (сбор с prod-IP блокируется Krisha).
 
 ### 3. Завести срезы для сбора
 
@@ -127,39 +248,41 @@ VALUES
 
 ### 4. Запустить первый сбор вручную
 
-**Через UI:** **Рынок → Запустить сбор сейчас** (меню доступно
-`team_lead` / `marketing_lead`).
-
-**Через CLI:**
+На dev-сервере (sidecar):
 
 ```bash
-docker exec -i <odoo-container> odoo shell -d <database> --no-http <<'PY'
-from odoo.addons.estate_kit.src.market_snapshot.services.snapshot_collector.factory import Factory
-Factory.create(env).collect_all()
-env.cr.commit()
-PY
+cd ~/projects/estate_kit/krisha_snapshots
+docker compose exec collector python -m krisha_snapshots
 ```
 
-Первый запуск занимает ~2 секунды на срез (HTTP запрос к Krisha + парсинг).
-На 8 срезов — ~20 секунд.
+Один срез занимает ~15-17 секунд (5 страниц × 3 сек pacing + парсинг).
+На 10 срезов — ~3 минуты.
 
 ### 5. Проверить результаты
 
-**Главное меню → Рынок → Снапшоты рынка** — должны появиться записи
-с `sample_size ≥ 20`, `median_price_per_sqm`, `p25`, `p75`.
+**В Odoo UI на prod: Главное меню → Рынок → Снапшоты рынка** —
+должны появиться записи с `sample_size ≥ 20`, `median_price_per_sqm`,
+`p25_price_per_sqm`, `p75_price_per_sqm`.
 
-**Логи сбора:**
-```sql
-SELECT timestamp, level, summary, details
-FROM estate_kit_log
-WHERE category='market_snapshot'
-ORDER BY id DESC LIMIT 20;
+**В логах sidecar** (на dev-сервере):
+
+```bash
+docker compose logs collector --tail 50
 ```
 
-Ожидаемый итоговый лог: `Сбор снапшотов завершён: записано=N, пропущено=0, ошибок=0`.
+Ожидаемый итоговый лог: `{"message": "collect_end", "written": N, "skipped": 0, "errors": 0}`.
 
-Если есть `пропущено` — в `details` будет причина
-(`Недостаточно данных: получено N объявлений`, `Не удалось построить URL`).
+Если есть `skipped` / `errors` — предыдущие строки содержат причину
+(`not enough samples`, `fetch failed`).
+
+**В БД напрямую** (через SSH-туннель или `psql` на prod):
+
+```sql
+SELECT ci.name, s.rooms, s.sample_size, s.median_price_per_sqm, s.collected_at
+FROM estate_market_snapshot s
+JOIN estate_city ci ON ci.id = s.city_id
+ORDER BY ci.name, s.rooms, s.collected_at DESC;
+```
 
 ### 6. (Опционально) Откалибровать hedonic-коэффициенты
 
@@ -207,21 +330,21 @@ ORDER BY id DESC LIMIT 10;
 ### Все срезы пропущены, `sample_size=0`
 
 - **Krisha отдаёт 200, но парсер не видит объявлений** — скорее всего
-  изменилась вёрстка. См. `todos/148-krisha-jsdata-no-longer-contains-adverts.yaml`.
-  Проверить ручным curl, что страница возвращает 200 и содержит
-  `div[data-id]`; прогнать `HtmlFallbackParser.parse` на сохранённом
-  HTML.
+  изменилась вёрстка. Проверить ручным curl со sidecar, что страница
+  возвращает 200 и содержит блоки `div[data-id]`. При изменениях —
+  править `krisha_snapshots/src/krisha_snapshots/krisha/listing_parser.py`.
 - **Район из конфига не совпадает с наименованием на Krisha** — URL
   уходит с параметром `das[map.district]=<name>`, но Krisha возвращает
   пусто. Снять район из конфига или поправить имя в `estate.district`.
-- **Прокси/firewall блокирует исходящий трафик на krisha.kz** —
-  `curl -v https://krisha.kz/prodazha/kvartiry/almaty/` из контейнера.
+- **Krisha блокирует dev-IP** — проверить `curl -s ipinfo.io/country`
+  на dev-сервере (должно быть `KZ`). См. раздел
+  [«Инфраструктура сбора → Troubleshooting»](#troubleshooting) выше.
 
 ### Для AI-скоринга `price_score` считает LLM, а не формула
 
 - Нет свежего snapshot по цепочке (exact → no_rooms → city_only) в
   окне `window_days`. Добавить срез на нужный город/тип и запустить
-  сбор.
+  сбор на dev.
 - У объекта пустой `city_id`, `property_type`, `price` или `area_total`
   — формула требует все четыре поля, иначе fallback.
 - Проверить лог сбора и в логе скоринга отметку `(формула)` vs `(LLM)`.
@@ -233,22 +356,40 @@ ORDER BY id DESC LIMIT 10;
 - Слишком узкий срез (малое `max_pages` или мало объявлений на рынке).
   Увеличить `max_pages`, либо объединить с городским срезом.
 - Krisha отдаёт неоднородные объявления (суточная аренда, коммерция).
-  Проверить URL в `krisha_search_url_builder.py` — `_CATEGORY_SLUG`
-  должен указывать именно на продажу (`prodazha/...`).
+  Проверить URL в sidecar `krisha_snapshots/src/krisha_snapshots/krisha/url_builder.py` —
+  `_CATEGORY_SLUG` должен указывать именно на продажу (`prodazha/...`).
 
 ---
 
 ## Файлы и модули
 
+### Odoo-модуль `estate_kit`
+
 | Компонент | Путь |
 |-----------|------|
 | Модель snapshot | `src/market_snapshot/models/estate_market_snapshot.py` |
 | Модель конфига сбора | `src/market_snapshot/models/estate_market_snapshot_config.py` |
-| Сервис сбора | `src/market_snapshot/services/snapshot_collector/` |
-| Сервис резолвера бенчмарка | `src/market_snapshot/services/benchmark_resolver/` |
+| Резолвер бенчмарка (для AI) | `src/market_snapshot/services/benchmark_resolver/` |
 | Калькулятор оценки | `src/property/services/marketing_pool/price_score_calculator/` |
 | Интеграция с AI | `src/property/services/ai_scoring/service.py` |
-| Cron | `data/market_snapshot_cron.xml` |
 | Hedonic-параметры | `data/ir_config_parameter.xml` |
-| UI | `views/estate_market_snapshot_views.xml`, `views/estate_menus.xml` |
-| Миграция | `migrations/19.0.1.16.0/post-migrate.py` |
+| UI (просмотр снапшотов, CRUD конфигов) | `views/estate_market_snapshot_views.xml`, `views/estate_menus.xml` |
+| Миграции | `migrations/19.0.1.16.0/post-migrate.py` (создание), `migrations/19.0.1.18.0/post-migrate.py` (удаление obsolete cron) |
+
+### Sidecar-проект `krisha_snapshots`
+
+Отдельный git-репо в `/home/sumarokov/projects/estate_kit/krisha_snapshots/`.
+
+| Компонент | Путь |
+|-----------|------|
+| Entry point | `src/krisha_snapshots/__main__.py` |
+| URL-билдер (города, категории, комнаты) | `src/krisha_snapshots/krisha/url_builder.py` |
+| HTTP-клиент (httpx) | `src/krisha_snapshots/krisha/http_client.py` |
+| HTML-парсер (BS4 + jsdata fallback) | `src/krisha_snapshots/krisha/listing_parser.py` |
+| Статистика (median, p25/p75, trim) | `src/krisha_snapshots/stats/` |
+| Чтение конфига / запись снапшотов (psycopg) | `src/krisha_snapshots/db/` |
+| Оркестратор | `src/krisha_snapshots/collector.py` |
+| Composition root | `src/krisha_snapshots/factory.py` |
+| Docker | `docker/collector.Dockerfile`, `docker/tunnel.Dockerfile`, `docker/crontab` |
+| Compose | `compose.yaml` |
+| Deploy | `scripts/deploy.sh` (читает pass → .env → compose up) |

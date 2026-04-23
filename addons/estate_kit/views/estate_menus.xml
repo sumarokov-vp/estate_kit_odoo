@@ -42,8 +42,4 @@
     <menuitem id="estate_menu_market_snapshot_config" name="Конфигурация сбора" parent="estate_menu_market"
         action="estate_market_snapshot_config_action" sequence="20"
         groups="group_estate_team_lead,group_estate_marketing_lead"/>
-
-    <menuitem id="estate_menu_market_collect_now" name="Запустить сбор сейчас" parent="estate_menu_market"
-        action="action_collect_snapshots_now" sequence="30"
-        groups="group_estate_team_lead,group_estate_marketing_lead"/>
 </odoo>
