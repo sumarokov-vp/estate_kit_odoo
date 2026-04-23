@@ -1,9 +1,12 @@
+import re
 from typing import Any
 
 from bs4 import BeautifulSoup
 
 from .config import BASE_URL
 from .protocols import IPriceParser, IRoomsExtractor
+
+_AREA_PATTERN = re.compile(r"(\d+(?:[.,]\d+)?)\s*м[²2]")
 
 
 class HtmlFallbackParser:
@@ -30,12 +33,18 @@ class HtmlFallbackParser:
             price_text = price_el.get_text(strip=True) if price_el else "0"
             price = self._price_parser.parse(price_text)
 
+            area_match = _AREA_PATTERN.search(title)
+            try:
+                area = float(area_match.group(1).replace(",", ".")) if area_match else 0.0
+            except ValueError:
+                area = 0.0
+
             items.append({
                 "krisha_id": int(krisha_id if isinstance(krisha_id, str) else krisha_id[0]),
                 "url": f"{BASE_URL}{href}" if href else f"{BASE_URL}/a/show/{krisha_id}",
                 "title": title,
                 "rooms": self._rooms_extractor.extract(title),
-                "area": 0.0,
+                "area": area,
                 "floor": None,
                 "floors_total": None,
                 "price": price,
