@@ -8,4 +8,8 @@ class IMarketingPool(Protocol):
     @property
     def model(self) -> str: ...
 
-    def score_property(self, property_data: dict) -> dict | None: ...
+    def score_property(
+        self,
+        property_data: dict,
+        with_benchmark: bool = False,
+    ) -> dict | None: ...

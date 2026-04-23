@@ -5,13 +5,13 @@ class PropertyDataCollector:
     def __init__(self, value_transformer: IPropertyValueTransformer) -> None:
         self._value_transformer = value_transformer
 
-    def collect(self, prop) -> dict:
+    def collect(self, prop, benchmark=None) -> dict:
         get = self._value_transformer.get_value
         price_per_sqm = 0
         if prop.price and prop.area_total:
             price_per_sqm = round(prop.price / prop.area_total)
 
-        return {
+        data = {
             "property_type": get(prop, "property_type"),
             "deal_type": get(prop, "deal_type"),
             "price": prop.price,
@@ -48,7 +48,7 @@ class PropertyDataCollector:
             "gas": get(prop, "gas"),
             "electricity": get(prop, "electricity"),
             "internet": get(prop, "internet"),
-            "residential_complex": prop.residential_complex or "",
+            "residential_complex": prop.residential_complex_id.name or "" if prop.residential_complex_id else "",
             "commercial_type": get(prop, "commercial_type"),
             "separate_entrance": get(prop, "separate_entrance"),
             "has_showcase": get(prop, "has_showcase"),
@@ -58,3 +58,16 @@ class PropertyDataCollector:
             "land_status": get(prop, "land_status"),
             "road_access": get(prop, "road_access"),
         }
+        if benchmark is not None:
+            data["market_benchmark"] = {
+                "median_per_sqm": benchmark.median_price_per_sqm,
+                "p25_per_sqm": benchmark.p25_price_per_sqm,
+                "p75_per_sqm": benchmark.p75_price_per_sqm,
+                "sample_size": benchmark.sample_size,
+                "collected_at": benchmark.collected_at.strftime("%d.%m.%Y"),
+                "relax_level": benchmark.relax_level,
+                "city": benchmark.city_name,
+                "district": benchmark.district_name or "",
+                "rooms": benchmark.rooms,
+            }
+        return data
