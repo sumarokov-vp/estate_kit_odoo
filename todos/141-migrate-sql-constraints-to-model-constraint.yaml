@@ -1,0 +1,16 @@
+title: "Мигрировать _sql_constraints на models.Constraint"
+status: pending
+created_at: 23.04.2026
+
+description: |
+  В Odoo 19 атрибут `_sql_constraints` задепрекейтен:
+  "Model attribute '_sql_constraints' is no longer supported, please define model.Constraint on the model."
+
+  Остались файлы, использующие старый синтаксис:
+  - addons/estate_kit/src/lead/models/crm_lead.py
+  - addons/estate_kit/src/property/models/estate_property_tier.py
+
+recommendation: |
+  Заменить `_sql_constraints = [...]` на поля `models.Constraint(...)`
+  в соответствии с новым API Odoo 19. Проверить, что ограничения сохраняются
+  в базе без ручных миграций (или добавить их при необходимости).

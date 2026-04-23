@@ -1,0 +1,21 @@
+title: "Krisha: fallback города из address_title/address_struct"
+status: pending
+created_at: 23.04.2026
+
+description: |
+  При парсинге детальной карточки Krisha поле `advert.city.title` в jsdata
+  часто None/пустая строка. Текущий CityResolver получает пустой вход и
+  возвращает None — в результате `city_id` не заполняется, и вся цепочка
+  зависящих от него полей (street_id, residential_complex_id) остаётся пустой,
+  даже когда в HTML есть город.
+
+  Источники города, доступные на детальной карточке:
+  - `address_struct.city` — латиница ("Almaty"), требует маппинга на справочник;
+  - `.offer__location.offer__advert-short-info` span — русское название
+    ("Алматы, Бостандыкский р-н").
+
+recommendation: |
+  Добавить экстрактор города в `AdvertInfoHtmlExtractor` (или отдельный
+  экстрактор): парсить `.offer__location` и класть первую часть как
+  `city` поверх пустого значения из jsdata. Опционально — таблица
+  маппинга латиницы "Almaty" → "Алматы" для `address_struct`.
