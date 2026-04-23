@@ -1,0 +1,37 @@
+title: Krisha listing mapper пишет dict-address в поле-строку
+status: open
+created_at: 23.04.2026
+completed_at: null
+
+description: |
+  В `src/property/services/krisha_scraping/listing_advert_mapper.py::ListingAdvertMapper.map`
+  поле `address` перезаписывается значением `advert.get("address", "")`.
+
+  Подтверждено на сыром JSON Krisha (15+ объявлений категорий
+  novostroiki / kvartiry / doma-dachi / arenda): ключ `address` — это
+  dict со структурой:
+
+  ```json
+  {"city": "Zhanaturmys", "country": "Kazahstan",
+   "region": "Almatinskaya_obl_", "street": "Birlik", "house_num": "1g"}
+  ```
+
+  То есть в `item["address"]` попадает dict, который потом используется
+  в `FieldMapper.map` как строка через `detail.get("address_title") or
+  detail.get("address") or ""`.
+
+  Для деталки эта проблема не всплывает — `DetailAdvertMapper.map`
+  перезаписывает `address` через `addressTitle`. Но для листинга
+  (`ListingAdvertMapper`) там остаётся dict.
+
+recommendation: |
+  - Перенести логику из `DetailAdvertMapper.map` (формирование
+    `address_title` / `address_struct` / нормализованного `address`)
+    в `AdvertCoreMapper.map` — она одинакова для листинга и деталки.
+  - После этого убрать дублирующий код в `DetailAdvertMapper`, а
+    `ListingAdvertMapper` станет тривиальной обёрткой.
+  - Либо зафиксировать контракт: `item["address"]` всегда строка,
+    `item["address_struct"]` — dict. В `ListingAdvertMapper`
+    явно извлекать строку (addressTitle) вместо присваивания dict.
+
+solution: null

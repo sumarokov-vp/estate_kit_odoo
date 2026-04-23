@@ -32,10 +32,9 @@
                 <field name="rooms"/>
                 <filter name="last_month" string="За последние 30 дней"
                     domain="[('collected_at', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
-                <group expand="1" string="Группировать по">
-                    <filter name="group_city" string="Город" context="{'group_by': 'city_id'}"/>
-                    <filter name="group_type" string="Тип объекта" context="{'group_by': 'property_type'}"/>
-                </group>
+                <separator/>
+                <filter name="group_city" string="Город" context="{'group_by': 'city_id'}"/>
+                <filter name="group_type" string="Тип объекта" context="{'group_by': 'property_type'}"/>
             </search>
         </field>
     </record>

@@ -1,0 +1,26 @@
+title: Krisha возвращает транслит имени города (Almaty, Zhanaturmys), CityResolver ищет по русскому
+status: open
+created_at: 23.04.2026
+completed_at: null
+
+description: |
+  Теперь, когда `AdvertCoreMapper` берёт city из `address.city`
+  (см. правку в рамках todo 139), в detail-маппер приходит имя
+  города на транслите: `Almaty`, `Zhanaturmys`, `Astana` и т.п.
+
+  В БД `estate.city` хранится русское название: `Алматы`, `Астана`.
+  `CityResolver.resolve` ищет по `name =ilike` и по `code =ilike`.
+  Если `code` поля настроены как `almaty` / `astana` — совпадение будет,
+  иначе — город не резолвится, и объявление импортируется без города.
+
+recommendation: |
+  - Проверить значения `code` в таблице `estate.city`.
+  - Если `code` не транслитные — либо завести отдельный маппинг
+    `krisha_name` → `estate.city`, либо завести поле
+    `estate.city.krisha_code` и настроить справочник.
+  - Можно также проверить поле `addressTitle` (строка «Алматы» /
+    «Астана» + улица на русском) и извлекать из него первый сегмент
+    до запятой для listing (где `addressTitle` присутствует как поле
+    advert).
+
+solution: null

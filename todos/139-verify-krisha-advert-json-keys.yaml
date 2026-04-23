@@ -1,7 +1,7 @@
 title: Уточнить ключи JSON advert Krisha.kz для building_type, year_built, ceiling_height, residential_complex
-status: open
+status: done
 created_at: 21.04.2026
-completed_at: null
+completed_at: 23.04.2026
 
 description: |
   В сервисе KrishaImportService маппинг полей расширен для импорта
@@ -29,4 +29,57 @@ recommendation: |
   - Прокрутить импорт ещё раз и убедиться, что в импортированных объектах
     заполняются year_built, building_type, ceiling_height и жилой комплекс.
 
-solution: null
+solution: |
+  Выполнено 23.04.2026. Получен сырой jsdata JSON с krisha.kz по 27+
+  объявлениям из разных категорий (novostroiki / kvartiry /
+  doma-dachi / arenda, а также частных продаж). Скрипт скачивал
+  страницы напрямую через requests и извлекал `window.data` из
+  `<script id="jsdata">`.
+
+  Подтверждённые факты по набору ключей `data.advert`:
+
+  1. year_built — ТАКОГО КЛЮЧА В JSON НЕТ. Ни `buildYear`, ни `yearBuilt`
+     не встречаются. Значение вытягивается только из HTML: блок
+     `div.offer__info-item[data-name="house.year"]` — уже парсится
+     `AdvertInfoHtmlExtractor`.
+
+  2. building_type — ТАКОГО КЛЮЧА В JSON НЕТ. Ни `houseType`, ни
+     `buildingType`, ни `wallsType`. Источник — HTML:
+     `div.offer__info-item[data-name="flat.building"]` — уже
+     парсится `AdvertInfoHtmlExtractor`.
+
+  3. ceiling_height — ТАКОГО КЛЮЧА В JSON НЕТ. Ни `ceilingHeight`, ни
+     `ceiling`. Источник — HTML: блок `.offer__parameters dl` с
+     `dt[data-name="ceiling"]`, уже парсится
+     `AdvertInfoHtmlExtractor`.
+
+  4. residential complex — В JSON ЕСТЬ `complexId` (int),
+     `complexName` (str), `complexPrefix`, `complexUrlAlias`,
+     `complexSimilar`, `complexWorkTime`. Легаси-имён
+     `residenceComplexName` / `residentialComplex` / `complex` нет.
+
+  Попутные наблюдения:
+  - В advert нет ключа `city` — было `advert.get("city", {}).get("title", "")`
+    (всегда пустая строка). Заменено на `address.city` (транслит).
+  - В advert нет `floor`/`floorCount` — был dead code. Заменено на None.
+
+  Изменения в `src/property/services/krisha_scraping/advert_core_mapper.py`:
+  - Удалён fallback-перебор по `buildYear`/`yearBuilt`,
+    `houseType`/`buildingType`/`wallsType`, `ceilingHeight`/`ceiling`.
+    Соответствующие поля `year_built`, `building_type`, `ceiling_height`
+    в core-маппере больше не ставятся — их заполняет
+    `AdvertInfoHtmlExtractor` в `AdvertDetailParser`.
+  - Добавлен `residential_complex_name` из `advert["complexName"]` —
+    теперь доступен уже на уровне листинга, а не только из HTML деталки.
+  - `city` теперь берётся из `advert["address"]["city"]` (транслит) —
+    это не хуже, чем прежняя всегда-пустая строка. Резолвер
+    города может не подхватить транслит, но это отдельная задача.
+  - `floor`/`floors_total` явно установлены в `None` в core —
+    раньше `advert.get("floor")` всегда возвращал None.
+
+  Созданы follow-up todo:
+  - 143 — ListingAdvertMapper пишет dict-address в поле-строку
+    (баг в листинге, не всплывает на деталке).
+  - 144 — city из Krisha на транслите, CityResolver ищет по русскому.
+  - 145 — floor/floors_total доступны только в HTML, при чистом
+    листинге будут пустыми.

@@ -1,7 +1,7 @@
 title: Перевести карту в карточке и геокодирование районов на 2GIS
-status: open
+status: done
 created_at: 18.04.2026
-completed_at: null
+completed_at: 23.04.2026
 
 description: |
   Сейчас в карточке объекта недвижимости карта и геокодирование районов
@@ -24,4 +24,50 @@ recommendation: |
   - Проверить, что лимиты 2GIS покрывают нагрузку геокодирования.
   - Обновить документацию по интеграциям.
 
-solution: null
+solution: |
+  Перевод Python-сервиса district_detector на 2GIS Catalog API:
+  - `src/property/services/district_detector/geocoder.py` — класс
+    `TwoGisGeocoder` вместо `YandexGeocoder`, использует
+    `https://catalog.api.2gis.com/3.0/items/geocode` для прямого и
+    обратного геокодирования (через `lat`/`lon` + `fields=items.adm_div`).
+  - `src/property/services/district_detector/factory.py` — собирает
+    `TwoGisGeocoder`, использует параметр `estate_kit.twogis_api_key`.
+  - `src/property/services/district_detector/service.py` — обновлено
+    сообщение об ошибке ("API ключ 2GIS не настроен").
+
+  Перевод виджета карты на 2GIS MapGL:
+  - `static/src/components/location_map/location_map.js` — вместо Yandex
+    Maps v3 используется MapGL (`https://mapgl.2gis.com/api/js/v1`),
+    маркер через `mapgl.Marker`, обработка клика через `map.on("click")`.
+  - `static/src/fields/location_map_field.js` — вызов
+    `get_twogis_api_key` вместо `get_yandex_maps_api_key`.
+  - `static/src/fields/location_map_field.xml` — обновлён alert, указывающий
+    на параметр `estate_kit.twogis_api_key`.
+
+  Перевод контроллера геокодирования:
+  - `src/geography/controllers/twogis_proxy.py` — новый контроллер,
+    endpoint `/estate_kit/geocode` обращается к 2GIS Catalog API и
+    возвращает `{lat, lon}` или `{error}`. JS-код обновлён под
+    этот упрощённый формат ответа.
+  - Удалён `src/geography/controllers/ymaps_proxy.py` и
+    маршрут `/estate_kit/ymaps.js` (MapGL грузится напрямую из CDN).
+
+  Настройки и параметры:
+  - `src/config/models/res_config_settings.py` — поле
+    `estate_kit_twogis_api_key` вместо `estate_kit_yandex_geocoder_api_key`,
+    метод `get_twogis_api_key` вместо `get_yandex_maps_api_key`.
+  - `views/res_config_settings_views.xml` — блок "2GIS" вместо
+    "Яндекс Карты".
+  - `data/ir_config_parameter.xml` — удалена запись
+    `config_yandex_geocoder_api_key` (остался только `config_twogis_api_key`).
+
+  Миграция данных:
+  - `__manifest__.py` — версия поднята до 19.0.1.17.0.
+  - `migrations/19.0.1.17.0/post-migrate.py` — копирует значение
+    `estate_kit.yandex_geocoder_api_key` в `estate_kit.twogis_api_key`
+    (если второе пусто), затем удаляет устаревший параметр.
+
+  Документация:
+  - `docs/INTEGRATIONS.md` — раздел "2GIS" переписан: MapGL JS API для
+    карты, Catalog API для геокодирования, `estate_kit.twogis_api_key`
+    как общий ключ.
