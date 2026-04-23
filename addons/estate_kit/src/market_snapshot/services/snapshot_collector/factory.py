@@ -23,6 +23,7 @@ from .snapshot_config_loader import SnapshotConfigLoader
 from .snapshot_logger import SnapshotLogger
 from .snapshot_writer import SnapshotWriter
 from .target_formatter import TargetFormatter
+from .time_sleeper import TimeSleeper
 
 
 class Factory:
@@ -50,10 +51,15 @@ class Factory:
         )
 
         target_formatter = TargetFormatter()
+        sleeper = TimeSleeper()
         return SnapshotCollectorService(
             config_loader=SnapshotConfigLoader(env, config),
             url_builder=KrishaSearchUrlBuilder(),
-            fetcher=KrishaSnapshotFetcher(listing_fetcher),
+            fetcher=KrishaSnapshotFetcher(
+                listing_fetcher,
+                sleeper,
+                config.inter_page_sleep_seconds,
+            ),
             stats_calculator=PriceStatsCalculator(
                 config,
                 OutlierTrimmer(config.outlier_cut_percent),
@@ -61,4 +67,6 @@ class Factory:
             ),
             writer=SnapshotWriter(env),
             logger=SnapshotLogger(env, target_formatter),
+            sleeper=sleeper,
+            inter_target_sleep_seconds=config.inter_target_sleep_seconds,
         )

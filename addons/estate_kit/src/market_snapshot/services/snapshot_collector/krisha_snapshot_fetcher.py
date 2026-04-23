@@ -1,9 +1,16 @@
-from .protocols import IListingFetcher
+from .protocols import IListingFetcher, ISleeper
 
 
 class KrishaSnapshotFetcher:
-    def __init__(self, listing_fetcher: IListingFetcher) -> None:
+    def __init__(
+        self,
+        listing_fetcher: IListingFetcher,
+        sleeper: ISleeper,
+        inter_page_sleep_seconds: float,
+    ) -> None:
         self._listing_fetcher = listing_fetcher
+        self._sleeper = sleeper
+        self._inter_page_sleep_seconds = inter_page_sleep_seconds
 
     def fetch_price_per_sqm_samples(
         self, search_url: str, max_pages: int,
@@ -26,4 +33,6 @@ class KrishaSnapshotFetcher:
                 if price_float <= 0 or area_float <= 0:
                     continue
                 samples.append(price_float / area_float)
+            if page < max_pages:
+                self._sleeper.sleep(self._inter_page_sleep_seconds)
         return samples
