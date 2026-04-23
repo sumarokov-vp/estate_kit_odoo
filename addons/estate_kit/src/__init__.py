@@ -1,4 +1,5 @@
 from . import (
+    webhook,
     config,
     deal,
     erp_core,
@@ -11,6 +12,5 @@ from . import (
     public_view,
     reference,
     shared,
-    webhook,
     property,
 )

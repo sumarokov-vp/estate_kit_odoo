@@ -24,14 +24,13 @@ class AdvertCoreMapper:
         lat = map_data.get("lat")
         lon = map_data.get("lon")
 
-        year_built = advert.get("buildYear") or advert.get("yearBuilt")
-        building_type = (
-            advert.get("houseType")
-            or advert.get("buildingType")
-            or advert.get("wallsType")
-        )
-        ceiling_height = advert.get("ceilingHeight") or advert.get("ceiling")
+        address_struct = advert.get("address")
+        city = ""
+        if isinstance(address_struct, dict):
+            city = address_struct.get("city", "") or ""
+
         krisha_complex_id = advert.get("complexId")
+        complex_name = advert.get("complexName")
 
         title = advert.get("title", "")
 
@@ -41,15 +40,13 @@ class AdvertCoreMapper:
             "title": title,
             "rooms": self._rooms_extractor.extract(title),
             "area": self._area_extractor.extract(advert.get("square")),
-            "floor": advert.get("floor"),
-            "floors_total": advert.get("floorCount"),
+            "floor": None,
+            "floors_total": None,
             "price": advert.get("price"),
-            "city": advert.get("city", {}).get("title", ""),
+            "city": city,
             "latitude": float(lat) if lat else None,
             "longitude": float(lon) if lon else None,
             "photo_urls": photo_urls,
-            "year_built": int(year_built) if year_built else None,
-            "building_type": building_type if isinstance(building_type, str) else None,
-            "ceiling_height": float(ceiling_height) if ceiling_height else None,
             "krisha_complex_id": int(krisha_complex_id) if krisha_complex_id else None,
+            "residential_complex_name": complex_name if isinstance(complex_name, str) else None,
         }
