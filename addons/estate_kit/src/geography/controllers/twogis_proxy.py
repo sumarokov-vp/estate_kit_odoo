@@ -9,7 +9,7 @@ TWOGIS_GEOCODE_URL = "https://catalog.api.2gis.com/3.0/items/geocode"
 
 
 class TwoGisProxyController(http.Controller):
-    @http.route("/estate_kit/twogis/api_key", type="json", auth="user")
+    @http.route("/estate_kit/twogis/api_key", type="jsonrpc", auth="user")
     def twogis_api_key(self):
         api_key = (
             http.request.env["ir.config_parameter"]
@@ -18,7 +18,7 @@ class TwoGisProxyController(http.Controller):
         )
         return {"api_key": api_key}
 
-    @http.route("/estate_kit/geocode", type="json", auth="user")
+    @http.route("/estate_kit/geocode", type="jsonrpc", auth="user")
     def geocode(self, address):
         api_key = (
             http.request.env["ir.config_parameter"]
