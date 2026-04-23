@@ -1,1 +1,1 @@
-from . import ymaps_proxy
+from . import twogis_proxy

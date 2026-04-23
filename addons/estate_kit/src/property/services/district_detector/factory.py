@@ -1,9 +1,9 @@
-from .geocoder import YandexGeocoder
+from .geocoder import TwoGisGeocoder
 from .service import DistrictDetectorService
 
 
 class Factory:
     @staticmethod
     def create(env) -> DistrictDetectorService:
-        geocoder = YandexGeocoder(env)
+        geocoder = TwoGisGeocoder(env)
         return DistrictDetectorService(geocoder, env)

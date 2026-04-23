@@ -12,7 +12,7 @@ class DistrictDetectorService:
     def detect(self, record) -> None:
         record.ensure_one()
         if not self._geocoder.is_configured:
-            raise UserError("API ключ Yandex Geocoder не настроен")
+            raise UserError("API ключ 2GIS не настроен")
 
         address_parts = AddressService.build_parts(record, include_district=False)
         if not address_parts:

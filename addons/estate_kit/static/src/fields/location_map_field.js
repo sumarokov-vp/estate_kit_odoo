@@ -37,12 +37,12 @@ export class LocationMapField extends Component {
         try {
             const result = await this.orm.call(
                 "res.config.settings",
-                "get_yandex_maps_api_key",
+                "get_twogis_api_key",
                 []
             );
             this.state.apiKey = result || "";
         } catch {
-            console.error("Failed to load Yandex Maps API key");
+            console.error("Failed to load 2GIS API key");
         }
     }
 

@@ -64,12 +64,12 @@
                             </div>
                         </setting>
                     </block>
-                    <block title="Яндекс Карты" name="estate_kit_yandex_maps">
-                        <setting string="Яндекс Геокодер" help="API-ключ для геокодирования и отображения карт">
+                    <block title="2GIS" name="estate_kit_twogis">
+                        <setting string="API-ключ 2GIS" help="API-ключ для геокодирования и отображения карт">
                             <div class="content-group">
                                 <div class="row mt16">
-                                    <label for="estate_kit_yandex_geocoder_api_key" class="col-lg-3 o_light_label"/>
-                                    <field name="estate_kit_yandex_geocoder_api_key" class="col-lg-6" placeholder="API-ключ" password="True"/>
+                                    <label for="estate_kit_twogis_api_key" class="col-lg-3 o_light_label"/>
+                                    <field name="estate_kit_twogis_api_key" class="col-lg-6" placeholder="API-ключ" password="True"/>
                                 </div>
                             </div>
                         </setting>

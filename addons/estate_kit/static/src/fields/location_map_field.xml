@@ -15,8 +15,8 @@
             <t t-else="">
                 <div class="alert alert-info">
                     <i class="fa fa-info-circle me-1"/>
-                    API-ключ Яндекс Карт не настроен. Установите параметр
-                    <code>estate_kit.yandex_geocoder_api_key</code> в настройках системы.
+                    API-ключ 2GIS не настроен. Установите параметр
+                    <code>estate_kit.twogis_api_key</code> в настройках системы.
                 </div>
             </t>
         </div>

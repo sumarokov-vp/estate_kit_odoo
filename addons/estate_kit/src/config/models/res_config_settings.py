@@ -40,10 +40,10 @@ class ResConfigSettings(models.TransientModel):
         string="URL API",
         config_parameter="estate_kit.api_url",
     )
-    estate_kit_yandex_geocoder_api_key = fields.Char(
-        string="API-ключ Яндекс Геокодер",
-        config_parameter="estate_kit.yandex_geocoder_api_key",
-        help="API-ключ для Яндекс Карт и геокодирования",
+    estate_kit_twogis_api_key = fields.Char(
+        string="API-ключ 2GIS",
+        config_parameter="estate_kit.twogis_api_key",
+        help="API-ключ 2GIS для карт и геокодирования",
     )
 
     estate_kit_anthropic_api_key = fields.Char(
@@ -166,11 +166,11 @@ class ResConfigSettings(models.TransientModel):
             rec.estate_kit_is_registered = bool(api_key)
 
     @api.model
-    def get_yandex_maps_api_key(self):
+    def get_twogis_api_key(self):
         return (
             self.env["ir.config_parameter"]
             .sudo()
-            .get_param("estate_kit.yandex_geocoder_api_key", "")
+            .get_param("estate_kit.twogis_api_key", "")
         )
 
     def action_register_mls(self):

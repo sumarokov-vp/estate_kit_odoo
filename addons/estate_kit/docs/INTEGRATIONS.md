@@ -309,32 +309,46 @@ class CrmLead(models.Model):
 
 ## 4. 2GIS
 
+Карта и геокодирование выполняются через 2GIS: Catalog API
+(`https://catalog.api.2gis.com/3.0/items/geocode`) для прямого и обратного
+геокодирования, MapGL JS API (`https://mapgl.2gis.com/api/js/v1`) для
+отображения карты в форме объекта.
+
+### Настройки
+
+API-ключ хранится в параметре `estate_kit.twogis_api_key` (настраивается
+в Settings → Estate Kit → 2GIS). Ключ используется и для Python-вызовов
+(контроллер `/estate_kit/geocode`, сервис `district_detector`), и для JS
+(виджет `location_map` подтягивает ключ через `res.config.settings.get_twogis_api_key`).
+
 ### Виджет карты
 
 ```xml
-<field name="map_widget" widget="estate_2gis_map"/>
+<field name="latitude" widget="location_map" nolabel="1"/>
 ```
 
-### Геокодирование
+Виджет загружает 2GIS MapGL, показывает маркер по координатам объекта и
+позволяет перетащить точку/кликнуть по карте для обновления координат.
+
+### Геокодирование адреса (Python)
 
 ```python
-def _compute_coordinates(self):
-    """Получить координаты по адресу через 2GIS API"""
-    api_key = self.env['ir.config_parameter'].get_param('2gis.api_key')
-    address = f"{self.street} {self.house_number}, Алматы"
-
-    response = requests.get(
-        "https://catalog.api.2gis.com/3.0/items/geocode",
-        params={'q': address, 'key': api_key}
-    )
-
-    if response.ok:
-        data = response.json()
-        if data.get('result', {}).get('items'):
-            point = data['result']['items'][0]['point']
-            self.latitude = point['lat']
-            self.longitude = point['lon']
+response = requests.get(
+    "https://catalog.api.2gis.com/3.0/items/geocode",
+    params={"key": api_key, "q": address, "fields": "items.point"},
+    timeout=10,
+)
+items = response.json().get("result", {}).get("items", [])
+if items:
+    point = items[0]["point"]
+    lat, lon = point["lat"], point["lon"]
 ```
+
+### Определение района (reverse geocoding)
+
+Сервис `district_detector` вызывает тот же `/items/geocode` с параметрами
+`lat`, `lon` и `fields=items.adm_div`, затем ищет в `adm_div` запись
+с названием, содержащим «район».
 
 ### Поля координат
 

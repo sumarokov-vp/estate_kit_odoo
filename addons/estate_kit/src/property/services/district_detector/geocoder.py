@@ -4,16 +4,15 @@ import requests
 
 _logger = logging.getLogger(__name__)
 
-YANDEX_GEOCODER_URL = "https://geocode-maps.yandex.ru/1.x/"
+TWOGIS_GEOCODE_URL = "https://catalog.api.2gis.com/3.0/items/geocode"
 DISTRICT_MARKER = "район"
 RESIDENTIAL_MARKER = "жилой"
 
 
-class YandexGeocoder:
+class TwoGisGeocoder:
     def __init__(self, env):
         icp = env["ir.config_parameter"].sudo()
-        self.api_key = icp.get_param("estate_kit.yandex_geocoder_api_key") or ""
-        self.referer = icp.get_param("web.base.url") or ""
+        self.api_key = icp.get_param("estate_kit.twogis_api_key") or ""
 
     @property
     def is_configured(self) -> bool:
@@ -21,69 +20,57 @@ class YandexGeocoder:
 
     def geocode_address(self, address):
         response = requests.get(
-            YANDEX_GEOCODER_URL,
-            params={"apikey": self.api_key, "geocode": address, "format": "json"},
-            headers={"Referer": self.referer},
+            TWOGIS_GEOCODE_URL,
+            params={
+                "key": self.api_key,
+                "q": address,
+                "fields": "items.point",
+            },
             timeout=10,
         )
         response.raise_for_status()
         data = response.json()
 
-        feature_members = (
-            data.get("response", {})
-            .get("GeoObjectCollection", {})
-            .get("featureMember", [])
-        )
-        if not feature_members:
+        items = data.get("result", {}).get("items", [])
+        if not items:
             return None
 
-        geo_object = feature_members[0].get("GeoObject", {})
-        pos = geo_object.get("Point", {}).get("pos", "")
-        if not pos:
+        point = items[0].get("point") or {}
+        lat = point.get("lat")
+        lon = point.get("lon")
+        if lat is None or lon is None:
             return None
-
-        lon, lat = pos.split()
         return float(lat), float(lon)
 
     def reverse_geocode_district(self, lat, lon):
         response = requests.get(
-            YANDEX_GEOCODER_URL,
+            TWOGIS_GEOCODE_URL,
             params={
-                "apikey": self.api_key,
-                "geocode": f"{lon},{lat}",
-                "format": "json",
-                "kind": "district",
+                "key": self.api_key,
+                "lat": lat,
+                "lon": lon,
+                "fields": "items.adm_div",
+                "type": "adm_div.district,adm_div.city,adm_div.settlement,building",
             },
-            headers={"Referer": self.referer},
             timeout=10,
         )
         response.raise_for_status()
         data = response.json()
 
-        feature_members = (
-            data.get("response", {})
-            .get("GeoObjectCollection", {})
-            .get("featureMember", [])
-        )
+        items = data.get("result", {}).get("items", [])
+        for item in items:
+            for division in item.get("adm_div", []) or []:
+                name = division.get("name", "") or ""
+                normalized = name.lower()
+                if DISTRICT_MARKER in normalized and RESIDENTIAL_MARKER not in normalized:
+                    return name
 
-        for feature in feature_members:
-            name = feature.get("GeoObject", {}).get("name", "")
-            if DISTRICT_MARKER in name.lower() and RESIDENTIAL_MARKER not in name.lower():
-                return name
-
-        for feature in feature_members:
-            components = (
-                feature.get("GeoObject", {})
-                .get("metaDataProperty", {})
-                .get("GeocoderMetaData", {})
-                .get("Address", {})
-                .get("Components", [])
-            )
-            for comp in components:
-                if comp.get("kind") == "district":
-                    name = comp.get("name", "")
-                    if DISTRICT_MARKER in name.lower() and RESIDENTIAL_MARKER not in name.lower():
-                        return name
+        for item in items:
+            if item.get("subtype") == "district":
+                name = item.get("name", "") or ""
+                normalized = name.lower()
+                if DISTRICT_MARKER in normalized and RESIDENTIAL_MARKER not in normalized:
+                    return name
 
         return None
 
