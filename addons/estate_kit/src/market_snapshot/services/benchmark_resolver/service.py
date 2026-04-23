@@ -1,0 +1,56 @@
+from .benchmark import MarketBenchmark
+from .config import BenchmarkResolverConfig
+from .protocols import ISnapshotLookup
+
+
+class BenchmarkResolverService:
+    def __init__(
+        self,
+        lookup: ISnapshotLookup,
+        config: BenchmarkResolverConfig,
+    ) -> None:
+        self._lookup = lookup
+        self._config = config
+
+    def resolve(self, prop) -> MarketBenchmark | None:
+        if not prop.city_id:
+            return None
+
+        city_id = prop.city_id.id
+        district_id = prop.district_id.id if prop.district_id else None
+        property_type = prop.property_type
+        rooms = prop.rooms if prop.rooms else None
+        window = self._config.window_days
+
+        relax_chain: list[tuple[str, int | None, int | None]] = [
+            ("exact", district_id, rooms),
+            ("no_rooms", district_id, None),
+            ("city_only", None, None),
+        ]
+
+        for relax_level, relax_district, relax_rooms in relax_chain:
+            snapshot = self._lookup.find_latest(
+                city_id=city_id,
+                district_id=relax_district,
+                property_type=property_type,
+                rooms=relax_rooms,
+                max_age_days=window,
+            )
+            if snapshot:
+                return MarketBenchmark(
+                    median_price_per_sqm=snapshot.median_price_per_sqm,
+                    p25_price_per_sqm=snapshot.p25_price_per_sqm,
+                    p75_price_per_sqm=snapshot.p75_price_per_sqm,
+                    sample_size=snapshot.sample_size,
+                    snapshot_id=snapshot.id,
+                    collected_at=snapshot.collected_at,
+                    city_name=snapshot.city_id.name,
+                    district_name=(
+                        snapshot.district_id.name if snapshot.district_id else None
+                    ),
+                    property_type=snapshot.property_type,
+                    rooms=snapshot.rooms or 0,
+                    relax_level=relax_level,
+                )
+
+        return None

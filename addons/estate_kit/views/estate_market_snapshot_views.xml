@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="estate_market_snapshot_tree" model="ir.ui.view">
+        <field name="name">estate.market.snapshot.tree</field>
+        <field name="model">estate.market.snapshot</field>
+        <field name="arch" type="xml">
+            <list string="Снапшоты рынка" create="false" edit="false">
+                <field name="collected_at"/>
+                <field name="city_id"/>
+                <field name="district_id"/>
+                <field name="property_type"/>
+                <field name="rooms"/>
+                <field name="sample_size"/>
+                <field name="median_price_per_sqm" widget="monetary" options="{'currency_field': 'currency'}"/>
+                <field name="p25_price_per_sqm" widget="monetary" options="{'currency_field': 'currency'}"/>
+                <field name="p75_price_per_sqm" widget="monetary" options="{'currency_field': 'currency'}"/>
+                <field name="source"/>
+                <field name="currency"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="estate_market_snapshot_search" model="ir.ui.view">
+        <field name="name">estate.market.snapshot.search</field>
+        <field name="model">estate.market.snapshot</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="city_id"/>
+                <field name="district_id"/>
+                <field name="property_type"/>
+                <field name="rooms"/>
+                <filter name="last_month" string="За последние 30 дней"
+                    domain="[('collected_at', '&gt;=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d'))]"/>
+                <group expand="1" string="Группировать по">
+                    <filter name="group_city" string="Город" context="{'group_by': 'city_id'}"/>
+                    <filter name="group_type" string="Тип объекта" context="{'group_by': 'property_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="estate_market_snapshot_action" model="ir.actions.act_window">
+        <field name="name">Снапшоты рынка</field>
+        <field name="res_model">estate.market.snapshot</field>
+        <field name="view_mode">list</field>
+        <field name="search_view_id" ref="estate_market_snapshot_search"/>
+    </record>
+
+    <record id="estate_market_snapshot_config_tree" model="ir.ui.view">
+        <field name="name">estate.market.snapshot.config.tree</field>
+        <field name="model">estate.market.snapshot.config</field>
+        <field name="arch" type="xml">
+            <list string="Конфигурация сбора снапшотов" editable="bottom">
+                <field name="active" widget="boolean_toggle"/>
+                <field name="city_id"/>
+                <field name="district_id"/>
+                <field name="property_type"/>
+                <field name="rooms"/>
+                <field name="max_pages"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="estate_market_snapshot_config_action" model="ir.actions.act_window">
+        <field name="name">Настройка сбора снапшотов</field>
+        <field name="res_model">estate.market.snapshot.config</field>
+        <field name="view_mode">list</field>
+    </record>
+
+    <record id="action_collect_snapshots_now" model="ir.actions.server">
+        <field name="name">Запустить сбор снапшотов</field>
+        <field name="model_id" ref="model_estate_market_snapshot"/>
+        <field name="state">code</field>
+        <field name="code">model.action_collect_now()</field>
+    </record>
+
+</odoo>

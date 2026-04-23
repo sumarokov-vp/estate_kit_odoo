@@ -33,5 +33,42 @@
             <field name="key">estate_kit.image_service_address</field>
             <field name="value">image-service:50051</field>
         </record>
+
+        <record id="config_hedonic_first_floor_penalty" model="ir.config_parameter">
+            <field name="key">estate_kit.hedonic.first_floor_penalty</field>
+            <field name="value">0.95</field>
+        </record>
+        <record id="config_hedonic_last_floor_penalty" model="ir.config_parameter">
+            <field name="key">estate_kit.hedonic.last_floor_penalty</field>
+            <field name="value">0.97</field>
+        </record>
+        <record id="config_hedonic_parking_bonus" model="ir.config_parameter">
+            <field name="key">estate_kit.hedonic.parking_bonus</field>
+            <field name="value">1.03</field>
+        </record>
+        <record id="config_hedonic_year_built_penalty_per_decade" model="ir.config_parameter">
+            <field name="key">estate_kit.hedonic.year_built_penalty_per_decade</field>
+            <field name="value">0.02</field>
+        </record>
+        <record id="config_hedonic_year_built_reference" model="ir.config_parameter">
+            <field name="key">estate_kit.hedonic.year_built_reference</field>
+            <field name="value">2015</field>
+        </record>
+        <record id="config_hedonic_condition_no_repair" model="ir.config_parameter">
+            <field name="key">estate_kit.hedonic.condition_no_repair_adj</field>
+            <field name="value">0.90</field>
+        </record>
+        <record id="config_hedonic_condition_cosmetic" model="ir.config_parameter">
+            <field name="key">estate_kit.hedonic.condition_cosmetic_adj</field>
+            <field name="value">0.97</field>
+        </record>
+        <record id="config_hedonic_condition_euro" model="ir.config_parameter">
+            <field name="key">estate_kit.hedonic.condition_euro_adj</field>
+            <field name="value">1.05</field>
+        </record>
+        <record id="config_hedonic_condition_designer" model="ir.config_parameter">
+            <field name="key">estate_kit.hedonic.condition_designer_adj</field>
+            <field name="value">1.10</field>
+        </record>
     </data>
 </odoo>
