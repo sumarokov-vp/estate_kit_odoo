@@ -1,0 +1,35 @@
+title: window.data на Krisha больше не содержит adverts — основным стал HTML fallback
+status: open
+created_at: 23.04.2026
+completed_at: null
+
+description: |
+  На 23.04.2026 страницы листинга Krisha (`/prodazha/kvartiry/<city>/`)
+  по-прежнему содержат `<script id="jsdata">window.data = {...}</script>`,
+  но в этом объекте теперь только конфиг SPA (search, category, app,
+  baseHostname, ...). Ключа `adverts` в нём больше нет.
+
+  Из-за этого `JsdataExtractor` возвращает dict без `adverts` и
+  `ListingPageParser` попадает в HTML-fallback на КАЖДОМ запросе.
+  До правки fallback не извлекал площадь и snapshot-сбор
+  (`SnapshotCollectorService`) молча давал `sample_size=0`.
+
+  23.04.2026 fallback доправлен (извлечение площади из заголовка
+  карточки "N-комнатная квартира · NN.NN м²"), сбор заработал.
+
+  Но сам факт: jsdata-путь стал мёртвым, а не резервным.
+
+recommendation: |
+  - Проверить, не возвращается ли `adverts` в отдельном SPA-эндпоинте
+    (XHR на /list или GraphQL) — если да, перейти на него, это надёжнее
+    HTML-парсинга.
+  - Если API-эндпоинта нет — удалить jsdata-ветку и `JsdataExtractor`,
+    оставить HTML-fallback как основной путь и переименовать
+    (сейчас название "fallback" вводит в заблуждение).
+  - Добавить интеграционный тест, который раз в сутки дергает боевой
+    листинг и валидирует, что парсер вернул ≥ N объявлений с `price>0`
+    и `area>0`. Если сломается — в estate.kit.log warning, алерт.
+  - Проверить, не аналогичная ли ситуация на детальной странице
+    объявления (`AdvertDetailParser`): может ли быть, что там
+    jsdata тоже опустел. Если да — импорт отдельных объектов тоже
+    может молча недобирать поля.
