@@ -104,12 +104,16 @@ class MarketingPoolService:
     def model(self) -> str:
         return self._ai_client.model
 
-    def score_property(self, property_data: dict[str, Any]) -> dict[str, Any] | None:
+    def score_property(
+        self,
+        property_data: dict[str, Any],
+        with_benchmark: bool = False,
+    ) -> dict[str, Any] | None:
         if not self.is_configured:
             return None
 
         prop_type = property_data.get("property_type", "apartment")
-        system_prompt = self._prompt_resolver.resolve(prop_type)
+        system_prompt = self._prompt_resolver.resolve(prop_type, with_benchmark)
         user_message = self._message_builder.build(property_data)
 
         response_text = self._ai_client.complete(system_prompt, user_message)

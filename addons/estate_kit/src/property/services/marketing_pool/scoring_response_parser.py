@@ -14,8 +14,9 @@ class ScoringResponseParser:
         result = json.loads(text)
 
         for key in ("price_score", "quality_score", "listing_score"):
-            score = int(result[key])
-            result[key] = max(1, min(10, score))
+            if key in result and result[key] is not None:
+                score = int(result[key])
+                result[key] = max(1, min(10, score))
 
         result["rationale"] = str(result.get("rationale", ""))
         return result
