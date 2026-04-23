@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="estate_residential_complex_view_form" model="ir.ui.view">
+        <field name="name">estate.residential.complex.form</field>
+        <field name="model">estate.residential.complex</field>
+        <field name="arch" type="xml">
+            <form string="Жилой комплекс">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="city_id"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="krisha_complex_id"/>
+                            <field name="krisha_url" widget="url"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="estate_residential_complex_view_list" model="ir.ui.view">
+        <field name="name">estate.residential.complex.list</field>
+        <field name="model">estate.residential.complex</field>
+        <field name="arch" type="xml">
+            <list string="Жилые комплексы">
+                <field name="name"/>
+                <field name="city_id"/>
+                <field name="krisha_complex_id" optional="show"/>
+                <field name="active" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="estate_residential_complex_view_search" model="ir.ui.view">
+        <field name="name">estate.residential.complex.search</field>
+        <field name="model">estate.residential.complex</field>
+        <field name="arch" type="xml">
+            <search string="Жилые комплексы">
+                <field name="name"/>
+                <field name="city_id"/>
+                <field name="krisha_complex_id"/>
+                <separator/>
+                <filter name="archived" string="Архив" domain="[('active', '=', False)]"/>
+                <separator/>
+                <filter name="group_city" string="Город" context="{'group_by': 'city_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="estate_residential_complex_action" model="ir.actions.act_window">
+        <field name="name">Жилые комплексы</field>
+        <field name="res_model">estate.residential.complex</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_city': 1}</field>
+    </record>
+</odoo>
