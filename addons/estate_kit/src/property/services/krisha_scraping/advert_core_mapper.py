@@ -31,11 +31,7 @@ class AdvertCoreMapper:
             or advert.get("wallsType")
         )
         ceiling_height = advert.get("ceilingHeight") or advert.get("ceiling")
-        residential_complex = (
-            advert.get("residenceComplexName")
-            or advert.get("residentialComplex")
-            or advert.get("complex")
-        )
+        krisha_complex_id = advert.get("complexId")
 
         title = advert.get("title", "")
 
@@ -55,7 +51,5 @@ class AdvertCoreMapper:
             "year_built": int(year_built) if year_built else None,
             "building_type": building_type if isinstance(building_type, str) else None,
             "ceiling_height": float(ceiling_height) if ceiling_height else None,
-            "residential_complex": (
-                residential_complex if isinstance(residential_complex, str) else None
-            ),
+            "krisha_complex_id": int(krisha_complex_id) if krisha_complex_id else None,
         }

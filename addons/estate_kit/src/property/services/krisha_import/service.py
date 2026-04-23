@@ -9,6 +9,7 @@ from .protocols import (
     IListingFetcher,
     IPhotoImporter,
     IPropertyCreator,
+    ITransactionScope,
 )
 from .result import KrishaImportResult
 
@@ -27,6 +28,7 @@ class KrishaImportService:
         property_creator: IPropertyCreator,
         photo_importer: IPhotoImporter,
         logger: IImportLogger,
+        transaction_scope: ITransactionScope,
     ) -> None:
         self._config_provider = config_provider
         self._listing_fetcher = listing_fetcher
@@ -35,6 +37,7 @@ class KrishaImportService:
         self._property_creator = property_creator
         self._photo_importer = photo_importer
         self._logger = logger
+        self._transaction_scope = transaction_scope
 
     def import_batch(self) -> KrishaImportResult:
         config = self._config_provider.load()
@@ -104,10 +107,12 @@ class KrishaImportService:
                         self._logger.log_duplicate(url)
                         duplicates += 1
                         continue
-                    detail = self._detail_fetcher.fetch(url)
-                    detail["url"] = url
-                    property_id = self._property_creator.create(detail)
-                    self._photo_importer.import_photos(property_id, detail.get("photo_urls", []))
+                    with self._transaction_scope.savepoint():
+                        detail = self._detail_fetcher.fetch(url)
+                        detail["url"] = url
+                        property_id = self._property_creator.create(detail)
+                        self._photo_importer.import_photos(property_id, detail.get("photo_urls", []))
+                    self._transaction_scope.commit()
                     _logger.info(
                         "Krisha import [%d]: imported property_id=%s url=%s",
                         overall_index,

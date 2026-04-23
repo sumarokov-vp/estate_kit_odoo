@@ -1,6 +1,7 @@
 from ..krisha_scraping import (
     AdvertCoreMapper,
     AdvertDetailParser,
+    AdvertInfoHtmlExtractor,
     AreaExtractor,
     DetailAdvertMapper,
     HtmlFallbackParser,
@@ -11,8 +12,10 @@ from ..krisha_scraping import (
     ListingAdvertMapper,
     ListingPageParser,
     PriceParser,
+    ResidentialComplexHtmlExtractor,
     RoomsExtractor,
 )
+from .address_parser import AddressParser
 from .building_type_resolver import BuildingTypeResolver
 from .city_resolver import CityResolver
 from .config_provider import ConfigProvider
@@ -24,7 +27,10 @@ from .listing_fetcher import ListingFetcher
 from .page_url_builder import PageUrlBuilder
 from .photo_importer import PhotoImporter
 from .property_creator import PropertyCreator
+from .residential_complex_resolver import ResidentialComplexResolver
 from .service import KrishaImportService
+from .street_resolver import StreetResolver
+from .transaction_scope import TransactionScope
 
 
 class Factory:
@@ -47,7 +53,14 @@ class Factory:
             listing_advert_mapper,
             html_fallback_parser,
         )
-        advert_detail_parser = AdvertDetailParser(jsdata_extractor, detail_advert_mapper)
+        residential_complex_extractor = ResidentialComplexHtmlExtractor()
+        info_extractor = AdvertInfoHtmlExtractor()
+        advert_detail_parser = AdvertDetailParser(
+            jsdata_extractor,
+            detail_advert_mapper,
+            residential_complex_extractor,
+            info_extractor,
+        )
 
         config_provider = ConfigProvider(env)
         page_url_builder = PageUrlBuilder()
@@ -56,10 +69,20 @@ class Factory:
         duplicate_checker = DuplicateChecker(env)
         city_resolver = CityResolver(env)
         building_type_resolver = BuildingTypeResolver()
-        field_mapper = FieldMapper(city_resolver, building_type_resolver)
+        residential_complex_resolver = ResidentialComplexResolver(env)
+        street_resolver = StreetResolver(env)
+        address_parser = AddressParser()
+        field_mapper = FieldMapper(
+            city_resolver,
+            building_type_resolver,
+            residential_complex_resolver,
+            street_resolver,
+            address_parser,
+        )
         property_creator = PropertyCreator(env, field_mapper)
         photo_importer = PhotoImporter(env, image_downloader)
         logger = ImportLogger(env)
+        transaction_scope = TransactionScope(env)
         return KrishaImportService(
             config_provider,
             listing_fetcher,
@@ -68,4 +91,5 @@ class Factory:
             property_creator,
             photo_importer,
             logger,
+            transaction_scope,
         )
