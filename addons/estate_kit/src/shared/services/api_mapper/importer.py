@@ -127,8 +127,18 @@ def import_location(env, vals: dict[str, Any], location: dict[str, Any]) -> None
     if location.get("house_number"):
         vals["house_number"] = location["house_number"]
 
-    if location.get("residential_complex"):
-        vals["residential_complex"] = location["residential_complex"]
+    complex_name = location.get("residential_complex")
+    if complex_name:
+        domain = [("name", "=", complex_name)]
+        if vals.get("city_id"):
+            domain.append(("city_id", "=", vals["city_id"]))
+        complex_record = env["estate.residential.complex"].search(domain, limit=1)
+        if not complex_record:
+            complex_record = env["estate.residential.complex"].create({
+                "name": complex_name,
+                "city_id": vals.get("city_id"),
+            })
+        vals["residential_complex_id"] = complex_record.id
 
     if location.get("apartment_number"):
         vals["apartment_number"] = location["apartment_number"]
