@@ -38,8 +38,6 @@ class PhotoUploadController(http.Controller):
             address_parts.append(prop.house_number)
         address = ", ".join(address_parts)
 
-        config = request.env["ir.config_parameter"].sudo()
-        base_url = config.get_param("web.base.url") or ""
         company = request.env["res.company"].sudo().search([], limit=1)
         company_name = company.name if company else "Estate Kit"
 
@@ -50,8 +48,7 @@ class PhotoUploadController(http.Controller):
             html.replace("{property_name}", self._escape(prop.name or ""))
             .replace("{property_address}", self._escape(address))
             .replace("{token}", self._escape(token))
-            .replace("{upload_url}", f"{base_url}/estate_kit/upload/{token}")
-            .replace("{base_url}", self._escape(base_url))
+            .replace("{upload_url}", f"/estate_kit/upload/{self._escape(token)}")
             .replace("{company_name}", self._escape(company_name))
         )
 

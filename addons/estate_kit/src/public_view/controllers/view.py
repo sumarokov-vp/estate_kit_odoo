@@ -210,8 +210,8 @@ class PublicViewController(http.Controller):
         cls._append(rows, "Канализация", cls._sel_label(prop, "sewage"))
         cls._append(rows, "Газ", cls._sel_label(prop, "gas"))
         cls._append(rows, "Интернет", cls._sel_label(prop, "internet"))
-        if prop.residential_complex:
-            cls._append(rows, "Жилой комплекс", prop.residential_complex)
+        if prop.residential_complex_id:
+            cls._append(rows, "Жилой комплекс", prop.residential_complex_id.name)
         return rows
 
     @staticmethod

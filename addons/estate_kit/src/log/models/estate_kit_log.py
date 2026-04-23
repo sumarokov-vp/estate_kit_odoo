@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from odoo import api, fields, models
+from odoo import SUPERUSER_ID, api, fields, models
 
 _logger = logging.getLogger(__name__)
 
@@ -48,11 +48,13 @@ class EstateKitLog(models.Model):
     def log(self, category, summary, details=None, level="info", property_id=None):
         now = datetime.now()
         display = now.strftime("%d.%m.%Y %H:%M:%S.") + "%03d" % (now.microsecond // 1000)
-        self.sudo().create({
+        values = {
             "category": category,
             "summary": summary,
             "details": details,
             "level": level,
             "property_id": property_id,
             "timestamp_display": display,
-        })
+        }
+        with self.env.registry.cursor() as cr:
+            api.Environment(cr, SUPERUSER_ID, {})["estate.kit.log"].create(values)
