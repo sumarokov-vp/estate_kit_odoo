@@ -119,7 +119,12 @@ class EstateProperty(models.Model):
     )
     house_number = fields.Char(string="Дом")
     apartment_number = fields.Char(string="Квартира")
-    residential_complex = fields.Char(string="Жилой комплекс")
+    residential_complex_id = fields.Many2one(
+        "estate.residential.complex",
+        string="Жилой комплекс",
+        ondelete="restrict",
+        domain="[('city_id', '=', city_id)]",
+    )
 
     # === Геолокация ===
     latitude = fields.Float(string="Широта", digits=(10, 7))

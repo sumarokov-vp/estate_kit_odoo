@@ -1,6 +1,6 @@
 {
     "name": "Estate Kit",
-    "version": "19.0.1.14.0",
+    "version": "19.0.1.16.0",
     "category": "Real Estate",
     "summary": "Manage real estate properties",
     "description": """
@@ -11,6 +11,7 @@
         - Cities, districts and streets lookups
         - CRM integration for deals
         - Role-based access control
+        - Market snapshots from Krisha.kz for formula-based price scoring
     """,
     "author": "Estate Kit Team",
     "website": "",
@@ -31,9 +32,11 @@
         "data/estate_lead_match_stage_data.xml",
         "data/estate_deal_sequence.xml",
         "data/matching_cron.xml",
+        "data/market_snapshot_cron.xml",
         "views/estate_city_views.xml",
         "views/estate_district_views.xml",
         "views/estate_street_views.xml",
+        "views/estate_residential_complex_views.xml",
         "views/estate_source_views.xml",
         "views/estate_climate_equipment_views.xml",
         "views/estate_appliance_views.xml",
@@ -50,6 +53,7 @@
         "views/res_partner_views.xml",
         "views/res_config_settings_views.xml",
         "views/estate_deal_menus.xml",
+        "views/estate_market_snapshot_views.xml",
         "views/estate_menus.xml",
     ],
     "demo": [],

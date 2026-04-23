@@ -5,6 +5,7 @@ from . import (
     geography,
     lead,
     log,
+    market_snapshot,
     photo_upload,
     placement,
     public_view,

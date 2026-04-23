@@ -123,7 +123,7 @@
                                     <field name="street_id"/>
                                     <field name="house_number"/>
                                     <field name="apartment_number" invisible="property_type not in ('apartment', 'commercial')"/>
-                                    <field name="residential_complex"/>
+                                    <field name="residential_complex_id"/>
                                 </group>
                                 <group string="Координаты">
                                     <field name="latitude"/>
@@ -334,7 +334,7 @@
                 <field name="city_id" optional="hide"/>
                 <field name="district_id" optional="show"/>
                 <field name="street_id" optional="hide"/>
-                <field name="residential_complex" optional="hide"/>
+                <field name="residential_complex_id" optional="hide"/>
                 <field name="marketing_pool_score_display" optional="show"/>
                 <field name="condition" optional="hide"/>
                 <field name="building_type" optional="hide"/>
