@@ -1,5 +1,8 @@
 from dataclasses import dataclass
 
+from .config import DeviationBucket
+from .hedonic_factor import HedonicFactor
+
 
 @dataclass(frozen=True)
 class PriceScoreResult:
@@ -9,4 +12,5 @@ class PriceScoreResult:
     actual_per_sqm: float
     benchmark_snapshot_id: int
     hedonic_multiplier: float
-    hedonic_factors_applied: list[str]
+    hedonic_factors_applied: list[HedonicFactor]
+    bucket_applied: DeviationBucket

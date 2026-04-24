@@ -27,14 +27,15 @@ class PriceScoreCalculator:
         deviation = self._deviation_calculator.calculate(
             actual_per_sqm, expected_per_sqm,
         )
-        score = self._score_mapper.map(deviation)
+        bucket = self._score_mapper.map(deviation)
 
         return PriceScoreResult(
-            score=score,
+            score=bucket.score,
             deviation=deviation,
             expected_per_sqm=expected_per_sqm,
             actual_per_sqm=actual_per_sqm,
             benchmark_snapshot_id=benchmark.snapshot_id,
             hedonic_multiplier=hedonic_result.multiplier,
             hedonic_factors_applied=hedonic_result.factors_applied,
+            bucket_applied=bucket,
         )

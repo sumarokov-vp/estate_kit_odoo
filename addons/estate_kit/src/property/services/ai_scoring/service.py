@@ -5,6 +5,7 @@ from odoo.exceptions import UserError
 from .protocols import (
     IBenchmarkResolver,
     IMarketingPool,
+    IPriceBlockBuilder,
     IPriceScoreCalculator,
     IPropertyDataCollector,
     IScoringRequestLogger,
@@ -23,6 +24,7 @@ class AiScoringService:
         scoring_request_logger: IScoringRequestLogger,
         benchmark_resolver: IBenchmarkResolver,
         price_score_calculator: IPriceScoreCalculator,
+        price_block_builder: IPriceBlockBuilder,
         env,
     ) -> None:
         self._marketing_pool = marketing_pool
@@ -30,6 +32,7 @@ class AiScoringService:
         self._scoring_request_logger = scoring_request_logger
         self._benchmark_resolver = benchmark_resolver
         self._price_score_calculator = price_score_calculator
+        self._price_block_builder = price_block_builder
         self._env = env
 
     def score(self, property_id: int):
@@ -57,7 +60,10 @@ class AiScoringService:
                 "deviation": price_score_result.deviation,
                 "expected_per_sqm": price_score_result.expected_per_sqm,
                 "actual_per_sqm": price_score_result.actual_per_sqm,
-                "hedonic_factors_applied": price_score_result.hedonic_factors_applied,
+                "hedonic_factors_applied": [
+                    "%s ×%.2f" % (factor.reason, factor.multiplier)
+                    for factor in price_score_result.hedonic_factors_applied
+                ],
             }
 
         self._scoring_request_logger.log_request(Log, prop, property_data)
@@ -80,20 +86,30 @@ class AiScoringService:
             )
 
         if price_score_result is not None:
+            price_block = self._price_block_builder.build(
+                prop, benchmark, price_score_result,
+            )
             price_score = price_score_result.score
+            quality_text = result.get("quality_text", "").strip()
+            listing_text = result.get("listing_text", "").strip()
+            rationale = "%s\n\nКачество: %s\n\nКарточка: %s" % (
+                price_block.text,
+                quality_text,
+                listing_text,
+            )
         else:
             price_score = result.get("price_score", 1)
             rationale_suffix = (
                 "\n\n[Оценка без рыночных данных: нет снапшота рынка для района/типа]"
             )
-            result["rationale"] = (result.get("rationale") or "") + rationale_suffix
+            rationale = (result.get("rationale") or "") + rationale_suffix
 
         scoring = self._env["estate.property.scoring"].create({
             "property_id": prop.id,
             "price_score": price_score,
             "quality_score": result["quality_score"],
             "listing_score": result["listing_score"],
-            "rationale": result["rationale"],
+            "rationale": rationale,
         })
 
         price_source = "формула" if price_score_result is not None else "LLM"
@@ -107,7 +123,7 @@ class AiScoringService:
                 scoring.quality_score,
                 scoring.listing_score,
             ),
-            details=result.get("rationale", ""),
+            details=rationale,
             property_id=prop.id,
         )
         self._env.cr.commit()

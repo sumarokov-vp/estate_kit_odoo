@@ -18,5 +18,10 @@ class ScoringResponseParser:
                 score = int(result[key])
                 result[key] = max(1, min(10, score))
 
-        result["rationale"] = str(result.get("rationale", ""))
+        if "quality_text" in result:
+            result["quality_text"] = str(result.get("quality_text", ""))
+        if "listing_text" in result:
+            result["listing_text"] = str(result.get("listing_text", ""))
+        if "rationale" in result:
+            result["rationale"] = str(result.get("rationale", ""))
         return result

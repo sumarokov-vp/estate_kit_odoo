@@ -1,0 +1,6 @@
+from typing import Protocol
+
+
+class INumberFormatter(Protocol):
+    def format_integer(self, value: float) -> str: ...
+    def format_percent_signed(self, value: float) -> str: ...
