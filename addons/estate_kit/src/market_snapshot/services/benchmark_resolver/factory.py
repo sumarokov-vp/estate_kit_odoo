@@ -1,5 +1,6 @@
 from .aggregated_resolver import AggregatedResolver
 from .config import BenchmarkResolverConfig
+from .property_type_normalizer import PropertyTypeNormalizer
 from .sample_aggregator import SampleAggregator
 from .service import BenchmarkResolverService
 from .snapshot_lookup import SnapshotLookup
@@ -21,5 +22,6 @@ class Factory:
         return BenchmarkResolverService(
             lookup=lookup,
             aggregated_resolver=aggregated_resolver,
+            property_type_normalizer=PropertyTypeNormalizer(),
             config=config,
         )

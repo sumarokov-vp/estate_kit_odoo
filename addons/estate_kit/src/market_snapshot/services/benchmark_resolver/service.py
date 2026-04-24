@@ -1,6 +1,6 @@
 from .benchmark import MarketBenchmark
 from .config import BenchmarkResolverConfig
-from .protocols import IAggregatedResolver, ISnapshotLookup
+from .protocols import IAggregatedResolver, IPropertyTypeNormalizer, ISnapshotLookup
 
 
 class BenchmarkResolverService:
@@ -8,10 +8,12 @@ class BenchmarkResolverService:
         self,
         lookup: ISnapshotLookup,
         aggregated_resolver: IAggregatedResolver,
+        property_type_normalizer: IPropertyTypeNormalizer,
         config: BenchmarkResolverConfig,
     ) -> None:
         self._lookup = lookup
         self._aggregated_resolver = aggregated_resolver
+        self._property_type_normalizer = property_type_normalizer
         self._config = config
 
     def resolve(self, prop) -> MarketBenchmark | None:
@@ -20,7 +22,7 @@ class BenchmarkResolverService:
 
         city_id = prop.city_id.id
         district_id = prop.district_id.id if prop.district_id else None
-        property_type = prop.property_type
+        property_type = self._property_type_normalizer.normalize(prop.property_type)
         rooms = prop.rooms if prop.rooms else None
         window = self._config.window_days
 
