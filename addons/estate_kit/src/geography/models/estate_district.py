@@ -8,6 +8,14 @@ class EstateDistrict(models.Model):
 
     name = fields.Char(string="Название", required=True)
     code = fields.Char(string="Код", index=True)
+    krisha_name = fields.Char(
+        string="Имя на Krisha",
+        help=(
+            "Точное имя района как пишет Krisha (например, 'Алмалинский р-н'). "
+            "Используется sidecar-парсером market pricing для фильтра выдачи. "
+            "Если пусто — район не используется в сборе снапшотов."
+        ),
+    )
     city_id = fields.Many2one(
         "estate.city",
         string="Город",
