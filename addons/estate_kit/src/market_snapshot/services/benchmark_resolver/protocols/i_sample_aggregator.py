@@ -1,7 +1,9 @@
+from dataclasses import dataclass
 from typing import Protocol
 
 
-class AggregatedStats(Protocol):
+@dataclass(frozen=True)
+class AggregatedStats:
     sample_size: int
     median_price_per_sqm: float
     p25_price_per_sqm: float

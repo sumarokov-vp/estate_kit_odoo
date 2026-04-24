@@ -1,13 +1,6 @@
 import statistics
-from dataclasses import dataclass
 
-
-@dataclass(frozen=True)
-class AggregatedStats:
-    sample_size: int
-    median_price_per_sqm: float
-    p25_price_per_sqm: float
-    p75_price_per_sqm: float
+from .protocols import AggregatedStats
 
 
 class SampleAggregator:

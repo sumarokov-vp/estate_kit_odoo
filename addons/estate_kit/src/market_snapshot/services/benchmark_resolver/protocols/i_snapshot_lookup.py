@@ -1,5 +1,7 @@
 from typing import Protocol
 
+from .i_snapshot_record import ISnapshotRecord
+
 
 class ISnapshotLookup(Protocol):
     def find_latest(
@@ -9,7 +11,7 @@ class ISnapshotLookup(Protocol):
         property_type: str,
         rooms: int | None,
         max_age_days: int,
-    ): ...
+    ) -> ISnapshotRecord | None: ...
 
     def find_recent_samples(
         self,
@@ -21,4 +23,4 @@ class ISnapshotLookup(Protocol):
         limit: int,
     ) -> list[tuple[int, list[float]]]: ...
 
-    def browse_snapshot(self, snapshot_id: int): ...
+    def browse_snapshot(self, snapshot_id: int) -> ISnapshotRecord: ...
