@@ -50,7 +50,7 @@
         <field name="name">estate.market.snapshot.config.tree</field>
         <field name="model">estate.market.snapshot.config</field>
         <field name="arch" type="xml">
-            <list string="Конфигурация сбора снапшотов" editable="bottom">
+            <list string="Конфигурация сбора снапшотов">
                 <field name="active" widget="boolean_toggle"/>
                 <field name="city_id"/>
                 <field name="district_id"/>
@@ -61,10 +61,33 @@
         </field>
     </record>
 
+    <record id="estate_market_snapshot_config_form" model="ir.ui.view">
+        <field name="name">estate.market.snapshot.config.form</field>
+        <field name="model">estate.market.snapshot.config</field>
+        <field name="arch" type="xml">
+            <form string="Конфигурация сбора снапшота">
+                <sheet>
+                    <group>
+                        <group string="Срез">
+                            <field name="city_id"/>
+                            <field name="district_id"/>
+                            <field name="property_type"/>
+                            <field name="rooms"/>
+                        </group>
+                        <group string="Параметры сбора">
+                            <field name="max_pages"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="estate_market_snapshot_config_action" model="ir.actions.act_window">
         <field name="name">Настройка сбора снапшотов</field>
         <field name="res_model">estate.market.snapshot.config</field>
-        <field name="view_mode">list</field>
+        <field name="view_mode">list,form</field>
     </record>
 
 </odoo>

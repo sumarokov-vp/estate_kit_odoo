@@ -74,6 +74,12 @@ class EstateMarketSnapshot(models.Model):
     def init(self):
         self.env.cr.execute(
             """
+            ALTER TABLE estate_market_snapshot
+            ADD COLUMN IF NOT EXISTS samples_per_sqm double precision[]
+            """
+        )
+        self.env.cr.execute(
+            """
             CREATE INDEX IF NOT EXISTS estate_market_snapshot_lookup_idx
             ON estate_market_snapshot
                 (city_id, district_id, property_type, rooms, collected_at DESC)
