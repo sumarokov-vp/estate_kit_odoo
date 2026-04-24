@@ -50,10 +50,14 @@ class HtmlFallbackParser:
                 "price": price,
                 "city": "",
                 "address": "",
+                "address_title": "",
+                "address_struct": {},
                 "latitude": None,
                 "longitude": None,
                 "description": "",
                 "photo_urls": [],
+                "krisha_complex_id": None,
+                "residential_complex_name": None,
             })
 
         return items

@@ -1,7 +1,7 @@
 title: HtmlFallbackParser не отдаёт address_title/address_struct
-status: open
+status: done
 created_at: 23.04.2026
-completed_at: null
+completed_at: 24.04.2026
 
 description: |
   После унификации адресных полей в `AdvertCoreMapper`
@@ -10,11 +10,11 @@ description: |
 
   Но `src/property/services/krisha_scraping/html_fallback_parser.py`
   (fallback-ветка `ListingPageParser`, срабатывает когда jsdata
-  не извлёкся) возвращает только `address=""` и не кладёт
+  не извлёкся) возвращал только `address=""` и не клал
   `address_title` / `address_struct`.
 
   `FieldMapper` использует их через `.get(...)` с fallback'ами,
-  поэтому сейчас это не падает. Но контракт формально нарушен —
+  поэтому сейчас это не падало. Но контракт формально нарушен —
   потребителям приходится везде писать defensive `.get`.
 
 recommendation: |
@@ -23,3 +23,9 @@ recommendation: |
   - Либо извлечь формирование dict-ядра в отдельный helper-класс и
     использовать его и в jsdata-ветке, и в HTML-fallback.
   - Добавить тесты на оба парсера, чтобы контракт проверялся.
+
+solution: |
+  Добавил в `HtmlFallbackParser.parse` два недостающих поля:
+  `address_title: ""` и `address_struct: {}`, а также
+  `krisha_complex_id: None` и `residential_complex_name: None`
+  для полного соответствия контракту `AdvertCoreMapper`.
