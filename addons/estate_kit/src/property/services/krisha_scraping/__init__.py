@@ -8,7 +8,6 @@ from .http_fetcher import HttpFetcher
 from .http_session import HttpSession
 from .image_downloader import ImageDownloader
 from .jsdata_extractor import JsdataExtractor
-from .listing_advert_mapper import ListingAdvertMapper
 from .listing_page_parser import ListingPageParser
 from .price_parser import PriceParser
 from .protocols import (
@@ -22,7 +21,6 @@ from .protocols import (
     IHttpSession,
     IImageDownloader,
     IJsdataExtractor,
-    IListingAdvertMapper,
     IListingPageParser,
     IPriceParser,
     IResidentialComplexHtmlExtractor,
@@ -50,14 +48,12 @@ __all__ = [
     "IHttpSession",
     "IImageDownloader",
     "IJsdataExtractor",
-    "IListingAdvertMapper",
     "IListingPageParser",
     "IPriceParser",
     "IResidentialComplexHtmlExtractor",
     "IRoomsExtractor",
     "ImageDownloader",
     "JsdataExtractor",
-    "ListingAdvertMapper",
     "ListingPageParser",
     "PriceParser",
     "ResidentialComplexHtmlExtractor",

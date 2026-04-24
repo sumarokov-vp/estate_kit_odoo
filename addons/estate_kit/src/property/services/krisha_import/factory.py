@@ -9,7 +9,6 @@ from ..krisha_scraping import (
     HttpSession,
     ImageDownloader,
     JsdataExtractor,
-    ListingAdvertMapper,
     ListingPageParser,
     PriceParser,
     ResidentialComplexHtmlExtractor,
@@ -45,14 +44,9 @@ class Factory:
         price_parser = PriceParser()
         jsdata_extractor = JsdataExtractor()
         advert_core_mapper = AdvertCoreMapper(rooms_extractor, area_extractor)
-        listing_advert_mapper = ListingAdvertMapper(advert_core_mapper)
         detail_advert_mapper = DetailAdvertMapper(advert_core_mapper)
         html_fallback_parser = HtmlFallbackParser(rooms_extractor, price_parser)
-        listing_page_parser = ListingPageParser(
-            jsdata_extractor,
-            listing_advert_mapper,
-            html_fallback_parser,
-        )
+        listing_page_parser = ListingPageParser(html_fallback_parser)
         residential_complex_extractor = ResidentialComplexHtmlExtractor()
         info_extractor = AdvertInfoHtmlExtractor()
         advert_detail_parser = AdvertDetailParser(

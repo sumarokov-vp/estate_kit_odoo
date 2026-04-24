@@ -1,7 +1,7 @@
 title: window.data на Krisha больше не содержит adverts — основным стал HTML fallback
-status: open
+status: done
 created_at: 23.04.2026
-completed_at: null
+completed_at: 24.04.2026
 
 description: |
   На 23.04.2026 страницы листинга Krisha (`/prodazha/kvartiry/<city>/`)
@@ -9,8 +9,8 @@ description: |
   но в этом объекте теперь только конфиг SPA (search, category, app,
   baseHostname, ...). Ключа `adverts` в нём больше нет.
 
-  Из-за этого `JsdataExtractor` возвращает dict без `adverts` и
-  `ListingPageParser` попадает в HTML-fallback на КАЖДОМ запросе.
+  Из-за этого `JsdataExtractor` возвращал dict без `adverts` и
+  `ListingPageParser` попадал в HTML-fallback на КАЖДОМ запросе.
   До правки fallback не извлекал площадь и snapshot-сбор
   (`SnapshotCollectorService`) молча давал `sample_size=0`.
 
@@ -33,3 +33,15 @@ recommendation: |
     объявления (`AdvertDetailParser`): может ли быть, что там
     jsdata тоже опустел. Если да — импорт отдельных объектов тоже
     может молча недобирать поля.
+
+solution: |
+  Удалил мёртвую jsdata-ветку из `ListingPageParser`:
+  - `ListingPageParser` теперь принимает только `IHtmlFallbackParser`,
+    напрямую делает soup и вызывает fallback без условия
+  - Удалены `listing_advert_mapper.py` и `protocols/i_listing_advert_mapper.py`
+    (мёртвый код — `ListingAdvertMapper` больше не нужен)
+  - Удалены `IListingAdvertMapper` и `ListingAdvertMapper` из `__init__.py`
+    обоих пакетов
+  - Обновлена фабрика (`krisha_import/factory.py`)
+  - `JsdataExtractor` сохранён — он всё ещё используется в `AdvertDetailParser`
+    для страниц деталки объявления
