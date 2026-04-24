@@ -44,8 +44,7 @@ def migrate(cr, version):
 
 def _seed_almaty_krisha_names(cr):
     cr.execute(
-        "SELECT id FROM estate_city WHERE name->>'ru_RU' = 'Алматы' "
-        "OR name->>'en_US' = 'Алматы' LIMIT 1"
+        "SELECT id FROM estate_city WHERE name = 'Алматы' LIMIT 1"
     )
     row = cr.fetchone()
     if row is None:
@@ -67,8 +66,7 @@ def _seed_almaty_krisha_names(cr):
 
 def _drop_almaty_district_dupes(cr):
     cr.execute(
-        "SELECT id FROM estate_city WHERE name->>'ru_RU' = 'Алматы' "
-        "OR name->>'en_US' = 'Алматы' LIMIT 1"
+        "SELECT id FROM estate_city WHERE name = 'Алматы' LIMIT 1"
     )
     row = cr.fetchone()
     if row is None:
@@ -89,8 +87,7 @@ def _drop_almaty_district_dupes(cr):
 
 def _seed_astana_districts(cr):
     cr.execute(
-        "SELECT id FROM estate_city WHERE name->>'ru_RU' = 'Астана' "
-        "OR name->>'en_US' = 'Астана' LIMIT 1"
+        "SELECT id FROM estate_city WHERE name = 'Астана' LIMIT 1"
     )
     row = cr.fetchone()
     if row is None:
@@ -119,8 +116,7 @@ def _seed_astana_districts(cr):
 
 def _seed_market_snapshot_configs(cr):
     cr.execute(
-        "SELECT id, name->>'ru_RU' FROM estate_city WHERE name->>'ru_RU' "
-        "IN ('Алматы', 'Астана')"
+        "SELECT id, name FROM estate_city WHERE name IN ('Алматы', 'Астана')"
     )
     cities = {name: city_id for city_id, name in cr.fetchall()}
     if "Алматы" not in cities or "Астана" not in cities:
