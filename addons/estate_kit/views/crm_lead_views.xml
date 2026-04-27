@@ -11,6 +11,7 @@
             <xpath expr="//div[field[@name='partner_id']]" position="replace"/>
             <xpath expr="//div[field[@name='name']]" position="replace"/>
             <xpath expr="//div[field[@name='email_from']]" position="replace"/>
+            <xpath expr="//div[field[@name='phone']]" position="replace"/>
             <xpath expr="//div[div/field[@name='expected_revenue']]" position="replace"/>
 
             <!-- Add estate-specific fields -->
