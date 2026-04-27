@@ -2,6 +2,7 @@ from typing import Any
 
 import requests
 
+from .exceptions import MatchingServiceUnavailableError
 from .protocols import IHttpClient
 
 
@@ -12,7 +13,10 @@ class HttpClient:
 
     def post(self, path: str, body: dict[str, Any]) -> dict[str, Any]:
         url = self._base_url + path
-        response = requests.post(url, json=body, timeout=self._timeout)
+        try:
+            response = requests.post(url, json=body, timeout=self._timeout)
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as exc:
+            raise MatchingServiceUnavailableError(str(exc)) from exc
         response.raise_for_status()
         return response.json()
 

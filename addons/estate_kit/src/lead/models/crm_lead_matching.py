@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 from requests.exceptions import RequestException
 
 from ..services.lead_matcher import Factory as LeadMatcherFactory
-from ..services.matching_client import SearchCriteria
+from ..services.matching_client import MatchingServiceUnavailableError, SearchCriteria
 
 _logger = logging.getLogger(__name__)
 
@@ -41,6 +41,17 @@ class CrmLeadMatching(models.Model):
         service = LeadMatcherFactory.create(self.env)
         try:
             count = service.match(self.id, criteria)
+        except MatchingServiceUnavailableError as exc:
+            _logger.warning("Matching service unavailable for lead %s: %s", self.id, exc)
+            self.env["estate.kit.log"].log(
+                "matching",
+                "Сервис подбора недоступен для лида #%d" % self.id,
+                details=str(exc),
+                level="error",
+            )
+            raise UserError(
+                _("Сервис подбора временно недоступен. Обратитесь к администратору.")
+            )
         except RequestException as exc:
             detail = self._extract_error_detail(exc)
             _logger.warning("Matching service error for lead %s: %s", self.id, detail)

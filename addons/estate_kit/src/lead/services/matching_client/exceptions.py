@@ -1,0 +1,2 @@
+class MatchingServiceUnavailableError(Exception):
+    pass
