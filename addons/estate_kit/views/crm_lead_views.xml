@@ -20,6 +20,10 @@
                     <field name="contact_name" nolabel="1" placeholder="Имя клиента" class="o_field_highlight w-100 mb-0" required="1"/>
                 </div>
                 <div colspan="2" class="d-flex align-items-center">
+                    <i class="fa fa-phone" title="Телефон"/>
+                    <field name="phone" nolabel="1" placeholder="Телефон" class="o_field_highlight w-100 mb-0"/>
+                </div>
+                <div colspan="2" class="d-flex align-items-center">
                     <i class="fa fa-handshake-o" title="Тип сделки"/>
                     <field name="search_deal_type" nolabel="1" placeholder="Тип сделки" class="o_field_highlight w-100 mb-0"/>
                 </div>
@@ -107,13 +111,16 @@
                             <field name="search_district_ids" widget="many2many_tags"/>
                         </group>
                         <group>
-                            <field name="search_rooms_min"/>
-                            <field name="search_rooms_max"/>
+                            <field name="search_rooms_min" invisible="search_property_type == 'commercial'"/>
+                            <field name="search_rooms_max" invisible="search_property_type == 'commercial'"/>
+                            <field name="search_price_currency"/>
                             <field name="search_price_min"/>
                             <field name="search_price_max"/>
                             <field name="company_currency" invisible="1"/>
                             <field name="search_area_min"/>
                             <field name="search_area_max"/>
+                            <field name="search_land_area_min" invisible="search_property_type not in ('land', 'commercial', 'house')"/>
+                            <field name="search_land_area_max" invisible="search_property_type not in ('land', 'commercial', 'house')"/>
                         </group>
                     </group>
                     <group string="Примечания по поиску">

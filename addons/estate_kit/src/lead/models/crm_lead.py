@@ -7,6 +7,7 @@ from ..services.commission import Factory as CommissionFactory
 from ..services.deal_creator import Factory as DealCreatorFactory
 from ..services.deeplink_builder import DeeplinkBuilderService
 from ..services.lead_creator import Factory as LeadCreatorFactory
+from ..services.name_builder import Factory as NameBuilderFactory
 from ..services.price_estimation import Factory as PriceEstimationFactory
 
 
@@ -67,8 +68,15 @@ class CrmLead(models.Model):
     search_rooms_max = fields.Integer(string="Комнат до")
     search_price_min = fields.Monetary(string="Цена от", currency_field="company_currency")
     search_price_max = fields.Monetary(string="Цена до", currency_field="company_currency")
+    search_price_currency = fields.Selection(
+        [("USD", "USD $"), ("KZT", "KZT ₸")],
+        string="Валюта бюджета",
+        default="USD",
+    )
     search_area_min = fields.Float(string="Площадь от, м²", digits=(10, 1))
     search_area_max = fields.Float(string="Площадь до, м²", digits=(10, 1))
+    search_land_area_min = fields.Float(string="Площадь участка от, м²", digits=(10, 1))
+    search_land_area_max = fields.Float(string="Площадь участка до, м²", digits=(10, 1))
     search_notes = fields.Text(string="Примечания по поиску")
 
     company_currency = fields.Many2one(
@@ -155,12 +163,27 @@ class CrmLead(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        name_builder = NameBuilderFactory.create()
         for vals in vals_list:
-            if not vals.get("name") and vals.get("contact_name"):
-                vals["name"] = vals["contact_name"]
+            if not vals.get("name"):
+                generated = name_builder.build(
+                    vals.get("search_property_type"),
+                    vals.get("contact_name"),
+                )
+                if generated:
+                    vals["name"] = generated
         records = super().create(vals_list)
         LeadCreatorFactory.create(self.env).after_create(records)
         return records
+
+    @api.onchange("search_property_type", "contact_name", "partner_id")
+    def _onchange_auto_name(self):
+        name_builder = NameBuilderFactory.create()
+        for rec in self:
+            contact = rec.contact_name or (rec.partner_id.name if rec.partner_id else "")
+            generated = name_builder.build(rec.search_property_type, contact)
+            if generated:
+                rec.name = generated
 
     def action_set_won(self):
         result = super().action_set_won()
