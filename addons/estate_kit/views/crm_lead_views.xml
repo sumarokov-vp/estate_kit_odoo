@@ -183,6 +183,7 @@
                         <group>
                             <field name="lead_code" readonly="1"/>
                             <field name="deeplink_url" readonly="1" widget="CopyClipboardChar"/>
+                            <field name="lead_public_url" readonly="1" widget="CopyClipboardChar"/>
                         </group>
                         <group>
                             <field name="bot_connected"/>

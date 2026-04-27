@@ -2,6 +2,7 @@ import uuid
 
 from odoo import api, fields, models
 
+from ...public_view.services.url_builder import Factory as UrlBuilderFactory
 from ..services.bot_status_checker import BotStatusCheckerService
 from ..services.commission import Factory as CommissionFactory
 from ..services.deal_creator import Factory as DealCreatorFactory
@@ -118,6 +119,11 @@ class CrmLead(models.Model):
         string="Deeplink URL",
         compute="_compute_deeplink_url",
     )
+    lead_public_url = fields.Char(
+        string="Ссылка подборки",
+        compute="_compute_lead_public_url",
+        help="Публичная ссылка на подборку объектов для клиента (без авторизации).",
+    )
 
     _sql_constraints = [
         ("lead_code_unique", "UNIQUE(lead_code)", "Код лида должен быть уникальным"),
@@ -139,6 +145,14 @@ class CrmLead(models.Model):
         builder = DeeplinkBuilderService(bot_username)
         for rec in self:
             rec.deeplink_url = builder.build(rec.lead_code)
+
+    @api.depends("lead_code")
+    def _compute_lead_public_url(self):
+        url_builder = UrlBuilderFactory.create(self.env)
+        for rec in self:
+            rec.lead_public_url = (
+                url_builder.lead_matches_url(rec.lead_code) if rec.lead_code else False
+            )
 
     @api.depends("property_id.listing_price", "search_price_min", "search_price_max")
     def _compute_expected_revenue(self):

@@ -15,3 +15,6 @@ class UrlBuilderService:
 
     def public_view_url(self, token: str) -> str:
         return self.build(f"/estate_kit/view/{token}")
+
+    def lead_matches_url(self, token: str) -> str:
+        return self.build(f"/estate_kit/leads/{token}")

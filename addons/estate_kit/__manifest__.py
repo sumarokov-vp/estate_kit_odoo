@@ -41,6 +41,7 @@
         "views/estate_appliance_views.xml",
         "views/estate_property_views.xml",
         "views/public_view_templates.xml",
+        "views/lead_matches_public_template.xml",
         "views/estate_placement_views.xml",
         "views/estate_property_tier_views.xml",
         "views/estate_kit_log_views.xml",
