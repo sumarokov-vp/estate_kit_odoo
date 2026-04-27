@@ -11,14 +11,8 @@ class PartnerSearcher:
         if not normalized:
             return None
 
-        partners = self._env["res.partner"].search([
-            "|",
-            ("phone", "!=", False),
-            ("mobile", "!=", False),
-        ])
+        partners = self._env["res.partner"].search([("phone", "!=", False)])
         for partner in partners:
             if self._normalizer.normalize(partner.phone) == normalized:
-                return partner.id
-            if self._normalizer.normalize(partner.mobile) == normalized:
                 return partner.id
         return None
