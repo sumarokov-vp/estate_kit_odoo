@@ -135,6 +135,11 @@ class CrmLead(models.Model):
         for rec in self:
             rec.bot_connected = checker.is_connected(rec.telegram_user_id)
 
+    def action_generate_deeplink(self):
+        self.ensure_one()
+        if not self.lead_code:
+            self.lead_code = _short_uuid()
+
     @api.depends("lead_code")
     def _compute_deeplink_url(self):
         bot_username = (
