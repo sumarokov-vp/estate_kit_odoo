@@ -18,6 +18,7 @@ export class ImageGalleryField extends Component {
         this.orm = useService("orm");
         this.dialogService = useService("dialog");
         this.notification = useService("notification");
+        this.rpc = useService("rpc");
 
         this.state = useState({
             images: [],
@@ -83,6 +84,7 @@ export class ImageGalleryField extends Component {
             initialIndex: index,
             onSetMain: this.readonly ? null : (imageId) => this.setMainImage(imageId),
             onDelete: this.readonly ? null : (imageId) => this.deleteImage(imageId),
+            onRotate: this.readonly ? null : (imageId, degrees) => this.rotateImage(imageId, degrees),
         });
     }
 
@@ -114,6 +116,24 @@ export class ImageGalleryField extends Component {
         await this.orm.unlink("estate.property.image", [imageId]);
         await this.loadImages();
         this.notification.add("Фото удалено", { type: "warning" });
+    }
+
+    async rotateImage(imageId, degrees) {
+        try {
+            const result = await this.rpc("/estate_kit/image/rotate", {
+                image_id: imageId,
+                degrees,
+            });
+            if (result && result.success) {
+                await this.loadImages();
+                return result;
+            }
+            this.notification.add("Ошибка поворота фото", { type: "danger" });
+            return null;
+        } catch {
+            this.notification.add("Ошибка поворота фото", { type: "danger" });
+            return null;
+        }
     }
 
     async onReorder(draggedId, targetId, position) {

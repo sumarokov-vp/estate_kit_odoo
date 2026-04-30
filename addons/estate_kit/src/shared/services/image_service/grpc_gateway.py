@@ -47,3 +47,12 @@ class GrpcImageServiceGateway:
                 timeout=GRPC_TIMEOUT,
             )
             return list(response.results)
+
+    def rotate(self, key: str, degrees: int) -> bool:
+        with grpc.insecure_channel(self._address) as channel:
+            stub = image_service_pb2_grpc.ImageServiceStub(channel)
+            stub.RotateImageClockwise(  # type: ignore[attr-defined]
+                image_service_pb2.RotateImageClockwiseRequest(key=key, degrees=degrees),
+                timeout=GRPC_TIMEOUT,
+            )
+            return True

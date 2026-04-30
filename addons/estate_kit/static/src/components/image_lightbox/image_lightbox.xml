@@ -41,6 +41,22 @@
                             <i class="fa fa-star"/>
                         </button>
                         <button
+                            class="btn btn-sm btn-outline-secondary"
+                            t-on-click="rotateCounterClockwise"
+                            title="Повернуть против часовой"
+                            t-if="props.onRotate"
+                        >
+                            <i class="fa fa-undo"/>
+                        </button>
+                        <button
+                            class="btn btn-sm btn-outline-secondary"
+                            t-on-click="rotateClockwise"
+                            title="Повернуть по часовой"
+                            t-if="props.onRotate"
+                        >
+                            <i class="fa fa-repeat"/>
+                        </button>
+                        <button
                             class="btn btn-sm btn-outline-danger"
                             t-on-click="deleteImage"
                             title="Удалить"

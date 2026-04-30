@@ -29,3 +29,29 @@ class ImageController(http.Controller):
                 "Cache-Control": "private, max-age=3600",
             },
         )
+
+    @http.route(
+        "/estate_kit/image/rotate",
+        type="json",
+        auth="user",
+        methods=["POST"],
+    )
+    def rotate_image(self, image_id, degrees, **kwargs):
+        image = request.env["estate.property.image"].browse(image_id)
+        if not image.exists() or not image.image_key:
+            return {"success": False, "error": "Image not found"}
+
+        client = ImageServiceFactory.create(request.env)
+        success = client.rotate(image.image_key, degrees)
+        if not success:
+            return {"success": False, "error": "Rotation failed"}
+
+        return {
+            "success": True,
+            "full_url": f"/estate_kit/image/{image.image_key}",
+            "thumbnail_url": (
+                f"/estate_kit/image/{image.thumbnail_key}"
+                if image.thumbnail_key
+                else f"/estate_kit/image/{image.image_key}"
+            ),
+        }

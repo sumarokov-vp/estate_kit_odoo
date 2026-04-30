@@ -11,6 +11,7 @@ export class ImageLightbox extends Component {
         initialIndex: { type: Number, optional: true },
         onSetMain: { type: Function, optional: true },
         onDelete: { type: Function, optional: true },
+        onRotate: { type: Function, optional: true },
         close: Function,
     };
 
@@ -102,6 +103,32 @@ export class ImageLightbox extends Component {
             } else if (this.state.currentIndex >= this.state.images.length) {
                 this.state.currentIndex = this.state.images.length - 1;
             }
+        }
+    }
+
+    async rotateClockwise() {
+        await this._rotate(90);
+    }
+
+    async rotateCounterClockwise() {
+        await this._rotate(270);
+    }
+
+    async _rotate(degrees) {
+        if (!this.props.onRotate || !this.currentImage) return;
+        const imageId = this.currentImage.id;
+        const result = await this.props.onRotate(imageId, degrees);
+        if (result) {
+            const ts = Date.now();
+            this.state.images = this.state.images.map((img) =>
+                img.id === imageId
+                    ? {
+                          ...img,
+                          fullUrl: `${result.full_url}?t=${ts}`,
+                          thumbnailUrl: `${result.thumbnail_url}?t=${ts}`,
+                      }
+                    : img
+            );
         }
     }
 }

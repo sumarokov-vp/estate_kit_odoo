@@ -38,3 +38,10 @@ class ImageService:
         except grpc.RpcError:
             _logger.exception("Failed to delete images from Image Service")
             return [False] * len(keys)
+
+    def rotate(self, key: str, degrees: int) -> bool:
+        try:
+            return self._gateway.rotate(key, degrees)
+        except grpc.RpcError:
+            _logger.exception("Failed to rotate image %s in Image Service", key)
+            return False
