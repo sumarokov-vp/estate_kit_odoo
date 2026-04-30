@@ -127,8 +127,8 @@ class ImageServiceServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def RotateImageClockwise(self, request, context):
-        """Rotates the image in-place: overwrites the original file at the same key.
-        The original is permanently replaced by the rotated version.
+        """Rotates the image: uploads under a new key, deletes the old key, regenerates thumbnail.
+        Returns new keys for both the rotated image and its thumbnail.
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')

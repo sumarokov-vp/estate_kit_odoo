@@ -113,12 +113,16 @@ class RotateImageClockwiseRequest(_message.Message):
     def __init__(self, key: _Optional[str] = ..., degrees: _Optional[int] = ...) -> None: ...
 
 class RotateImageClockwiseResponse(_message.Message):
-    __slots__ = ("key", "url")
+    __slots__ = ("key", "url", "thumbnail_key", "thumbnail_url")
     KEY_FIELD_NUMBER: _ClassVar[int]
     URL_FIELD_NUMBER: _ClassVar[int]
+    THUMBNAIL_KEY_FIELD_NUMBER: _ClassVar[int]
+    THUMBNAIL_URL_FIELD_NUMBER: _ClassVar[int]
     key: str
     url: str
-    def __init__(self, key: _Optional[str] = ..., url: _Optional[str] = ...) -> None: ...
+    thumbnail_key: str
+    thumbnail_url: str
+    def __init__(self, key: _Optional[str] = ..., url: _Optional[str] = ..., thumbnail_key: _Optional[str] = ..., thumbnail_url: _Optional[str] = ...) -> None: ...
 
 class HealthCheckRequest(_message.Message):
     __slots__ = ()
