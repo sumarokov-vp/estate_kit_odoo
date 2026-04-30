@@ -9,7 +9,6 @@ from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import runtime_version as _runtime_version
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
-
 _runtime_version.ValidateProtobufRuntimeVersion(
     _runtime_version.Domain.PUBLIC,
     6,
@@ -25,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13image_service.proto\x12\rimage_service\"T\n\x12UploadImageRequest\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x14\n\x0c\x63ontent_type\x18\x02 \x01(\t\x12\x1a\n\x12generate_thumbnail\x18\x03 \x01(\x08\"]\n\x13UploadImageResponse\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0b\n\x03url\x18\x02 \x01(\t\x12\x15\n\rthumbnail_key\x18\x03 \x01(\t\x12\x15\n\rthumbnail_url\x18\x04 \x01(\t\"H\n\x13UploadImagesRequest\x12\x31\n\x06images\x18\x01 \x03(\x0b\x32!.image_service.UploadImageRequest\"K\n\x14UploadImagesResponse\x12\x33\n\x07results\x18\x01 \x03(\x0b\x32\".image_service.UploadImageResponse\"\x1e\n\x0fGetImageRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"6\n\x10GetImageResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x14\n\x0c\x63ontent_type\x18\x02 \x01(\t\" \n\x10GetImagesRequest\x12\x0c\n\x04keys\x18\x01 \x03(\t\"E\n\x11GetImagesResponse\x12\x30\n\x07results\x18\x01 \x03(\x0b\x32\x1f.image_service.GetImageResponse\"=\n\x12GetImageUrlRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1a\n\x12\x65xpires_in_seconds\x18\x02 \x01(\x05\"\"\n\x13GetImageUrlResponse\x12\x0b\n\x03url\x18\x01 \x01(\t\"!\n\x12\x44\x65leteImageRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"&\n\x13\x44\x65leteImageResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"#\n\x13\x44\x65leteImagesRequest\x12\x0c\n\x04keys\x18\x01 \x03(\t\"\'\n\x14\x44\x65leteImagesResponse\x12\x0f\n\x07results\x18\x01 \x03(\x08\"\x14\n\x12HealthCheckRequest\"7\n\x13HealthCheckResponse\x12\x0f\n\x07healthy\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2\xb5\x05\n\x0cImageService\x12T\n\x0bUploadImage\x12!.image_service.UploadImageRequest\x1a\".image_service.UploadImageResponse\x12W\n\x0cUploadImages\x12\".image_service.UploadImagesRequest\x1a#.image_service.UploadImagesResponse\x12K\n\x08GetImage\x12\x1e.image_service.GetImageRequest\x1a\x1f.image_service.GetImageResponse\x12N\n\tGetImages\x12\x1f.image_service.GetImagesRequest\x1a .image_service.GetImagesResponse\x12T\n\x0bGetImageUrl\x12!.image_service.GetImageUrlRequest\x1a\".image_service.GetImageUrlResponse\x12T\n\x0b\x44\x65leteImage\x12!.image_service.DeleteImageRequest\x1a\".image_service.DeleteImageResponse\x12W\n\x0c\x44\x65leteImages\x12\".image_service.DeleteImagesRequest\x1a#.image_service.DeleteImagesResponse\x12T\n\x0bHealthCheck\x12!.image_service.HealthCheckRequest\x1a\".image_service.HealthCheckResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x13image_service.proto\x12\rimage_service\"T\n\x12UploadImageRequest\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x14\n\x0c\x63ontent_type\x18\x02 \x01(\t\x12\x1a\n\x12generate_thumbnail\x18\x03 \x01(\x08\"]\n\x13UploadImageResponse\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0b\n\x03url\x18\x02 \x01(\t\x12\x15\n\rthumbnail_key\x18\x03 \x01(\t\x12\x15\n\rthumbnail_url\x18\x04 \x01(\t\"H\n\x13UploadImagesRequest\x12\x31\n\x06images\x18\x01 \x03(\x0b\x32!.image_service.UploadImageRequest\"K\n\x14UploadImagesResponse\x12\x33\n\x07results\x18\x01 \x03(\x0b\x32\".image_service.UploadImageResponse\"\x1e\n\x0fGetImageRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"6\n\x10GetImageResponse\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\x14\n\x0c\x63ontent_type\x18\x02 \x01(\t\" \n\x10GetImagesRequest\x12\x0c\n\x04keys\x18\x01 \x03(\t\"E\n\x11GetImagesResponse\x12\x30\n\x07results\x18\x01 \x03(\x0b\x32\x1f.image_service.GetImageResponse\"=\n\x12GetImageUrlRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x1a\n\x12\x65xpires_in_seconds\x18\x02 \x01(\x05\"\"\n\x13GetImageUrlResponse\x12\x0b\n\x03url\x18\x01 \x01(\t\"!\n\x12\x44\x65leteImageRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\"&\n\x13\x44\x65leteImageResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"#\n\x13\x44\x65leteImagesRequest\x12\x0c\n\x04keys\x18\x01 \x03(\t\"\'\n\x14\x44\x65leteImagesResponse\x12\x0f\n\x07results\x18\x01 \x03(\x08\";\n\x1bRotateImageClockwiseRequest\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0f\n\x07\x64\x65grees\x18\x02 \x01(\x05\"8\n\x1cRotateImageClockwiseResponse\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\x0b\n\x03url\x18\x02 \x01(\t\"\x14\n\x12HealthCheckRequest\"7\n\x13HealthCheckResponse\x12\x0f\n\x07healthy\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2\xa6\x06\n\x0cImageService\x12T\n\x0bUploadImage\x12!.image_service.UploadImageRequest\x1a\".image_service.UploadImageResponse\x12W\n\x0cUploadImages\x12\".image_service.UploadImagesRequest\x1a#.image_service.UploadImagesResponse\x12K\n\x08GetImage\x12\x1e.image_service.GetImageRequest\x1a\x1f.image_service.GetImageResponse\x12N\n\tGetImages\x12\x1f.image_service.GetImagesRequest\x1a .image_service.GetImagesResponse\x12T\n\x0bGetImageUrl\x12!.image_service.GetImageUrlRequest\x1a\".image_service.GetImageUrlResponse\x12T\n\x0b\x44\x65leteImage\x12!.image_service.DeleteImageRequest\x1a\".image_service.DeleteImageResponse\x12W\n\x0c\x44\x65leteImages\x12\".image_service.DeleteImagesRequest\x1a#.image_service.DeleteImagesResponse\x12o\n\x14RotateImageClockwise\x12*.image_service.RotateImageClockwiseRequest\x1a+.image_service.RotateImageClockwiseResponse\x12T\n\x0bHealthCheck\x12!.image_service.HealthCheckRequest\x1a\".image_service.HealthCheckResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -60,10 +59,14 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_DELETEIMAGESREQUEST']._serialized_end=772
   _globals['_DELETEIMAGESRESPONSE']._serialized_start=774
   _globals['_DELETEIMAGESRESPONSE']._serialized_end=813
-  _globals['_HEALTHCHECKREQUEST']._serialized_start=815
-  _globals['_HEALTHCHECKREQUEST']._serialized_end=835
-  _globals['_HEALTHCHECKRESPONSE']._serialized_start=837
-  _globals['_HEALTHCHECKRESPONSE']._serialized_end=892
-  _globals['_IMAGESERVICE']._serialized_start=895
-  _globals['_IMAGESERVICE']._serialized_end=1588
+  _globals['_ROTATEIMAGECLOCKWISEREQUEST']._serialized_start=815
+  _globals['_ROTATEIMAGECLOCKWISEREQUEST']._serialized_end=874
+  _globals['_ROTATEIMAGECLOCKWISERESPONSE']._serialized_start=876
+  _globals['_ROTATEIMAGECLOCKWISERESPONSE']._serialized_end=932
+  _globals['_HEALTHCHECKREQUEST']._serialized_start=934
+  _globals['_HEALTHCHECKREQUEST']._serialized_end=954
+  _globals['_HEALTHCHECKRESPONSE']._serialized_start=956
+  _globals['_HEALTHCHECKRESPONSE']._serialized_end=1011
+  _globals['_IMAGESERVICE']._serialized_start=1014
+  _globals['_IMAGESERVICE']._serialized_end=1820
 # @@protoc_insertion_point(module_scope)
