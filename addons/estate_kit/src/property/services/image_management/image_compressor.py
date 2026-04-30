@@ -1,7 +1,7 @@
 import io
 import logging
 
-from PIL import Image
+from PIL import Image, ImageOps
 
 try:
     from pillow_heif import register_heif_opener
@@ -19,6 +19,7 @@ JPEG_QUALITY = 80
 class ImageCompressor:
     def compress(self, data: bytes) -> tuple[bytes, str]:
         image = Image.open(io.BytesIO(data))
+        image = ImageOps.exif_transpose(image)
 
         if image.mode in ("RGBA", "P", "LA"):
             background = Image.new("RGB", image.size, (255, 255, 255))
