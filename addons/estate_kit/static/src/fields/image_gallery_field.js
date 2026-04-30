@@ -4,6 +4,7 @@ import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { Component, useState, onWillUpdateProps } from "@odoo/owl";
 import { useService } from "@web/core/utils/hooks";
+import { rpc } from "@web/core/network/rpc";
 import { ImageGallery } from "../components/image_gallery/image_gallery";
 import { ImageLightbox } from "../components/image_lightbox/image_lightbox";
 
@@ -18,7 +19,6 @@ export class ImageGalleryField extends Component {
         this.orm = useService("orm");
         this.dialogService = useService("dialog");
         this.notification = useService("notification");
-        this.rpc = useService("rpc");
 
         this.state = useState({
             images: [],
@@ -120,7 +120,7 @@ export class ImageGalleryField extends Component {
 
     async rotateImage(imageId, degrees) {
         try {
-            const result = await this.rpc("/estate_kit/image/rotate", {
+            const result = await rpc("/estate_kit/image/rotate", {
                 image_id: imageId,
                 degrees,
             });
