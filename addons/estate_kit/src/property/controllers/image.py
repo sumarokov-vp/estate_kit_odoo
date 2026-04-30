@@ -42,16 +42,23 @@ class ImageController(http.Controller):
             return {"success": False, "error": "Image not found"}
 
         client = ImageServiceFactory.create(request.env)
-        success = client.rotate(image.image_key, degrees)
-        if not success:
+        result = client.rotate(image.image_key, degrees)
+        if not result:
             return {"success": False, "error": "Rotation failed"}
+
+        new_key = result["key"]
+        new_thumbnail_key = result.get("thumbnail_key") or ""
+        image.write({
+            "image_key": new_key,
+            "thumbnail_key": new_thumbnail_key or image.thumbnail_key,
+        })
 
         return {
             "success": True,
-            "full_url": f"/estate_kit/image/{image.image_key}",
+            "full_url": f"/estate_kit/image/{new_key}",
             "thumbnail_url": (
-                f"/estate_kit/image/{image.thumbnail_key}"
-                if image.thumbnail_key
-                else f"/estate_kit/image/{image.image_key}"
+                f"/estate_kit/image/{new_thumbnail_key}"
+                if new_thumbnail_key
+                else f"/estate_kit/image/{new_key}"
             ),
         }
