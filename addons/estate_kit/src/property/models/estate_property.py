@@ -394,6 +394,7 @@ class EstateProperty(models.Model):
         ],
         string="Тип договора",
     )
+    contract_number = fields.Char(string="Номер договора")
     contract_start = fields.Date(string="Начало договора")
     contract_end = fields.Date(string="Окончание договора")
 
@@ -537,6 +538,10 @@ class EstateProperty(models.Model):
     # Actions — state machine delegates
     # =========================================================================
 
+    def action_generate_contract_number(self):
+        for record in self:
+            record.contract_number = self.env["ir.sequence"].next_by_code("estate.property.contract")
+
     def action_promote_imported_to_draft(self):
         self._svc.state_machine.promote_imported_to_draft(self)
 
@@ -548,6 +553,9 @@ class EstateProperty(models.Model):
 
     def action_approve(self):
         self._svc.state_machine.approve(self)
+
+    def action_return_to_review(self):
+        self._svc.state_machine.return_to_review(self)
 
     def action_send_to_mls(self):
         self._svc.state_machine.send_to_mls(self)
