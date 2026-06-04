@@ -1,4 +1,9 @@
-from .protocols import IApiActionCaller, IApiSync, IStateTransitioner
+from .protocols import (
+    IApiActionCaller,
+    IApiSync,
+    IContractFieldsValidator,
+    IStateTransitioner,
+)
 
 
 class StateMachineService:
@@ -7,10 +12,12 @@ class StateMachineService:
         state_transitioner: IStateTransitioner,
         api_action_caller: IApiActionCaller,
         api_sync: IApiSync,
+        contract_fields_validator: IContractFieldsValidator,
     ) -> None:
         self._state_transitioner = state_transitioner
         self._api_action_caller = api_action_caller
         self._api_sync = api_sync
+        self._contract_fields_validator = contract_fields_validator
 
     def promote_imported_to_draft(self, records) -> None:
         self._state_transitioner.transition(
@@ -31,9 +38,16 @@ class StateMachineService:
         )
 
     def approve(self, records) -> None:
+        self._contract_fields_validator.validate(records)
         self._state_transitioner.transition(
             records, "internal_review", "active",
             "Одобрить можно только объект на внутренней проверке.",
+        )
+
+    def return_to_review(self, records) -> None:
+        self._state_transitioner.transition(
+            records, "active", "internal_review",
+            "Вернуть на проверку можно только объект в продаже.",
         )
 
     def send_to_mls(self, records) -> None:

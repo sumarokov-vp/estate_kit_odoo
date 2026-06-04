@@ -1,6 +1,7 @@
 from ....shared.services.api_client import EstateKitApiClient
 from ..api_sync import Factory as ApiSyncFactory
 from .api_action_caller import ApiActionCaller
+from .contract_fields_validator import ContractFieldsValidator
 from .service import StateMachineService
 from .state_transitioner import StateTransitioner
 
@@ -12,4 +13,10 @@ class Factory:
         api_sync = ApiSyncFactory.create(env)
         state_transitioner = StateTransitioner()
         api_action_caller = ApiActionCaller(api_client)
-        return StateMachineService(state_transitioner, api_action_caller, api_sync)
+        contract_fields_validator = ContractFieldsValidator()
+        return StateMachineService(
+            state_transitioner,
+            api_action_caller,
+            api_sync,
+            contract_fields_validator,
+        )
