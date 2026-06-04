@@ -185,6 +185,19 @@ ALTER TABLE party ADD COLUMN x_telegram_id BIGINT;
 
 `addons/estate_kit/services/` — старые сервисы, не привязанные к домену. Новые сервисы создавать ТОЛЬКО в `src/<domain>/services/`. При рефакторинге — переносить из `services/` в соответствующий домен.
 
+## Документация
+
+Документы модуля — в `addons/estate_kit/docs/`:
+
+| Документ | Описание |
+|----------|----------|
+| [USER_ONBOARDING.md](addons/estate_kit/docs/USER_ONBOARDING.md) | Настройка нового пользователя (роли, команда CRM, **обязательный перезапуск сервера** при настройке через shell/SQL) |
+| [DATA_MODEL.md](addons/estate_kit/docs/DATA_MODEL.md) | Модель данных, EAV-атрибуты |
+| [INTEGRATIONS.md](addons/estate_kit/docs/INTEGRATIONS.md) | Интеграции (API, S3, 2GIS, Krysha) |
+| [LEAD_SERVICES.md](addons/estate_kit/docs/LEAD_SERVICES.md) | Сервисы домена лидов |
+| [MARKET_PRICING.md](addons/estate_kit/docs/MARKET_PRICING.md) | Рыночное ценообразование |
+| [ATTRIBUTES.md](addons/estate_kit/docs/ATTRIBUTES.md) · [SPECIFICATION.md](addons/estate_kit/docs/SPECIFICATION.md) | Атрибуты и спецификация |
+
 ## Скиллы
 
 | Скилл | Описание |
