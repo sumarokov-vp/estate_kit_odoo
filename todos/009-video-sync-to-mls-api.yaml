@@ -1,0 +1,33 @@
+title: Синхронизация видео объектов в центральный MLS API
+status: open
+created_at: 04.06.2026
+completed_at: null
+
+description: |
+  При добавлении поддержки видео (модель `estate.property.image`, поля
+  `media_type`/`video_key`/`poster_key`) синхронизация видео в центральный MLS API
+  сознательно НЕ реализована — видео грузятся на S3 через ImageService gRPC
+  (UploadVideo) и хранятся только локально в Odoo.
+
+  `ImageSyncService.push_images_for_property` фильтрует записи по
+  `image_key != False`, поэтому видео-записи (с пустым `image_key`) автоматически
+  не попадают в push — синк фото не ломается. Но и видео в MLS не уезжает.
+
+  Если потребуется отдавать видео потребителям MLS (боты, листинг-агенты),
+  нужно:
+  - согласовать в `api/` эндпоинт (`/property-videos` или расширение
+    `/property-images` полем media_type + video/poster ключи);
+  - расширить `ImageSyncService` (push/pull/delete) для видео;
+  - в `ImageDeleter` подключить удаление видео из API (сейчас
+    `api_images_to_delete` для видео не заполняется).
+
+recommendation: |
+  Сначала описать контракт в документации API (источник правды), затем
+  реализовать в api/, после — в Odoo `ImageSyncService`. До этого видео
+  остаётся локальной фичей Odoo-CRM.
+
+  Попутно: рукописный `generated/image_service_pb2_grpc.pyi` пришлось править
+  вручную при синхронизации pb2 (добавлены video-методы и RotateImageClockwise).
+  Стоит автоматизировать генерацию `.pyi` стаба, чтобы он не расходился с pb2.
+  Также избыточным стал `# type: ignore[attr-defined]` на `rotate` в
+  `grpc_gateway.py` — можно убрать.
