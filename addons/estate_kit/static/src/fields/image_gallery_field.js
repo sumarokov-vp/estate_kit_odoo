@@ -56,21 +56,48 @@ export class ImageGalleryField extends Component {
             const images = await this.orm.searchRead(
                 "estate.property.image",
                 [["property_id", "=", propertyId]],
-                ["id", "name", "sequence", "is_main", "image_key", "thumbnail_key"],
+                [
+                    "id",
+                    "name",
+                    "sequence",
+                    "is_main",
+                    "media_type",
+                    "image_key",
+                    "thumbnail_key",
+                    "video_key",
+                    "poster_key",
+                ],
                 { order: "sequence, id" }
             );
 
-            this.state.images = images.map((img) => ({
-                ...img,
-                thumbnailUrl: img.thumbnail_key
-                    ? `/estate_kit/image/${img.thumbnail_key}`
-                    : img.image_key
+            this.state.images = images.map((img) => {
+                const isVideo = img.media_type === "video";
+                if (isVideo) {
+                    return {
+                        ...img,
+                        isVideo: true,
+                        thumbnailUrl: img.poster_key
+                            ? `/estate_kit/image/${img.poster_key}`
+                            : "",
+                        videoUrl: img.video_key
+                            ? `/estate_kit/video/${img.video_key}`
+                            : "",
+                        fullUrl: "",
+                    };
+                }
+                return {
+                    ...img,
+                    isVideo: false,
+                    thumbnailUrl: img.thumbnail_key
+                        ? `/estate_kit/image/${img.thumbnail_key}`
+                        : img.image_key
+                            ? `/estate_kit/image/${img.image_key}`
+                            : "",
+                    fullUrl: img.image_key
                         ? `/estate_kit/image/${img.image_key}`
                         : "",
-                fullUrl: img.image_key
-                    ? `/estate_kit/image/${img.image_key}`
-                    : "",
-            }));
+                };
+            });
         } catch {
             this.state.images = [];
         }
@@ -92,14 +119,23 @@ export class ImageGalleryField extends Component {
         const propertyId = this.props.record.resId;
         if (!propertyId) return;
 
+        // Open window synchronously before async call — mobile Safari blocks
+        // window.open() when invoked after an await (loses the user gesture context)
+        const win = window.open("", "_blank");
+
         try {
             const url = await this.orm.call(
                 "estate.property.upload.token",
                 "generate_token",
                 [propertyId],
             );
-            window.open(url, "_blank");
+            if (win) {
+                win.location.href = url;
+            } else {
+                window.location.href = url;
+            }
         } catch {
+            if (win) win.close();
             this.notification.add("Ошибка генерации ссылки", { type: "danger" });
         }
     }

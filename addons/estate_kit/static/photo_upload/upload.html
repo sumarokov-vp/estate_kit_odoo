@@ -180,12 +180,12 @@ body {
   <div class="upload-section">
     <div class="file-input-wrapper">
       <label class="select-btn" id="selectBtn">
-        Выбрать фотографии
-        <input type="file" id="photoInput" multiple accept="image/*">
+        Выбрать фото или видео
+        <input type="file" id="photoInput" multiple accept="image/*,video/*">
       </label>
     </div>
 
-    <button class="upload-btn" id="uploadBtn" disabled>Загрузить фотографии</button>
+    <button class="upload-btn" id="uploadBtn" disabled>Загрузить</button>
 
     <div class="progress-section" id="progressSection">
       <div class="progress-bar">
@@ -218,12 +218,12 @@ body {
   photoInput.addEventListener('change', function() {
     var count = photoInput.files.length;
     if (count > 0) {
-      selectBtn.textContent = count + ' фото выбрано';
+      selectBtn.textContent = count + ' файлов выбрано';
       selectBtn.classList.add('has-files');
       selectBtn.appendChild(photoInput);
       uploadBtn.disabled = false;
     } else {
-      selectBtn.textContent = 'Выбрать фотографии';
+      selectBtn.textContent = 'Выбрать фото или видео';
       selectBtn.classList.remove('has-files');
       selectBtn.appendChild(photoInput);
       uploadBtn.disabled = true;
@@ -284,7 +284,7 @@ body {
     function showResult() {
       resultSection.classList.add('visible');
       if (completed > 0) {
-        resultSuccess.textContent = 'Загружено ' + completed + ' из ' + total + ' фотографий';
+        resultSuccess.textContent = 'Загружено ' + completed + ' из ' + total + ' файлов';
         resultSuccess.style.display = 'block';
       } else {
         resultSuccess.style.display = 'none';

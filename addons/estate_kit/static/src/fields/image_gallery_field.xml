@@ -19,7 +19,7 @@
                 <t t-if="!readonly">
                     <div class="o_image_gallery_actions mt-3">
                         <button class="btn btn-secondary" t-on-click="onAddImage">
-                            <i class="fa fa-plus me-1"/>Добавить фото
+                            <i class="fa fa-plus me-1"/>Добавить фото или видео
                         </button>
                     </div>
                 </t>

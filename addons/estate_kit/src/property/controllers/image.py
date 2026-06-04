@@ -2,6 +2,7 @@ import logging
 
 from odoo import http
 from odoo.http import Response, request
+from werkzeug.utils import redirect as _wz_redirect
 
 from ...shared.services.image_service import Factory as ImageServiceFactory
 
@@ -29,6 +30,20 @@ class ImageController(http.Controller):
                 "Cache-Control": "private, max-age=3600",
             },
         )
+
+    @http.route(
+        "/estate_kit/video/<path:key>",
+        type="http",
+        auth="user",
+        methods=["GET"],
+    )
+    def get_video(self, key, **kwargs):
+        client = ImageServiceFactory.create(request.env)
+        url = client.get_video_url(key)
+        if not url:
+            return request.not_found()
+
+        return _wz_redirect(url, code=302)
 
     @http.route(
         "/estate_kit/image/rotate",

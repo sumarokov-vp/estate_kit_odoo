@@ -124,6 +124,68 @@ class RotateImageClockwiseResponse(_message.Message):
     thumbnail_url: str
     def __init__(self, key: _Optional[str] = ..., url: _Optional[str] = ..., thumbnail_key: _Optional[str] = ..., thumbnail_url: _Optional[str] = ...) -> None: ...
 
+class UploadVideoRequest(_message.Message):
+    __slots__ = ("data", "content_type", "generate_poster")
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    GENERATE_POSTER_FIELD_NUMBER: _ClassVar[int]
+    data: bytes
+    content_type: str
+    generate_poster: bool
+    def __init__(self, data: _Optional[bytes] = ..., content_type: _Optional[str] = ..., generate_poster: bool = ...) -> None: ...
+
+class UploadVideoResponse(_message.Message):
+    __slots__ = ("key", "url", "poster_key", "poster_url")
+    KEY_FIELD_NUMBER: _ClassVar[int]
+    URL_FIELD_NUMBER: _ClassVar[int]
+    POSTER_KEY_FIELD_NUMBER: _ClassVar[int]
+    POSTER_URL_FIELD_NUMBER: _ClassVar[int]
+    key: str
+    url: str
+    poster_key: str
+    poster_url: str
+    def __init__(self, key: _Optional[str] = ..., url: _Optional[str] = ..., poster_key: _Optional[str] = ..., poster_url: _Optional[str] = ...) -> None: ...
+
+class GetVideoRequest(_message.Message):
+    __slots__ = ("key",)
+    KEY_FIELD_NUMBER: _ClassVar[int]
+    key: str
+    def __init__(self, key: _Optional[str] = ...) -> None: ...
+
+class GetVideoResponse(_message.Message):
+    __slots__ = ("data", "content_type")
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    CONTENT_TYPE_FIELD_NUMBER: _ClassVar[int]
+    data: bytes
+    content_type: str
+    def __init__(self, data: _Optional[bytes] = ..., content_type: _Optional[str] = ...) -> None: ...
+
+class GetVideoUrlRequest(_message.Message):
+    __slots__ = ("key", "expires_in_seconds")
+    KEY_FIELD_NUMBER: _ClassVar[int]
+    EXPIRES_IN_SECONDS_FIELD_NUMBER: _ClassVar[int]
+    key: str
+    expires_in_seconds: int
+    def __init__(self, key: _Optional[str] = ..., expires_in_seconds: _Optional[int] = ...) -> None: ...
+
+class GetVideoUrlResponse(_message.Message):
+    __slots__ = ("url",)
+    URL_FIELD_NUMBER: _ClassVar[int]
+    url: str
+    def __init__(self, url: _Optional[str] = ...) -> None: ...
+
+class DeleteVideoRequest(_message.Message):
+    __slots__ = ("key",)
+    KEY_FIELD_NUMBER: _ClassVar[int]
+    key: str
+    def __init__(self, key: _Optional[str] = ...) -> None: ...
+
+class DeleteVideoResponse(_message.Message):
+    __slots__ = ("success",)
+    SUCCESS_FIELD_NUMBER: _ClassVar[int]
+    success: bool
+    def __init__(self, success: bool = ...) -> None: ...
+
 class HealthCheckRequest(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...

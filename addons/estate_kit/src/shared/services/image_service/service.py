@@ -45,3 +45,31 @@ class ImageService:
         except grpc.RpcError:
             _logger.exception("Failed to rotate image %s in Image Service", key)
             return None
+
+    def upload_video(self, data: bytes, content_type: str, generate_poster: bool = True) -> dict | None:
+        try:
+            return self._gateway.upload_video(data, content_type, generate_poster)
+        except grpc.RpcError:
+            _logger.exception("Failed to upload video to Image Service")
+            return None
+
+    def download_video(self, key: str) -> tuple[bytes, str] | None:
+        try:
+            return self._gateway.download_video(key)
+        except grpc.RpcError:
+            _logger.exception("Failed to download video %s from Image Service", key)
+            return None
+
+    def get_video_url(self, key: str, expires_in_seconds: int = 3600) -> str | None:
+        try:
+            return self._gateway.get_video_url(key, expires_in_seconds)
+        except grpc.RpcError:
+            _logger.exception("Failed to get video url %s from Image Service", key)
+            return None
+
+    def delete_video(self, key: str) -> bool:
+        try:
+            return self._gateway.delete_video(key)
+        except grpc.RpcError:
+            _logger.exception("Failed to delete video %s from Image Service", key)
+            return False

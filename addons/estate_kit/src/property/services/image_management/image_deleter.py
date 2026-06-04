@@ -10,6 +10,10 @@ class ImageDeleter:
         keys_to_delete = []
         api_images_to_delete = []
         for rec in records:
+            if rec.media_type == "video" or rec.video_key:
+                if rec.video_key:
+                    self._image_service.delete_video(rec.video_key)
+                continue
             if rec.image_key:
                 keys_to_delete.append(rec.image_key)
             if rec.thumbnail_key:

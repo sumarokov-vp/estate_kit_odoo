@@ -4,6 +4,7 @@ from .image_compressor import ImageCompressor
 from .image_deleter import ImageDeleter
 from .image_uploader import ImageUploader
 from .service import ImageManagementService
+from .video_uploader import VideoUploader
 
 
 class Factory:
@@ -14,4 +15,5 @@ class Factory:
         compressor = ImageCompressor()
         image_uploader = ImageUploader(image_service, compressor)
         image_deleter = ImageDeleter(image_service, image_sync)
-        return ImageManagementService(image_uploader, image_deleter)
+        video_uploader = VideoUploader(image_service)
+        return ImageManagementService(image_uploader, image_deleter, video_uploader)

@@ -7,7 +7,7 @@ RUN pip3 install --no-cache-dir --break-system-packages --ignore-installed \
     packaging \
     beautifulsoup4 \
     "grpcio>=1.70.0" \
-    "protobuf>=5.29.0"
+    "protobuf>=6.33.5"
 
 # Copy custom addons
 COPY ./addons /mnt/extra-addons

@@ -30,6 +30,36 @@ class ImageServiceStub:
         timeout: float | None = ...,
         metadata: Any = ...,
     ) -> image_service_pb2.DeleteImagesResponse: ...
+    def RotateImageClockwise(
+        self,
+        request: image_service_pb2.RotateImageClockwiseRequest,
+        timeout: float | None = ...,
+        metadata: Any = ...,
+    ) -> image_service_pb2.RotateImageClockwiseResponse: ...
+    def UploadVideo(
+        self,
+        request: image_service_pb2.UploadVideoRequest,
+        timeout: float | None = ...,
+        metadata: Any = ...,
+    ) -> image_service_pb2.UploadVideoResponse: ...
+    def GetVideo(
+        self,
+        request: image_service_pb2.GetVideoRequest,
+        timeout: float | None = ...,
+        metadata: Any = ...,
+    ) -> image_service_pb2.GetVideoResponse: ...
+    def GetVideoUrl(
+        self,
+        request: image_service_pb2.GetVideoUrlRequest,
+        timeout: float | None = ...,
+        metadata: Any = ...,
+    ) -> image_service_pb2.GetVideoUrlResponse: ...
+    def DeleteVideo(
+        self,
+        request: image_service_pb2.DeleteVideoRequest,
+        timeout: float | None = ...,
+        metadata: Any = ...,
+    ) -> image_service_pb2.DeleteVideoResponse: ...
     def HealthCheck(
         self,
         request: image_service_pb2.HealthCheckRequest,

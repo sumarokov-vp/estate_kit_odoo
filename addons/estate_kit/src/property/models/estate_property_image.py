@@ -15,8 +15,14 @@ class EstatePropertyImage(models.Model):
         index=True,
     )
     name = fields.Char()
+    media_type = fields.Selection(
+        [("image", "Image"), ("video", "Video")],
+        default="image",
+    )
     image_key = fields.Char("Image Key", copy=False)
     thumbnail_key = fields.Char("Thumbnail Key", copy=False)
+    video_key = fields.Char("Video Key", copy=False)
+    poster_key = fields.Char("Poster Key", copy=False)
     sequence = fields.Integer(default=10)
     is_main = fields.Boolean(
         string="Main Image",
@@ -31,6 +37,10 @@ class EstatePropertyImage(models.Model):
             image_data = vals.pop("image_data", None)
             if image_data and not vals.get("image_key"):
                 svc.upload(vals, image_data)
+            video_data = vals.pop("video_data", None)
+            video_content_type = vals.pop("video_content_type", None)
+            if video_data and not vals.get("video_key"):
+                svc.upload_video(vals, video_data, video_content_type)
         return super().create(vals_list)
 
     def unlink(self):

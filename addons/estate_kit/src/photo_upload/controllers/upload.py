@@ -79,32 +79,48 @@ class PhotoUploadController(http.Controller):
             )
 
         content_type = photo.content_type or ""
-        if not content_type.startswith("image/"):
+        is_video = content_type.startswith("video/")
+        is_image = content_type.startswith("image/")
+        if not is_video and not is_image:
             return Response(
-                json.dumps({"error": "Допускаются только изображения"}),
+                json.dumps({"error": "Допускаются только изображения и видео"}),
                 status=400,
                 content_type="application/json",
             )
 
         file_data = photo.read()
-        max_size = 20 * 1024 * 1024
-        if len(file_data) > max_size:
-            return Response(
-                json.dumps({"error": "Файл слишком большой (макс. 20 МБ)"}),
-                status=400,
-                content_type="application/json",
-            )
+        if is_video:
+            max_size = 200 * 1024 * 1024
+            if len(file_data) > max_size:
+                return Response(
+                    json.dumps({"error": "Файл слишком большой (макс. 200 МБ)"}),
+                    status=400,
+                    content_type="application/json",
+                )
+            vals = {
+                "name": photo.filename or "video",
+                "media_type": "video",
+                "video_data": file_data,
+                "video_content_type": content_type,
+            }
+        else:
+            max_size = 20 * 1024 * 1024
+            if len(file_data) > max_size:
+                return Response(
+                    json.dumps({"error": "Файл слишком большой (макс. 20 МБ)"}),
+                    status=400,
+                    content_type="application/json",
+                )
+            vals = {
+                "name": photo.filename or "photo",
+                "image_data": file_data,
+            }
 
         property_id = token_record.property_id.id
+        vals["property_id"] = property_id
 
         try:
-            request.env["estate.property.image"].sudo().create(
-                {
-                    "property_id": property_id,
-                    "name": photo.filename or "photo",
-                    "image_data": file_data,
-                }
-            )
+            request.env["estate.property.image"].sudo().create(vals)
         except Exception:
             _logger.exception("Failed to upload photo for property %s", property_id)
             return Response(

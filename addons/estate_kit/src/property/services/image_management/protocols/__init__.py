@@ -3,5 +3,13 @@ from .i_image_deleter import IImageDeleter
 from .i_image_service import IImageService
 from .i_image_sync import IImageSync
 from .i_image_uploader import IImageUploader
+from .i_video_uploader import IVideoUploader
 
-__all__ = ["IImageCompressor", "IImageDeleter", "IImageService", "IImageSync", "IImageUploader"]
+__all__ = [
+    "IImageCompressor",
+    "IImageDeleter",
+    "IImageService",
+    "IImageSync",
+    "IImageUploader",
+    "IVideoUploader",
+]

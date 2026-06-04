@@ -11,11 +11,22 @@
                     </t>
 
                     <div class="o_lightbox_image_container">
-                        <img
-                            t-att-src="currentImage.fullUrl"
-                            t-att-alt="currentImage.name || 'Фото'"
-                            class="o_lightbox_image"
-                        />
+                        <t t-if="currentImage.isVideo">
+                            <video
+                                t-att-src="currentImage.videoUrl"
+                                t-att-poster="currentImage.thumbnailUrl"
+                                class="o_lightbox_image"
+                                controls="controls"
+                                preload="metadata"
+                            />
+                        </t>
+                        <t t-else="">
+                            <img
+                                t-att-src="currentImage.fullUrl"
+                                t-att-alt="currentImage.name || 'Фото'"
+                                class="o_lightbox_image"
+                            />
+                        </t>
                     </div>
 
                     <t t-if="hasMultipleImages">
@@ -36,7 +47,7 @@
                             t-att-class="currentImage.is_main ? 'btn-warning' : 'btn-outline-warning'"
                             t-on-click="setAsMain"
                             title="Сделать главным"
-                            t-if="props.onSetMain"
+                            t-if="props.onSetMain and !currentImage.isVideo"
                         >
                             <i class="fa fa-star"/>
                         </button>
@@ -44,7 +55,7 @@
                             class="btn btn-sm btn-outline-secondary"
                             t-on-click="rotateCounterClockwise"
                             title="Повернуть против часовой"
-                            t-if="props.onRotate"
+                            t-if="props.onRotate and !currentImage.isVideo"
                         >
                             <i class="fa fa-undo"/>
                         </button>
@@ -52,7 +63,7 @@
                             class="btn btn-sm btn-outline-secondary"
                             t-on-click="rotateClockwise"
                             title="Повернуть по часовой"
-                            t-if="props.onRotate"
+                            t-if="props.onRotate and !currentImage.isVideo"
                         >
                             <i class="fa fa-repeat"/>
                         </button>

@@ -5,7 +5,7 @@
             <t t-if="props.images.length === 0">
                 <div class="o_image_gallery_empty text-muted text-center p-4">
                     <i class="fa fa-image fa-3x mb-2"/>
-                    <p>Нет фотографий</p>
+                    <p>Нет медиафайлов</p>
                 </div>
             </t>
             <t t-else="">
@@ -24,18 +24,30 @@
                                 class="o_image_gallery_thumbnail"
                                 t-on-click="() => this.props.onImageClick(image, image_index)"
                             >
-                                <img
-                                    t-att-src="image.thumbnailUrl"
-                                    t-att-alt="image.name || 'Фото'"
-                                    loading="lazy"
-                                />
+                                <t t-if="image.isVideo and !image.thumbnailUrl">
+                                    <div class="o_image_video_placeholder">
+                                        <i class="fa fa-film fa-2x"/>
+                                    </div>
+                                </t>
+                                <t t-else="">
+                                    <img
+                                        t-att-src="image.thumbnailUrl"
+                                        t-att-alt="image.name || 'Медиа'"
+                                        loading="lazy"
+                                    />
+                                </t>
                                 <t t-if="image.is_main">
                                     <span class="o_image_main_badge" title="Главное фото">
                                         <i class="fa fa-star"/>
                                     </span>
                                 </t>
+                                <t t-if="image.isVideo">
+                                    <span class="o_image_video_badge" title="Видео">
+                                        <i class="fa fa-play"/>
+                                    </span>
+                                </t>
                                 <div class="o_image_overlay">
-                                    <i class="fa fa-search-plus"/>
+                                    <i t-att-class="image.isVideo ? 'fa fa-play-circle' : 'fa fa-search-plus'"/>
                                 </div>
                             </div>
                             <div class="o_image_gallery_item_name" t-if="image.name">

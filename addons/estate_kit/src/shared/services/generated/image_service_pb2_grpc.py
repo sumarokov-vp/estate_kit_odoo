@@ -74,6 +74,26 @@ class ImageServiceStub(object):
                 request_serializer=image__service__pb2.RotateImageClockwiseRequest.SerializeToString,
                 response_deserializer=image__service__pb2.RotateImageClockwiseResponse.FromString,
                 _registered_method=True)
+        self.UploadVideo = channel.unary_unary(
+                '/image_service.ImageService/UploadVideo',
+                request_serializer=image__service__pb2.UploadVideoRequest.SerializeToString,
+                response_deserializer=image__service__pb2.UploadVideoResponse.FromString,
+                _registered_method=True)
+        self.GetVideo = channel.unary_unary(
+                '/image_service.ImageService/GetVideo',
+                request_serializer=image__service__pb2.GetVideoRequest.SerializeToString,
+                response_deserializer=image__service__pb2.GetVideoResponse.FromString,
+                _registered_method=True)
+        self.GetVideoUrl = channel.unary_unary(
+                '/image_service.ImageService/GetVideoUrl',
+                request_serializer=image__service__pb2.GetVideoUrlRequest.SerializeToString,
+                response_deserializer=image__service__pb2.GetVideoUrlResponse.FromString,
+                _registered_method=True)
+        self.DeleteVideo = channel.unary_unary(
+                '/image_service.ImageService/DeleteVideo',
+                request_serializer=image__service__pb2.DeleteVideoRequest.SerializeToString,
+                response_deserializer=image__service__pb2.DeleteVideoResponse.FromString,
+                _registered_method=True)
         self.HealthCheck = channel.unary_unary(
                 '/image_service.ImageService/HealthCheck',
                 request_serializer=image__service__pb2.HealthCheckRequest.SerializeToString,
@@ -134,6 +154,31 @@ class ImageServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def UploadVideo(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetVideo(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetVideoUrl(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DeleteVideo(self, request, context):
+        """Deletes both the video and its generated poster frame.
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
     def HealthCheck(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -182,6 +227,26 @@ def add_ImageServiceServicer_to_server(servicer, server):
                     servicer.RotateImageClockwise,
                     request_deserializer=image__service__pb2.RotateImageClockwiseRequest.FromString,
                     response_serializer=image__service__pb2.RotateImageClockwiseResponse.SerializeToString,
+            ),
+            'UploadVideo': grpc.unary_unary_rpc_method_handler(
+                    servicer.UploadVideo,
+                    request_deserializer=image__service__pb2.UploadVideoRequest.FromString,
+                    response_serializer=image__service__pb2.UploadVideoResponse.SerializeToString,
+            ),
+            'GetVideo': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetVideo,
+                    request_deserializer=image__service__pb2.GetVideoRequest.FromString,
+                    response_serializer=image__service__pb2.GetVideoResponse.SerializeToString,
+            ),
+            'GetVideoUrl': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetVideoUrl,
+                    request_deserializer=image__service__pb2.GetVideoUrlRequest.FromString,
+                    response_serializer=image__service__pb2.GetVideoUrlResponse.SerializeToString,
+            ),
+            'DeleteVideo': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeleteVideo,
+                    request_deserializer=image__service__pb2.DeleteVideoRequest.FromString,
+                    response_serializer=image__service__pb2.DeleteVideoResponse.SerializeToString,
             ),
             'HealthCheck': grpc.unary_unary_rpc_method_handler(
                     servicer.HealthCheck,
@@ -405,6 +470,114 @@ class ImageService(object):
             '/image_service.ImageService/RotateImageClockwise',
             image__service__pb2.RotateImageClockwiseRequest.SerializeToString,
             image__service__pb2.RotateImageClockwiseResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UploadVideo(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/image_service.ImageService/UploadVideo',
+            image__service__pb2.UploadVideoRequest.SerializeToString,
+            image__service__pb2.UploadVideoResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetVideo(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/image_service.ImageService/GetVideo',
+            image__service__pb2.GetVideoRequest.SerializeToString,
+            image__service__pb2.GetVideoResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetVideoUrl(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/image_service.ImageService/GetVideoUrl',
+            image__service__pb2.GetVideoUrlRequest.SerializeToString,
+            image__service__pb2.GetVideoUrlResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DeleteVideo(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/image_service.ImageService/DeleteVideo',
+            image__service__pb2.DeleteVideoRequest.SerializeToString,
+            image__service__pb2.DeleteVideoResponse.FromString,
             options,
             channel_credentials,
             insecure,
