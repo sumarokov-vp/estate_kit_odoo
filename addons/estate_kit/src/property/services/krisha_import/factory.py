@@ -28,6 +28,7 @@ from .photo_importer import PhotoImporter
 from .property_creator import PropertyCreator
 from .residential_complex_resolver import ResidentialComplexResolver
 from .service import KrishaImportService
+from .single_item_importer import SingleItemImporter
 from .street_resolver import StreetResolver
 from .transaction_scope import TransactionScope
 
@@ -77,13 +78,17 @@ class Factory:
         photo_importer = PhotoImporter(env, image_downloader)
         logger = ImportLogger(env)
         transaction_scope = TransactionScope(env)
-        return KrishaImportService(
-            config_provider,
-            listing_fetcher,
+        single_item_importer = SingleItemImporter(
             detail_fetcher,
             duplicate_checker,
             property_creator,
             photo_importer,
             logger,
             transaction_scope,
+        )
+        return KrishaImportService(
+            config_provider,
+            listing_fetcher,
+            single_item_importer,
+            logger,
         )

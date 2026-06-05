@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form: Wizard импорта по ссылке -->
+    <record id="view_krisha_import_wizard_form" model="ir.ui.view">
+        <field name="name">estate.krisha.import.wizard.form</field>
+        <field name="model">estate.krisha.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Импорт по ссылке">
+                <sheet>
+                    <group>
+                        <field name="url" placeholder="https://krisha.kz/a/show/..."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_import" string="Импортировать" type="object" class="btn-primary"/>
+                    <button string="Отмена" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action для открытия wizard -->
+    <record id="action_krisha_import_by_link" model="ir.actions.act_window">
+        <field name="name">Импорт по ссылке</field>
+        <field name="res_model">estate.krisha.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

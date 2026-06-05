@@ -68,4 +68,8 @@ action = {
     <menuitem id="estate_menu_market_krisha_import" name="Импорт с Krisha" parent="estate_menu_market"
         action="action_krisha_import_now" sequence="30"
         groups="group_estate_team_lead,group_estate_marketing_lead"/>
+
+    <menuitem id="estate_menu_market_krisha_import_by_link" name="Импорт по ссылке" parent="estate_menu_market"
+        action="action_krisha_import_by_link" sequence="40"
+        groups="group_estate_team_lead,group_estate_marketing_lead"/>
 </odoo>

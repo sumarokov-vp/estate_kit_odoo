@@ -150,3 +150,5 @@ access_market_snapshot_marketing_viewer,estate.market.snapshot.marketing_viewer,
 access_market_snapshot_base,estate.market.snapshot.base,model_estate_market_snapshot,base.group_user,1,0,0,0
 access_market_snapshot_config_team_lead,estate.market.snapshot.config.team_lead,model_estate_market_snapshot_config,group_estate_team_lead,1,1,1,1
 access_market_snapshot_config_marketing_lead,estate.market.snapshot.config.marketing_lead,model_estate_market_snapshot_config,group_estate_marketing_lead,1,1,1,0
+access_krisha_import_wizard_team_lead,estate.krisha.import.wizard.team_lead,model_estate_krisha_import_wizard,group_estate_team_lead,1,1,1,1
+access_krisha_import_wizard_marketing_lead,estate.krisha.import.wizard.marketing_lead,model_estate_krisha_import_wizard,group_estate_marketing_lead,1,1,1,1

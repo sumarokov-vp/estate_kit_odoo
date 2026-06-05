@@ -11,6 +11,7 @@ from .i_page_url_builder import IPageUrlBuilder
 from .i_photo_importer import IPhotoImporter
 from .i_property_creator import IPropertyCreator
 from .i_residential_complex_resolver import IResidentialComplexResolver
+from .i_single_item_importer import ISingleItemImporter
 from .i_street_resolver import IStreetResolver
 from .i_transaction_scope import ITransactionScope
 
@@ -28,6 +29,7 @@ __all__ = [
     "IPhotoImporter",
     "IPropertyCreator",
     "IResidentialComplexResolver",
+    "ISingleItemImporter",
     "IStreetResolver",
     "ITransactionScope",
 ]

@@ -3,15 +3,11 @@ import logging
 
 from .protocols import (
     IConfigProvider,
-    IDetailFetcher,
-    IDuplicateChecker,
     IImportLogger,
     IListingFetcher,
-    IPhotoImporter,
-    IPropertyCreator,
-    ITransactionScope,
+    ISingleItemImporter,
 )
-from .result import KrishaImportResult
+from .result import KrishaImportResult, SingleImportResult
 
 _logger = logging.getLogger(__name__)
 
@@ -23,21 +19,17 @@ class KrishaImportService:
         self,
         config_provider: IConfigProvider,
         listing_fetcher: IListingFetcher,
-        detail_fetcher: IDetailFetcher,
-        duplicate_checker: IDuplicateChecker,
-        property_creator: IPropertyCreator,
-        photo_importer: IPhotoImporter,
+        single_item_importer: ISingleItemImporter,
         logger: IImportLogger,
-        transaction_scope: ITransactionScope,
     ) -> None:
         self._config_provider = config_provider
         self._listing_fetcher = listing_fetcher
-        self._detail_fetcher = detail_fetcher
-        self._duplicate_checker = duplicate_checker
-        self._property_creator = property_creator
-        self._photo_importer = photo_importer
+        self._single_item_importer = single_item_importer
         self._logger = logger
-        self._transaction_scope = transaction_scope
+
+    def import_one(self, url: str) -> SingleImportResult:
+        _logger.info("Krisha single import: %s", url)
+        return self._single_item_importer.import_one(url)
 
     def import_batch(self) -> KrishaImportResult:
         config = self._config_provider.load()
@@ -101,34 +93,12 @@ class KrishaImportService:
                 overall_index += 1
                 url = item.get("url", "")
                 _logger.info("Krisha import [%d]: %s", overall_index, url)
-                try:
-                    if self._duplicate_checker.is_imported(url):
-                        _logger.info("Krisha import [%d]: duplicate %s", overall_index, url)
-                        self._logger.log_duplicate(url)
-                        duplicates += 1
-                        continue
-                    with self._transaction_scope.savepoint():
-                        detail = self._detail_fetcher.fetch(url)
-                        detail["url"] = url
-                        property_id = self._property_creator.create(detail)
-                        self._photo_importer.import_photos(property_id, detail.get("photo_urls", []))
-                    self._transaction_scope.commit()
-                    _logger.info(
-                        "Krisha import [%d]: imported property_id=%s url=%s",
-                        overall_index,
-                        property_id,
-                        url,
-                    )
-                    self._logger.log_success(url, property_id, detail)
+                result = self._single_item_importer.import_one(url)
+                if result.is_imported:
                     imported += 1
-                except Exception as exc:
-                    _logger.exception(
-                        "Krisha import [%d]: error url=%s: %s",
-                        overall_index,
-                        url,
-                        exc,
-                    )
-                    self._logger.log_error(url, exc)
+                elif result.is_duplicate:
+                    duplicates += 1
+                else:
                     errors += 1
 
             if limit_reached:
