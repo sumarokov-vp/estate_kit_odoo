@@ -1,7 +1,7 @@
 title: Закрепить в модуле снятие дефолтного фильтра воронки CRM
-status: open
+status: done
 created_at: 04.06.2026
-completed_at: null
+completed_at: 05.06.2026
 
 description: |
   Стандартное действие воронки CRM (crm.crm_lead_action_pipeline, на проде
@@ -31,4 +31,20 @@ recommendation: |
   Связано: см. память odoo19_group_assignment (кэш воркеров после смены прав,
   членство в команде crm.team.member, ACL групп Sales 17/18).
 
-solution: null
+solution: |
+  Создан data-файл addons/estate_kit/data/crm_pipeline_action.xml с
+  переопределением стандартного действия воронки CRM:
+
+    <record id="crm.crm_lead_action_pipeline" model="ir.actions.act_window">
+      <field name="context">{'default_type': 'opportunity', 'show_user_team_stages': 1}</field>
+    </record>
+
+  Файл зарегистрирован в __manifest__.py (data, после data/crm_stages.xml).
+  Версия модуля поднята 19.0.1.28.0 → 19.0.1.29.0.
+
+  Так как context переопределяется через XML-record модуля estate_kit, при
+  апгрейде модуля crm Odoo больше не вернёт фильтр 'search_default_assigned_to_me'
+  — наше значение применяется поверх стандартного при загрузке estate_kit.
+
+  Осталось (деплой): задеплоить и обновить estate_kit (-u), затем проверить под
+  учёткой менеджера, что воронка открывается без фильтра «Моя воронка».

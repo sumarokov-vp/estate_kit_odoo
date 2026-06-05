@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Снимаем дефолтный фильтр "Моя воронка" со стандартного действия CRM.
+
+        Стандартное crm.crm_lead_action_pipeline содержит в context
+        'search_default_assigned_to_me': 1 — из-за этого менеджер по умолчанию
+        видит только свои заявки, и воронка выглядит пустой, если заявки
+        назначены на других. Менеджеры Sales/All Documents должны видеть всю
+        воронку команды сразу.
+
+        Переопределение в estate_kit, чтобы изменение пережило апгрейды модуля crm
+        (иначе Odoo при апгрейде вернёт фильтр обратно).
+        См. задачу todos/008-crm-pipeline-default-filter.yaml
+    -->
+    <record id="crm.crm_lead_action_pipeline" model="ir.actions.act_window">
+        <field name="context">{'default_type': 'opportunity', 'show_user_team_stages': 1}</field>
+    </record>
+</odoo>
