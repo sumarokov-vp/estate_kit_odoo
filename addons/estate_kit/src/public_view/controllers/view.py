@@ -1,16 +1,34 @@
 import json
 import logging
-from typing import cast
 
 from markupsafe import Markup
 from odoo import http
 from odoo.http import Response, request
 
+from ...property.services.public_card_renderer import (
+    Factory as PublicCardRendererFactory,
+)
+from ...property.services.similar_picker import Factory as SimilarPickerFactory
 from ...shared.services.image_service import Factory as ImageServiceFactory
+from ..services.similar_card_builder import Factory as SimilarCardBuilderFactory
 
 _logger = logging.getLogger(__name__)
 
 _MAIN_IMAGE_BIAS = -1000
+
+_PUBLIC_STATES = frozenset(
+    {
+        "active",
+        "published",
+        "unpublished",
+        "sold",
+        "mls_listed",
+        "mls_removed",
+        "mls_sold",
+    }
+)
+
+_SIMILAR_LIMIT = 6
 
 
 class PublicViewController(http.Controller):
@@ -28,6 +46,16 @@ class PublicViewController(http.Controller):
             return request.not_found()
 
         prop = token_record.property_id
+        if prop.state not in _PUBLIC_STATES:
+            return request.not_found()
+
+        env = request.env
+        card = PublicCardRendererFactory.create(env).render(prop, token)
+        similar_recs = SimilarPickerFactory.create(env).pick(
+            prop, limit=_SIMILAR_LIMIT
+        )
+        similar = SimilarCardBuilderFactory.create(env).build(similar_recs)
+
         images = self._sorted_images(prop)
         company_name, company_logo = self._company_info()
         values = {
@@ -35,12 +63,17 @@ class PublicViewController(http.Controller):
             "token": token,
             "address": self._build_address(prop),
             "price_text": self._format_price(prop),
-            "characteristics": self._collect_characteristics(prop),
-            "features": self._collect_features(prop),
             "images": images,
             "images_json": Markup(self._images_json(token, images)),
             "company_name": company_name,
             "company_logo": company_logo,
+            "type_label": card.type_label,
+            "state_badge": card.state_badge,
+            "metrics": card.metrics,
+            "sections": card.sections,
+            "features": card.features,
+            "contact": card.contact,
+            "similar": similar,
         }
         html = request.env["ir.qweb"]._render(
             "estate_kit.public_view_page", values
@@ -170,85 +203,3 @@ class PublicViewController(http.Controller):
             b64 = raw.decode("ascii") if isinstance(raw, bytes) else raw
             logo = f"data:image/png;base64,{b64}"
         return company.name, logo
-
-    @classmethod
-    def _collect_characteristics(cls, prop):
-        rows = []
-        cls._append(rows, "Тип объекта", cls._sel_label(prop, "property_type"))
-        cls._append(rows, "Тип сделки", cls._sel_label(prop, "deal_type"))
-        if prop.rooms:
-            cls._append(rows, "Комнат", str(prop.rooms))
-        if prop.bedrooms:
-            cls._append(rows, "Спален", str(prop.bedrooms))
-        if prop.area_total:
-            cls._append(rows, "Общая площадь", f"{prop.area_total:g} м²")
-        if prop.area_living:
-            cls._append(rows, "Жилая площадь", f"{prop.area_living:g} м²")
-        if prop.area_kitchen:
-            cls._append(rows, "Площадь кухни", f"{prop.area_kitchen:g} м²")
-        if prop.area_land:
-            cls._append(rows, "Площадь участка", f"{prop.area_land:g} соток")
-        if prop.floor or prop.floors_total:
-            floor = prop.floor or "—"
-            total = prop.floors_total or "—"
-            cls._append(rows, "Этаж", f"{floor} / {total}")
-        if prop.year_built:
-            cls._append(rows, "Год постройки", str(prop.year_built))
-        cls._append(rows, "Тип строения", cls._sel_label(prop, "building_type"))
-        cls._append(rows, "Материал стен", cls._sel_label(prop, "wall_material"))
-        if prop.ceiling_height:
-            cls._append(rows, "Высота потолков", f"{prop.ceiling_height:g} м")
-        cls._append(rows, "Состояние", cls._sel_label(prop, "condition"))
-        cls._append(rows, "Санузел", cls._sel_label(prop, "bathroom"))
-        if prop.bathroom_count:
-            cls._append(rows, "Количество санузлов", str(prop.bathroom_count))
-        cls._append(rows, "Балкон", cls._sel_label(prop, "balcony"))
-        cls._append(rows, "Парковка", cls._sel_label(prop, "parking"))
-        cls._append(rows, "Мебель", cls._sel_label(prop, "furniture"))
-        cls._append(rows, "Отопление", cls._sel_label(prop, "heating"))
-        cls._append(rows, "Водоснабжение", cls._sel_label(prop, "water"))
-        cls._append(rows, "Канализация", cls._sel_label(prop, "sewage"))
-        cls._append(rows, "Газ", cls._sel_label(prop, "gas"))
-        cls._append(rows, "Интернет", cls._sel_label(prop, "internet"))
-        if prop.residential_complex_id:
-            cls._append(rows, "Жилой комплекс", prop.residential_complex_id.name)
-        return rows
-
-    @staticmethod
-    def _collect_features(prop):
-        bools = [
-            ("security_intercom", "Домофон"),
-            ("security_guard", "Охрана"),
-            ("security_video", "Видеонаблюдение"),
-            ("security_concierge", "Консьерж"),
-            ("isolated_rooms", "Изолированные комнаты"),
-            ("storage", "Кладовка"),
-            ("quiet_yard", "Тихий двор"),
-            ("kitchen_studio", "Кухня-студия"),
-            ("new_plumbing", "Новая сантехника"),
-            ("built_in_kitchen", "Встроенная кухня"),
-            ("balcony_glazed", "Балкон застеклён"),
-            ("not_corner", "Не угловая"),
-        ]
-        features = [label for field, label in bools if getattr(prop, field, False)]
-        features.extend(e.name for e in prop.climate_equipment_ids)
-        features.extend(a.name for a in prop.appliance_ids)
-        features.extend(t.name for t in prop.tag_ids)
-        return features
-
-    @staticmethod
-    def _append(rows, label, value):
-        if value:
-            rows.append((label, value))
-
-    @staticmethod
-    def _sel_label(prop, field_name):
-        value = getattr(prop, field_name, False)
-        if not value:
-            return None
-        key = cast(str, value)
-        selection = prop._fields[field_name].selection
-        if callable(selection):
-            selection = selection(prop)
-        items = cast(list[tuple[str, str]], selection)
-        return dict(items).get(key)

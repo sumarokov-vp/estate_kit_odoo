@@ -1,7 +1,7 @@
 title: Плашки «Тип / Статус» над заголовком публичной карточки
-status: open
+status: done
 created_at: 20.05.2026
-completed_at: null
+completed_at: 05.06.2026
 
 description: |
   У конкурента (dars-capital.kz/property/31) над заголовком объекта расположены
@@ -31,4 +31,22 @@ recommendation: |
   на модерации) — карточка должна возвращать 404 на уровне контроллера,
   а не показывать плашку. Проверить текущую логику доступа в контроллере.
 
-solution: null
+solution: |
+  Плашки тип/статус над заголовком:
+  - type_label_resolver.py — label типа объекта (Квартира/Дом/Таунхаус/Коммерция/Земля).
+  - state_badges.py + state_badge_builder.py — маппинг state→{"label","kind"}:
+    active/published/mls_listed → «В продаже» (kind=active, зелёный);
+    sold/mls_sold → «Продан» (kind=sold, серый);
+    unpublished/mls_removed → «Снят» (kind=withdrawn, жёлтый);
+    остальные → плашки статуса нет.
+  Шаблон: .badges над .title, type — outline, статус — цвет по kind.
+
+  Политика видимости (404): по согласованию с пользователем выбран строгий
+  вариант из задачи. Контроллер view_page: _PUBLIC_STATES =
+  {active, published, unpublished, sold, mls_listed, mls_removed, mls_sold};
+  если prop.state не в whitelist → request.not_found(). Внутренние статусы
+  (черновик, internal_review, moderation, legal_review, rejected, duplicate,
+  imported, archived) публично не светятся.
+  ВНИМАНИЕ для деплоя: ранее разосланные клиентам ссылки на объекты в
+  неопубликованных статусах после обновления вернут 404 — это ожидаемое
+  поведение по требованию задачи.

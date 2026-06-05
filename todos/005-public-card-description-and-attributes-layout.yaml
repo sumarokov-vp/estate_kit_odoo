@@ -1,7 +1,7 @@
 title: Шаблон описания — связка поля description и EAV-атрибутов по разделам
-status: open
+status: done
 created_at: 20.05.2026
-completed_at: null
+completed_at: 05.06.2026
 
 description: |
   Сейчас в публичной карточке (`public_view_page`):
@@ -54,4 +54,17 @@ recommendation: |
   по архитектурному гайду проекта (фасад + реализация + конфиг разделов).
   Делегировать `python-architecture` агенту.
 
-solution: null
+solution: |
+  Описание + EAV-атрибуты по смысловым разделам:
+  - sections_layout.py — декларативный маппинг «атрибут→раздел»: Параметры (📐),
+    Территория (🌿, для house/townhouse/land), Комфорт (🛋), Безопасность (🔒),
+    Коммуникации (⚙️). Пустые ряды/разделы пропускаются.
+  - section_row_resolver.py + sections_builder.py — сборка rows (label,value),
+    селекшены через selection_labeler.py, булевы → «Да».
+  - Контроллер отдаёт values["sections"] = list[{"title","icon","rows"}].
+  Шаблон: блок description рендерится первым (увеличенный шрифт/межстрочный),
+  ниже — «Особенности» (chip-список features), затем цикл по sections —
+  каждый раздел отдельной карточкой с иконкой, заголовком и .specs-таблицей.
+  Плоский блок «Характеристики» (characteristics) удалён, ключ убран из values.
+  Сервисная архитектура — по гайду проекта (фасад public_card_renderer +
+  реализации + protocols/ + factory), сделана агентом python-architecture.

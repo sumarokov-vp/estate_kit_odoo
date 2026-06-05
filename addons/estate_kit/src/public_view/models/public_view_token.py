@@ -31,6 +31,13 @@ class EstatePropertyPublicViewToken(models.Model):
         return UrlBuilderFactory.create(self.env).public_view_url(record.token)
 
     @api.model
+    def get_or_create_token(self, property_id, ttl_days=_DEFAULT_TTL_DAYS):
+        record = self._find_active(property_id)
+        if not record:
+            record = self._create_token(property_id, ttl_days)
+        return record.token
+
+    @api.model
     def regenerate_url(self, property_id, ttl_days=_DEFAULT_TTL_DAYS):
         self.search([("property_id", "=", property_id)]).write({"is_active": False})
         record = self._create_token(property_id, ttl_days)

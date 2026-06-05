@@ -1,7 +1,7 @@
 title: Hero-стрип ключевых метрик в публичной карточке объекта
-status: open
+status: done
 created_at: 20.05.2026
-completed_at: null
+completed_at: 05.06.2026
 
 description: |
   В публичной карточке объекта (`addons/estate_kit/views/public_view_templates.xml`,
@@ -28,4 +28,15 @@ recommendation: |
   Стили — inline в существующем `<style>` блоке шаблона, чтобы не плодить новые
   ассеты. CSS grid из 4 колонок, на мобильных — 2 колонки.
 
-solution: null
+solution: |
+  Hero-стрип метрик реализован в сервисе public_card_renderer:
+  - metrics_layout.py — декларативное описание до 4 метрик на property_type
+    (apartment: Площадь/Комнаты/Этаж/Год; house+townhouse: Площадь дома/Комнаты/
+    Участок/Этажность; commercial: Площадь/Этаж/Назначение/Год;
+    land: Площадь участка/Назначение/Коммуникации).
+  - metric_value_resolver.py + metrics_builder.py — резолв значений, пустые
+    метрики пропускаются.
+  Контроллер отдаёт values["metrics"] = list[{"label","value"}].
+  Шаблон public_view_templates.xml: блок .metrics (CSS grid, --cols по числу
+  метрик, крупные числа + капс-подписи, вертикальные разделители; на мобильных
+  2 колонки). Размещён под заголовком/адресом до галереи.

@@ -1,0 +1,24 @@
+title: Дедупликация форматтеров адреса и цены в публичной карточке
+status: open
+created_at: 05.06.2026
+completed_at: null
+
+description: |
+  Логика форматирования адреса и цены объекта продублирована в двух местах:
+  - `addons/estate_kit/src/public_view/controllers/view.py`
+    (`_build_address`, `_format_price` — для главного объекта карточки)
+  - `addons/estate_kit/src/public_view/services/similar_card_builder/`
+    (`AddressFormatter`, `PriceFormatter` — для карточек похожих объектов)
+
+  Дублирование появилось при рефакторинге публичной карточки (редизайн):
+  контроллеру нужно отдать `address`/`price_text` для главного объекта «как было»,
+  а сервис `similar_card_builder` форматирует адрес/цену для каждого похожего
+  объекта. Формулы идентичны.
+
+recommendation: |
+  Вынести `AddressFormatter` и `PriceFormatter` в общий сервис (например
+  `src/public_view/services/property_presentation/` или переиспользовать существующий
+  `AddressService` из домена property для адреса), и заставить контроллер получать
+  `address`/`price_text` через тот же форматтер, что и similar-карточки.
+  Тогда тонкие статические хелперы `_build_address`/`_format_price` уйдут из контроллера.
+  Не делать в рамках задачи редизайна — отдельный рефактор после стабилизации шаблона.

@@ -1,7 +1,7 @@
 title: Блок «Похожие объекты» в публичной карточке
-status: open
+status: done
 created_at: 20.05.2026
-completed_at: null
+completed_at: 05.06.2026
 
 description: |
   У конкурента (dars-capital.kz/property/31) внизу карточки — блок «Похожие
@@ -49,4 +49,24 @@ recommendation: |
   конкурента: фото, ниже заголовок, ниже строка «район», ниже цена жирно,
   ниже строка «площадь м² • участок Х сот.».
 
-solution: null
+solution: |
+  Блок «Похожие объекты» — подбор на стороне Odoo (без EstateKit API, без CRM):
+  - Сервис src/property/services/similar_picker/ (фасад pick(prop, limit=6)):
+      candidate_provider.py — ORM-поиск кандидатов: тот же property_type, тот же
+        city_id, state ∈ {active, published, mls_listed}, id != prop.id;
+      similarity_scorer.py + proximity_calculator.py — взвешенный скоринг
+        (тот же район, цена ±25%, площадь ±20%, комнаты ±1 для жилья);
+      ranker.py — сортировка по убыванию score, топ-limit.
+      Веса/ACTIVE_STATES/RESIDENTIAL_TYPES — в config.py.
+  - Сервис src/public_view/services/similar_card_builder/ (build(properties)) —
+    презентация: url (публичная страница похожего через get_or_create_url),
+    image_url (thumb главного фото через get_or_create_token, None если нет фото),
+    title, address, price, specs «N м² • K комн.».
+  - Добавлен метод get_or_create_token на модель токена (возвращает строку).
+  Шаблон: блок .similar-grid (3 карточки на десктопе, 2 на планшете, 1 на
+  мобильных) на всю ширину под двухколоночным макетом.
+
+  ОТКЛОНЕНИЕ ОТ ЗАДАЧИ: кнопка «Смотреть все» НЕ добавлена — в модуле нет
+  публичной страницы-листинга объектов, ссылка вела бы в никуда (риск битой
+  ссылки перед клиентом). Показываем топ-N без «Смотреть все». Если понадобится —
+  отдельная задача на публичный листинг.
