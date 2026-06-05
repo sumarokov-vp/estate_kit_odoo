@@ -1,0 +1,34 @@
+title: Закрепить в модуле снятие дефолтного фильтра воронки CRM
+status: open
+created_at: 04.06.2026
+completed_at: null
+
+description: |
+  Стандартное действие воронки CRM (crm.crm_lead_action_pipeline, на проде
+  royal_estate это ir.actions.act_window id=212) имеет в context
+  'search_default_assigned_to_me': 1. Из-за этого менеджер по умолчанию видит
+  только заявки, где он сам — продавец, и воронка выглядит пустой, если заявки
+  назначены на других. Менеджеры с ролью Sales «All Documents» должны видеть всю
+  воронку команды сразу.
+
+  Сейчас фильтр убран ВРУЧНУЮ в БД на проде (context переписан на
+  {'default_type': 'opportunity', 'show_user_team_stages': 1}). Это нештатное
+  изменение стандартного действия модуля crm — при следующем апгрейде модуля crm
+  Odoo перезапишет context обратно, и фильтр вернётся.
+
+recommendation: |
+  Вынести переопределение в модуль estate_kit, чтобы изменение пережило апгрейды.
+  Добавить XML-record в data/ (и зарегистрировать файл в __manifest__.py):
+
+    <record id="crm.crm_lead_action_pipeline" model="ir.actions.act_window">
+      <field name="context">{'default_type': 'opportunity', 'show_user_team_stages': 1}</field>
+    </record>
+
+  После добавления — поднять версию модуля, задеплоить, обновить estate_kit (-u).
+  Проверить под учёткой менеджера (web_testing), что воронка открывается без
+  фильтра «Моя воронка» и показывает заявки команды.
+
+  Связано: см. память odoo19_group_assignment (кэш воркеров после смены прав,
+  членство в команде crm.team.member, ACL групп Sales 17/18).
+
+solution: null
