@@ -29,6 +29,8 @@
 
     <menuitem id="estate_menu_sources" name="Источники" parent="estate_menu_config" action="estate_source_action" sequence="20"/>
 
+    <menuitem id="estate_menu_contract_templates" name="Типы договоров" parent="estate_menu_config" action="estate_contract_template_action" sequence="22"/>
+
     <menuitem id="estate_menu_climate_equipment" name="Климатическое оборудование" parent="estate_menu_config" action="estate_climate_equipment_action" sequence="25"/>
 
     <menuitem id="estate_menu_appliances" name="Бытовая техника" parent="estate_menu_config" action="estate_appliance_action" sequence="30"/>

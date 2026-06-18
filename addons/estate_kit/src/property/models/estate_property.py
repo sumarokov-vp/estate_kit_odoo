@@ -1,4 +1,5 @@
 from odoo import api, fields, models
+from odoo.exceptions import UserError
 
 from ..services.locator import ServiceLocator
 
@@ -397,6 +398,10 @@ class EstateProperty(models.Model):
     contract_number = fields.Char(string="Номер договора")
     contract_start = fields.Date(string="Начало договора")
     contract_end = fields.Date(string="Окончание договора")
+    contract_template_id = fields.Many2one(
+        "estate.contract.template",
+        string="Тип договора",
+    )
 
     # === Ответственные ===
     user_id = fields.Many2one(
@@ -541,6 +546,40 @@ class EstateProperty(models.Model):
     def action_generate_contract_number(self):
         for record in self:
             record.contract_number = self.env["ir.sequence"].next_by_code("estate.property.contract")
+
+    # =========================================================================
+    # Actions — печать договора (Typst)
+    # =========================================================================
+
+    def _build_contract_data(self) -> dict:
+        return self._svc.contract_data.build(self)
+
+    def action_print_contract(self):
+        self.ensure_one()
+        if not self.contract_template_id:
+            raise UserError("Выберите тип договора перед печатью.")
+
+        template = self.contract_template_id
+        if not template.typst_file:
+            raise UserError("У выбранного типа договора не задан файл шаблона.")
+
+        data = self._build_contract_data()
+        pdf_bytes = self._svc.contract_renderer.render_pdf(template.typst_file, data)
+
+        filename = f"{template.code}_{self.id}.pdf"
+        attachment = self.env["ir.attachment"].create({
+            "name": filename,
+            "type": "binary",
+            "raw": pdf_bytes,
+            "mimetype": "application/pdf",
+            "res_model": "estate.property",
+            "res_id": self.id,
+        })
+        return {
+            "type": "ir.actions.act_url",
+            "url": f"/web/content/{attachment.id}?download=true",
+            "target": "self",
+        }
 
     def action_promote_imported_to_draft(self):
         self._svc.state_machine.promote_imported_to_draft(self)

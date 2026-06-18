@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .address.service import AddressService
     from .api_sync.service import ApiSyncService
+    from .contract_data.service import ContractDataService
+    from .contract_renderer.service import ContractRendererService
     from .district_detector.service import DistrictDetectorService
     from .krisha_import.service import KrishaImportService
     from .pool_rotation.service import PoolRotationService
@@ -68,6 +70,14 @@ class ServiceLocator:
     def krisha_import(self) -> KrishaImportService:
         return self._resolve("krisha_import")
 
+    @property
+    def contract_renderer(self) -> ContractRendererService:
+        return self._resolve("contract_renderer")
+
+    @property
+    def contract_data(self) -> ContractDataService:
+        return self._resolve("contract_data")
+
     def _resolve(self, name: str):
         if name not in self._cache:
             self._cache[name] = _FACTORIES[name](self._env)
@@ -124,6 +134,16 @@ def _create_krisha_import(env):
     return Factory.create(env)
 
 
+def _create_contract_renderer(env):
+    from .contract_renderer import Factory
+    return Factory.create(env)
+
+
+def _create_contract_data(env):
+    from .contract_data import Factory
+    return Factory.create(env)
+
+
 _FACTORIES: dict = {
     "state_machine": _create_state_machine,
     "tier_list": _create_tier_list,
@@ -135,4 +155,6 @@ _FACTORIES: dict = {
     "district_detector": _create_district_detector,
     "property_validator": _create_property_validator,
     "krisha_import": _create_krisha_import,
+    "contract_renderer": _create_contract_renderer,
+    "contract_data": _create_contract_data,
 }

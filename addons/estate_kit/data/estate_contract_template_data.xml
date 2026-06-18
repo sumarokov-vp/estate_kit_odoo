@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="contract_template_sale_buyer_search" model="estate.contract.template">
+        <field name="name">Услуги по поиску покупателя (продажа)</field>
+        <field name="code">sale_buyer_search</field>
+        <field name="typst_file">01_услуги_поиск_покупателя.typ</field>
+        <field name="sequence">10</field>
+    </record>
+</odoo>

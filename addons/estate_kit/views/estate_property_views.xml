@@ -218,6 +218,13 @@
                                     </div>
                                     <field name="contract_start"/>
                                     <field name="contract_end"/>
+                                    <field name="contract_template_id"/>
+                                    <button name="action_print_contract"
+                                            type="object"
+                                            string="Печать договора"
+                                            class="btn-link"
+                                            icon="fa-print"
+                                            invisible="not contract_template_id"/>
                                 </group>
                             </group>
                             <group>
