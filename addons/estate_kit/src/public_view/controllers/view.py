@@ -11,22 +11,11 @@ from ...property.services.public_card_renderer import (
 from ...property.services.similar_picker import Factory as SimilarPickerFactory
 from ...shared.services.image_service import Factory as ImageServiceFactory
 from ..services.similar_card_builder import Factory as SimilarCardBuilderFactory
+from ..services.stub_page_builder import Factory as StubPageBuilderFactory
 
 _logger = logging.getLogger(__name__)
 
 _MAIN_IMAGE_BIAS = -1000
-
-_PUBLIC_STATES = frozenset(
-    {
-        "active",
-        "published",
-        "unpublished",
-        "sold",
-        "mls_listed",
-        "mls_removed",
-        "mls_sold",
-    }
-)
 
 _SIMILAR_LIMIT = 6
 
@@ -41,15 +30,18 @@ class PublicViewController(http.Controller):
         csrf=False,
     )
     def view_page(self, token):
+        env = request.env
+        stub_builder = StubPageBuilderFactory.create(env)
+
         token_record = self._get_token(token)
         if not token_record:
-            return request.not_found()
+            return self._render_stub(stub_builder.build_for_invalid_link())
 
         prop = token_record.property_id
-        if prop.state not in _PUBLIC_STATES:
-            return request.not_found()
+        stub = stub_builder.build_for_property(prop)
+        if stub:
+            return self._render_stub(stub)
 
-        env = request.env
         card = PublicCardRendererFactory.create(env).render(prop, token)
         similar_recs = SimilarPickerFactory.create(env).pick(
             prop, limit=_SIMILAR_LIMIT
@@ -75,13 +67,7 @@ class PublicViewController(http.Controller):
             "contact": card.contact,
             "similar": similar,
         }
-        html = request.env["ir.qweb"]._render(
-            "estate_kit.public_view_page", values
-        )
-        return Response(
-            "<!DOCTYPE html>\n" + str(html),
-            content_type="text/html; charset=utf-8",
-        )
+        return self._render_page("estate_kit.public_view_page", values)
 
     @http.route(
         "/estate_kit/view/<string:token>/image/<int:image_id>",
@@ -106,7 +92,7 @@ class PublicViewController(http.Controller):
     def _serve_image(self, token, image_id, thumbnail):
         token_record = self._get_token(token)
         if not token_record:
-            return request.not_found()
+            raise request.not_found()
 
         image = (
             request.env["estate.property.image"]
@@ -120,7 +106,7 @@ class PublicViewController(http.Controller):
             )
         )
         if not image:
-            return request.not_found()
+            raise request.not_found()
 
         if thumbnail:
             key = image.thumbnail_key or image.image_key
@@ -128,12 +114,12 @@ class PublicViewController(http.Controller):
             key = image.image_key or image.thumbnail_key
 
         if not key:
-            return request.not_found()
+            raise request.not_found()
 
         client = ImageServiceFactory.create(request.env)
         result = client.download(key)
         if not result:
-            return request.not_found()
+            raise request.not_found()
 
         data, content_type = result
         return Response(
@@ -142,6 +128,24 @@ class PublicViewController(http.Controller):
             headers={
                 "Cache-Control": "public, max-age=3600",
             },
+        )
+
+    @classmethod
+    def _render_stub(cls, stub):
+        company_name, company_logo = cls._company_info()
+        values = {
+            "stub": stub,
+            "company_name": company_name,
+            "company_logo": company_logo,
+        }
+        return cls._render_page("estate_kit.public_view_stub", values)
+
+    @staticmethod
+    def _render_page(template, values):
+        html = request.env["ir.qweb"]._render(template, values)
+        return Response(
+            "<!DOCTYPE html>\n" + str(html),
+            content_type="text/html; charset=utf-8",
         )
 
     def _get_token(self, token):

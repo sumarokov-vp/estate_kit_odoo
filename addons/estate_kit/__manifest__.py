@@ -1,6 +1,6 @@
 {
     "name": "Estate Kit",
-    "version": "19.0.1.29.0",
+    "version": "19.0.1.30.0",
     "category": "Real Estate",
     "summary": "Manage real estate properties",
     "description": """

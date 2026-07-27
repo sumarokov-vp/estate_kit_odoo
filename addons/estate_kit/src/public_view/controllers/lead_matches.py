@@ -16,7 +16,7 @@ class LeadMatchesController(http.Controller):
     def lead_matches_page(self, token):
         lead = self._get_lead(token)
         if not lead:
-            return request.not_found()
+            raise request.not_found()
 
         items = self._collect_items(lead)
         company_name, company_logo = self._company_info()

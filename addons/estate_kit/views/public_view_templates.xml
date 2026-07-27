@@ -731,4 +731,186 @@
             </body>
         </html>
     </template>
+
+    <template id="public_view_stub" name="Estate Kit Public View Stub">
+        <html lang="ru">
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <meta name="robots" content="noindex, nofollow"/>
+                <title t-esc="stub.title"/>
+                <style>
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
+                    body {
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                                     Roboto, "Helvetica Neue", sans-serif;
+                        background: #f5f5f7;
+                        color: #1d1d1f;
+                        min-height: 100vh;
+                        display: flex;
+                        flex-direction: column;
+                        -webkit-font-smoothing: antialiased;
+                    }
+                    a { color: inherit; text-decoration: none; }
+
+                    .header {
+                        background: #714B67;
+                        color: #fff;
+                        padding: 14px 20px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 12px;
+                        font-weight: 600;
+                        font-size: 1.05rem;
+                    }
+                    .header .logo {
+                        height: 36px;
+                        width: auto;
+                        max-width: 120px;
+                        object-fit: contain;
+                        background: #fff;
+                        border-radius: 6px;
+                        padding: 4px;
+                        flex-shrink: 0;
+                    }
+
+                    .wrap {
+                        flex: 1;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        padding: 32px 16px;
+                    }
+                    .card {
+                        background: #fff;
+                        border-radius: 16px;
+                        box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+                        padding: 40px 32px 32px;
+                        max-width: 460px;
+                        width: 100%;
+                        text-align: center;
+                    }
+
+                    .icon {
+                        width: 76px;
+                        height: 76px;
+                        border-radius: 50%;
+                        margin: 0 auto 22px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    .icon svg { width: 36px; height: 36px; }
+                    .icon.sold { background: #ececef; color: #6b6b72; }
+                    .icon.withdrawn { background: #f7f0dc; color: #9a7b1f; }
+                    .icon.pending { background: #e8eefc; color: #3f68c4; }
+                    .icon.invalid { background: #fbeaea; color: #b3413d; }
+
+                    .title {
+                        font-size: 1.45rem;
+                        font-weight: 600;
+                        line-height: 1.3;
+                        margin-bottom: 12px;
+                    }
+                    .message {
+                        color: #666;
+                        font-size: 1rem;
+                        line-height: 1.55;
+                    }
+
+                    .contact {
+                        margin-top: 28px;
+                        padding-top: 24px;
+                        border-top: 1px solid #f0f0f2;
+                    }
+                    .contact .who {
+                        color: #888;
+                        font-size: 0.85rem;
+                        text-transform: uppercase;
+                        letter-spacing: 0.06em;
+                        margin-bottom: 6px;
+                    }
+                    .contact .name {
+                        font-size: 1.05rem;
+                        font-weight: 600;
+                        margin-bottom: 16px;
+                    }
+                    .cta {
+                        display: block;
+                        background: #714B67;
+                        color: #fff;
+                        padding: 13px 18px;
+                        border-radius: 10px;
+                        font-weight: 600;
+                        font-size: 1rem;
+                    }
+
+                    .footer {
+                        text-align: center;
+                        color: #999;
+                        font-size: 0.85rem;
+                        padding: 0 16px 24px;
+                    }
+
+                    @media (max-width: 640px) {
+                        .card { padding: 32px 22px 26px; border-radius: 14px; }
+                        .title { font-size: 1.25rem; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <img t-if="company_logo" t-att-src="company_logo" alt="" class="logo"/>
+                    <span><t t-esc="company_name"/></span>
+                </div>
+
+                <div class="wrap">
+                    <div class="card">
+                        <div t-att-class="'icon ' + stub.kind">
+                            <svg t-if="stub.kind == 'sold'" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 6 9 17l-5-5"/>
+                            </svg>
+                            <svg t-if="stub.kind == 'withdrawn'" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M10 9v6M14 9v6"/>
+                            </svg>
+                            <svg t-if="stub.kind == 'pending'" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 7v5l3 2"/>
+                            </svg>
+                            <svg t-if="stub.kind == 'invalid'" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2"
+                                 stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="9"/>
+                                <path d="M12 7v6"/>
+                                <path d="M12 16.5v.5"/>
+                            </svg>
+                        </div>
+
+                        <div class="title"><t t-esc="stub.title"/></div>
+                        <div class="message"><t t-esc="stub.message"/></div>
+
+                        <div class="contact" t-if="stub.contact.get('tel_href')">
+                            <div class="who">Ваш агент</div>
+                            <div class="name" t-if="stub.contact.get('name')">
+                                <t t-esc="stub.contact['name']"/>
+                            </div>
+                            <a class="cta" t-att-href="stub.contact['tel_href']">
+                                Позвонить<t t-if="stub.contact.get('phone')">: <t t-esc="stub.contact['phone']"/></t>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="footer">© <t t-esc="company_name"/></div>
+            </body>
+        </html>
+    </template>
 </odoo>
