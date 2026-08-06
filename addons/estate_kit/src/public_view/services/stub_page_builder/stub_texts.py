@@ -1,7 +1,5 @@
 from .stub_page import StubText
 
-PUBLIC_STATES = frozenset({"active", "published", "mls_listed"})
-
 SOLD = StubText(
     kind="sold",
     title="Объект продан",
@@ -17,15 +15,6 @@ WITHDRAWN = StubText(
     message=(
         "Объект временно снят с продажи. "
         "Свяжитесь с агентом — он расскажет о статусе и похожих предложениях."
-    ),
-)
-
-PENDING = StubText(
-    kind="pending",
-    title="Объект временно недоступен",
-    message=(
-        "Карточка объекта сейчас недоступна для просмотра. "
-        "Свяжитесь с агентом — он поделится актуальной информацией."
     ),
 )
 
