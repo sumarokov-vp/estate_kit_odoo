@@ -4,6 +4,7 @@ import logging
 from markupsafe import Markup
 from odoo import http
 from odoo.http import Response, request
+from werkzeug.utils import redirect as _wz_redirect
 
 from ...property.services.public_card_renderer import (
     Factory as PublicCardRendererFactory,
@@ -101,7 +102,25 @@ class PublicViewController(http.Controller):
     def view_thumbnail(self, token, image_id):
         return self._serve_image(token, image_id, thumbnail=True)
 
-    def _serve_image(self, token, image_id, thumbnail):
+    @http.route(
+        "/estate_kit/view/<string:token>/video/<int:image_id>",
+        type="http",
+        auth="none",
+        methods=["GET"],
+        csrf=False,
+    )
+    def view_video(self, token, image_id):
+        image = self._find_image(token, image_id)
+        if not image.video_key:
+            raise request.not_found()
+
+        url = ImageServiceFactory.create(request.env).get_video_url(image.video_key)
+        if not url:
+            raise request.not_found()
+
+        return _wz_redirect(url, code=302)
+
+    def _find_image(self, token, image_id):
         token_record = self._get_token(token)
         if not token_record:
             raise request.not_found()
@@ -119,11 +138,15 @@ class PublicViewController(http.Controller):
         )
         if not image:
             raise request.not_found()
+        return image
+
+    def _serve_image(self, token, image_id, thumbnail):
+        image = self._find_image(token, image_id)
 
         if thumbnail:
-            key = image.thumbnail_key or image.image_key
+            key = image.thumbnail_key or image.image_key or image.poster_key
         else:
-            key = image.image_key or image.thumbnail_key
+            key = image.image_key or image.thumbnail_key or image.poster_key
 
         if not key:
             raise request.not_found()
