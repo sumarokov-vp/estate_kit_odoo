@@ -19,6 +19,15 @@ _MAIN_IMAGE_BIAS = -1000
 
 _SIMILAR_LIMIT = 6
 
+_MAP_ZOOM = 17
+
+_MAP_EMBED_URL = (
+    "https://yandex.kz/map-widget/v1/"
+    "?ll={lon},{lat}&z={zoom}&pt={lon},{lat},pm2rdm&lang=ru_RU"
+)
+
+_MAP_EXTERNAL_URL = "https://2gis.kz/geo/{lon},{lat}"
+
 
 class PublicViewController(http.Controller):
 
@@ -66,6 +75,7 @@ class PublicViewController(http.Controller):
             "features": card.features,
             "contact": card.contact,
             "similar": similar,
+            "map_links": self._map_links(prop),
         }
         return self._render_page("estate_kit.public_view_page", values)
 
@@ -178,6 +188,19 @@ class PublicViewController(http.Controller):
         if position == "before":
             return f"{symbol} {amount}".strip()
         return f"{amount} {symbol}".strip()
+
+    @staticmethod
+    def _map_links(prop):
+        if not prop.latitude or not prop.longitude:
+            return None
+        coords = {
+            "lat": f"{prop.latitude:.7f}".rstrip("0").rstrip("."),
+            "lon": f"{prop.longitude:.7f}".rstrip("0").rstrip("."),
+        }
+        return {
+            "embed_url": _MAP_EMBED_URL.format(zoom=_MAP_ZOOM, **coords),
+            "external_url": _MAP_EXTERNAL_URL.format(**coords),
+        }
 
     @staticmethod
     def _sorted_images(prop):
