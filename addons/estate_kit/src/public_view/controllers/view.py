@@ -10,6 +10,7 @@ from ...property.services.public_card_renderer import (
 )
 from ...property.services.similar_picker import Factory as SimilarPickerFactory
 from ...shared.services.image_service import Factory as ImageServiceFactory
+from ..services.property_presenter import Factory as PropertyPresenterFactory
 from ..services.similar_card_builder import Factory as SimilarCardBuilderFactory
 from ..services.stub_page_builder import Factory as StubPageBuilderFactory
 
@@ -57,13 +58,14 @@ class PublicViewController(http.Controller):
         )
         similar = SimilarCardBuilderFactory.create(env).build(similar_recs)
 
+        presenter = PropertyPresenterFactory.create(env)
         images = self._sorted_images(prop)
         company_name, company_logo = self._company_info()
         values = {
             "property": prop,
             "token": token,
-            "address": self._build_address(prop),
-            "price_text": self._format_price(prop),
+            "address": presenter.address(prop),
+            "price_text": presenter.price_text(prop),
             "images": images,
             "images_json": Markup(self._images_json(token, images)),
             "company_name": company_name,
@@ -164,30 +166,6 @@ class PublicViewController(http.Controller):
             .sudo()
             ._validate_token(token)
         )
-
-    @staticmethod
-    def _build_address(prop):
-        parts = []
-        if prop.city_id:
-            parts.append(prop.city_id.name)
-        if prop.district_id:
-            parts.append(prop.district_id.name)
-        if prop.street_id:
-            parts.append(prop.street_id.name)
-        if prop.house_number:
-            parts.append(prop.house_number)
-        return ", ".join(p for p in parts if p)
-
-    @staticmethod
-    def _format_price(prop):
-        if not prop.price:
-            return ""
-        symbol = prop.currency_id.symbol or ""
-        position = prop.currency_id.position or "after"
-        amount = f"{prop.price:,.0f}".replace(",", " ")
-        if position == "before":
-            return f"{symbol} {amount}".strip()
-        return f"{amount} {symbol}".strip()
 
     @staticmethod
     def _map_links(prop):
