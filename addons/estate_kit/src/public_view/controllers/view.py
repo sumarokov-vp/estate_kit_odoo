@@ -211,13 +211,16 @@ class PublicViewController(http.Controller):
 
     @staticmethod
     def _images_json(token, images):
-        data = [
-            {
+        data = []
+        for img in images:
+            item = {
+                "kind": "video" if img.media_type == "video" else "image",
                 "full": f"/estate_kit/view/{token}/image/{img.id}",
                 "thumb": f"/estate_kit/view/{token}/thumb/{img.id}",
             }
-            for img in images
-        ]
+            if item["kind"] == "video":
+                item["video"] = f"/estate_kit/view/{token}/video/{img.id}"
+            data.append(item)
         return json.dumps(data)
 
     @staticmethod
